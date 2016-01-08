@@ -2,7 +2,10 @@
 title: "Alpine Phenology"
 author: "M. DePrenger-Levin and RA Hufft"
 date: "August 28, 2015"
-output: word_document
+output:
+  word_document: default
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 If you need these packages
@@ -29,7 +32,7 @@ Bring csv in from the website
 I get an error: `Error in str.default(obj, ...) : invalid multibyte string 2` but will see if it matters...   
 looks like it's the lat long that didn't get in correctly
 ```{r, echo=FALSE}
-bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/rahufft/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv"))
+bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv"))
 
 head(bloom)
 ```
@@ -61,12 +64,12 @@ temperature below which the process of interest does not progress
 $$GDD = \frac{T_{MAX} + T_{MIN}}{2} - T_{BASE}$$   
 
 
-
+# not really GDD... 
 ```{r}
 Tbase <- -10
 bloom$GDD2 <- (bloom$Avg_Hi + bloom$Avg_Lo)/2 - Tbase 
 
-cumsum(bloom$GDD2) # need by day not by species, same data per species
+#cumsum(bloom$GDD2) # need by day not by species, same data per species
 
 
 ```
@@ -583,7 +586,7 @@ ggplot(sig.in.merge, aes(Avg_Lo,startDayOfYear))+
 
 # extract climate data from .bil file time series    
 <https://github.com/ropensci/prism>  
-```{r}
+```{r, eval=FALSE}
 # slice out only elevations above 10,500" (3200m)
 latlongs <- read.delim(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Sampling Points/LatLongabove3200m.txt"), sep=",")
 
@@ -693,7 +696,7 @@ head(avgTemps[[1]])
 ```
 
 Could limit days to months before latest of the earliest bloom days... 
-```{r Temp data}
+```{r Temp data, eval=FALSE}
 # raster and extract
 maxs <- grep("tmax", ls_prism_data(absPath=TRUE)[,2])
 mins <- grep("tmin", ls_prism_data(absPath=TRUE)[,2], value=TRUE)
@@ -712,7 +715,7 @@ avgTemps.min <- lapply(mins, function(x){
 })
 ```
 
-```{r}
+```{r, eval=FALSE}
 nrow(latlongs)
 # they all got pulled out!!! yay!!
 nrow(avgTemps.min[[1]])
@@ -752,7 +755,7 @@ Calculate cumulative HDD per year
 10 celsius is 50 fahrenheit   
 5 celsius is 41  
 Gordon and Bootsma (1993)   
-```{r}
+```{r, eval=FALSE}
 tbase <- 5
 
 HDD <- sapply(unique(temps$Year), function(year){
@@ -770,7 +773,7 @@ temps$HDD <- HDD
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 ggplot(temps, aes(Julian, HDD))+
   geom_line()+
   facet_wrap(~Year)
