@@ -1,0 +1,788 @@
+---
+title: "Alpine Phenology"
+author: "M. DePrenger-Levin and RA Hufft"
+date: "August 28, 2015"
+output: word_document
+---
+
+If you need these packages
+`install.packages("RCurl")`      
+`install.packages("ggplot2")`     
+`install.packages("data.table")`
+'install.packages("curl")'
+install.packages("Rcpp")
+
+#Try a `rm(list=ls())` before running
+
+```{r}
+library(RCurl)
+library(ggplot2)
+library(data.table)
+library(raster)
+require(rgdal)
+library(devtools)
+# devtools::install_github("ropensci/prism")
+library(prism)
+```
+
+Bring csv in from the website
+I get an error: `Error in str.default(obj, ...) : invalid multibyte string 2` but will see if it matters...   
+looks like it's the lat long that didn't get in correctly
+```{r, echo=FALSE}
+bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/rahufft/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv"))
+
+head(bloom)
+```
+
+If not working to load from github:
+```{r}
+#bloom<-read.csv(path.expand("P:/alpine-phenology/QR_final_R_plant_climate_data.csv"))
+
+#Bring in Q/All.Projects_by_species/aa_Spapefiles_Maps/aa_QGIS Projects/AlpinePhenologyproject/
+
+#bloom<-read.csv(path.expand("P:/alpine-phenology/TB_tempPrecipData.csv"),        
+#                header = TRUE, as.is=TRUE)   
+```
+
+# Add growing degree days   
+White etal 2015     
+Cumulative Growing Degree Days 
+$\sum_{i=1}^{n} \left(T_{mean} - T_{base})$   
+$T_{base}$ should be the lowest air temperature when flowering will occur    
+Temperature Threshold and GDD models...
+    
+    
+In the csv Tbase is 10, not negative 10. Which is correct?     
+ McMaster and Wilhelm 1997:      
+Tbase = -10    
+Corn $T_{base} = 10$   
+Winter wheat $T_{base} = 0$   
+temperature below which the process of interest does not progress
+$$GDD = \frac{T_{MAX} + T_{MIN}}{2} - T_{BASE}$$   
+
+
+
+```{r}
+Tbase <- -10
+bloom$GDD2 <- (bloom$Avg_Hi + bloom$Avg_Lo)/2 - Tbase 
+
+cumsum(bloom$GDD2) # need by day not by species, same data per species
+
+
+```
+
+
+```{r}
+#created new column that divides Raw_precip by 100 (see PRISM documentation) to get mm
+head(bloom)
+names(bloom)
+str(bloom)  #tells me column name, data type and examples, errors in lat long when brought in from web
+
+#Climate data figures
+#This section runs linear regression on Avg High temp by Year
+#hist(bloom$Avg_Hi)
+plot(bloom$Year,bloom$Avg_Hi, main="Average High Temperature by Year",xlab="Year", ylab="Degrees Celsius")
+abline(lm(bloom$Avg_Hi~bloom$Year))
+summary(lm(bloom$Avg_Hi~bloom$Year))
+#plot(lm(bloom$Avg_Hi~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
+```
+
+```{r}
+#This section runs linear regression on Avg Low temp by Year
+#hist(bloom$Avg_Lo)
+plot(bloom$Year,bloom$Avg_Lo, main="Average Low Temperature by Year",xlab="Year", ylab="Degrees Celsius")
+abline(lm(bloom$Avg_Lo~bloom$Year))
+summary(lm(bloom$Avg_Lo~bloom$Year))
+#plot(lm(bloom$Avg_Lo~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
+```
+
+
+#This section runs linear regression on GDD by Year
+```{r}
+#hist(bloom$GDD)
+#hist(bloom$GDD2) #if Tbase is -10
+plot(bloom$Year,bloom$GDD, main="Average Growing Degree Days by Year",xlab="Year", ylab="Degrees Celsius")
+abline(lm(bloom$GDD~bloom$Year))
+summary(lm(bloom$GDD~bloom$Year))
+#plot(lm(bloom$Avg_Lo~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
+
+
+ggplot(bloom, aes(Year,GDD)) +
+  geom_point()+
+  stat_smooth() #uses loess()
+```
+
+```{r}
+
+#This section runs linear regression on Precipitation by Year
+hist(bloom$Raw_Precip)
+plot(bloom$Year,bloom$Raw_Precip, main="Precipitation by Year",xlab="Year", ylab="Precipitation (mm)")
+abline(lm(bloom$Raw_Precip~bloom$Year))
+summary(lm(bloom$Raw_Precip~bloom$Year))
+#plot(lm(bloom$Raw_Precip ~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
+```
+
+
+
+#Graph just the significant spp by year to see how many days earlier for these species that are showing a signal by year
+#re-run code that runs regressions on each species to create table to subset from
+#Limit all data to after 1949, 7220 obs. from table (7217 obs. from query in Access)
+```{r}
+
+bl50 <- subset(bloom, bloom$year_plant > 1949) #Our dataset already has this subset but re-running as a double check
+
+nrow(bl50)
+nrow(subset(bloom, bloom$year_plant > 1949))
+
+str(bl50)
+head(bl50)
+```
+
+
+```{r}
+ names <- unique(bl50$Scientific.Name)		# Names includes synonyms, sspListID contains unique taxa
+ namesID <- unique(bl50$sppListID)
+length(namesID)	# 290
+head(namesID)
+names(bl50)
+
+#There are multiple bloom dates per year for many species. Want to narrow down to one, earliest, per year
+head(table(bl50$sppListID, bl50$Year))
+
+collections<-data.frame(table(bl50$sppListID,bl50$Year))
+
+ggplot(collections, aes(Var2, Freq))+
+  geom_boxplot()+
+  stat_smooth()+
+  xlab("Year")+
+  ylab("Collections species")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))
+
+# collections per month
+collJ <- data.frame(table(bl50$sppListID, bl50$startDayOfYear))
+
+ggplot(collJ, aes(Var2, Freq, group =1))+
+  stat_smooth()+
+  xlab("Julian date")+
+  ylab("Collections per species")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))
+
+# collections getting 
+
+```
+
+
+Don't worry about bloom vs. bl50, they are identical... and other checks    
+```{r}
+#bl50 and bloom are the same
+identical(bl50, bloom)
+
+#There should be 290 species
+length(unique(bl50$sppListID))
+
+#Only need some columns of bloom:bl50 for minimum julian dates
+names(bl50[,c(4:5,11,19:28)])
+```
+
+
+Pull out the earliest bloom date per year per species
+## Break up the function into gathering the earliest bloom day per year seperate from regression per species
+## Earliest bloom date held in min.dates
+Aggregate instead of apply?
+Much faster and more corrector!
+```{r}
+
+minJul.dates <- lapply(unique(bl50$sppListID), function(x){
+  this.species <- bl50[bl50$sppListID == x,c(4:5,11,19:28)]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
+  })
+
+names(minJul.dates) <- unique(bl50$sppListID)
+
+head(minJul.dates[[219]])
+
+min.dates <- do.call(rbind,minJul.dates)
+
+head(table(min.dates$Year, min.dates$sppListID))
+
+```
+
+
+#Check that there is only one minimum date per year
+```{r}
+minpyear <- table(min.dates$Year, min.dates$sppListID)
+mpy.df <- data.frame(minpyear)
+mpy.df[mpy.df$Freq > 1,] #when we have ealiestBloomDate in the lapply, that's not unique so it picks a few duplicates, now fixed
+```
+
+```{r}
+library(psych)
+#cor.plot(cor(min.dates[,-(1:4)]), numbers = TRUE)
+# should keep Raw_Precip and Avg_Lo
+
+cor(min.dates[,-(1:4)])
+
+#getting a ggplot error of "Error in .Call.graphics(C_palette2, .Call(C_palette2, NULL)) : 
+#  invalid graphics state"
+
+#fix error by running dev.off()
+# dev.off()
+
+```
+
+
+ggplot option after subset to earliest observation per year per species    
+Avg high temperature    
+```{r}
+ggplot(min.dates, aes(Year,Avg_Hi))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab("Degrees Celsius")
+```
+
+```{r}
+ggplot(min.dates, aes(Avg_Hi, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab("Degrees Celsius")+
+  ylab("Julian Date")
+```
+
+Average low temperature
+```{r}
+ggplot(min.dates, aes(Year,Avg_Lo))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Low Temperature by Year")+
+  xlab("Year")+
+  ylab("Degrees Celsius")
+
+```
+
+```{r}
+ggplot(min.dates, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Low Temperature") +
+  xlab("Degrees Celsius")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Avg_Lo, data = min.dates))
+```
+
+
+
+Average precipitation
+```{r}
+ggplot(min.dates, aes(Year,Raw_Precip))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Precipitation by Year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")
+
+
+summary(lm(Raw_Precip~Year, data = min.dates))
+```
+
+```{r}
+ggplot(min.dates, aes(Raw_Precip, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Raw_Precip, data = min.dates))
+```
+
+## not real GDD!
+GDD    
+```{r}
+ggplot(min.dates, aes(Year,GDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Growing Degree Days by Year")+
+  xlab("Year")+
+  ylab("Growing Degree Day")
+
+
+summary(lm(GDD~Year, data = min.dates))
+```
+
+```{r}
+ggplot(min.dates, aes(GDD, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Growing Degree Days") +
+  xlab("GDD")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~GDD, data = min.dates))
+```
+
+
+### Minimum Julian bloom date by year
+```{r}
+ggplot(min.dates, aes(Year,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+summary(lm(min.dates$startDayOfYear~min.dates$Year))
+max(min.dates$startDayOfYear)
+```
+    
+    
+    
+Graph of all spp data by year using plot instead of ggplot
+
+```{r}
+#bloom<-read.csv(path.expand("P:/alpine-phenology/QR_final_R_plant_climate_data.csv"),        
+#                header = TRUE, as.is=TRUE)   
+hist(min.dates$startDayOfYear)#need to log transform data
+
+plot(min.dates$Year,min.dates$startDayOfYear, main="First Collection Date for All 
+Species",xlab="Year", ylab="Julian Date")
+abline(lm(min.dates$startDayOfYear~min.dates$Year))
+summary(lm(min.dates$startDayOfYear~min.dates$Year)) 
+#both intercept and slope significant. If include all data, the date of first collection is statistically earlier by 0.062563/year, or 3.75 days earlier over the course of the study period. 
+#plot(lm(bloom$startDayOfYear ~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
+```
+
+
+
+#Regression per species
+#updated regression loop to match pulling minimum dates above    
+The variable can be set to which variable you want to use. Choose from "Year", "Raw_Precip", "Avg_Hi", or "Avg_Lo"...    
+
+```{r}
+JulBloomDate <- function(variable){
+  namesID <- unique(min.dates$sppListID)
+  
+  #Which column number has the variable of interest
+  colnum <- match(variable,names(min.dates))
+  
+  JYC <- lapply(namesID, function(x){
+    blnew <- min.dates[min.dates$sppListID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    foo1$adj.r.squared))
+    })
+  
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+```
+
+
+# "Year" regression per species    
+
+```{r}
+yr.bl <- JulBloomDate("Year")
+
+head(yr.bl)
+#subset that signficantchange over time
+yr.sig <- yr.bl[yr.bl$p.value < 0.05,]
+
+#merge the significant species with the min.dates species
+yr.sig.min <- merge(yr.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+
+
+ggplot(yr.sig.min, aes(Year,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+summary(lm(yr.sig.min$startDayOfYear~yr.sig.min$Year))
+
+nrow(yr.sig) #53 species
+nrow(yr.sig[yr.sig$Slope > 0,]) # no species have later bloom dates over time
+nrow(yr.sig[yr.sig$adj.r.squ > 0.25,]) # 18 species have adj.r.squares over 0.25
+yr.sig[yr.sig$adj.r.squ > 0.25,]
+
+
+```
+
+
+
+# "Raw_Precip" regression per species    
+
+```{r}
+precip.bl <- JulBloomDate("Raw_Precip")
+
+head(precip.bl)
+#subset that signficant change by precipitation
+precip.sig <- precip.bl[precip.bl$p.value < 0.05,]
+
+#merge the significant species with the min.dates species
+precip.sig.min <- merge(precip.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+
+
+ggplot(precip.sig.min, aes(Raw_Precip,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by precipitation")+
+  xlab("Precipitation (mm)")+
+  ylab("Julian Date")
+
+ summary(lm(precip.sig.min$startDayOfYear~precip.sig.min$Year))
+
+
+
+```
+
+
+
+# "GDD" regression per species    
+
+```{r}
+gdd.bl <- JulBloomDate("GDD")
+
+head(gdd.bl)
+#subset that signficant change by GDD
+gdd.sig <- gdd.bl[gdd.bl$p.value < 0.05,]
+
+#merge the significant species with the min.dates species
+gdd.sig.min <- merge(gdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+
+
+ggplot(gdd.sig.min, aes(GDD,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by GDD")+
+  xlab("GDD")+
+  ylab("Julian Date")
+
+ summary(lm(gdd.sig.min$startDayOfYear~gdd.sig.min$Year))
+
+
+nrow(gdd.sig) #101 species
+nrow(gdd.sig[gdd.sig$Slope > 0,]) # no species have later bloom dates as the GDD increases
+
+```
+
+
+
+########## Columns that you can use to compare to earliest bloom date (taken from "startDayOfYear")
+              
+#[11] "startDayOfYear"   [20] "Raw_Precip"                 
+#[21] "Avg_Hi"                "Med_Hi"                      
+#[23] "Avg_Lo"                "Med_Lo"                       
+#[25] "Av_Temp"               "Med_Temp"       
+
+
+
+
+
+# multiple linear regression
+
+```{r}
+  namesID <- unique(min.dates$sppListID)
+  
+  ml.JYC <- lapply(namesID, function(x){
+    blnew <- min.dates[min.dates$sppListID == x,]
+    foo1 <- summary(lm(startDayOfYear~Raw_Precip*Avg_Lo, data = blnew))
+    jul.yr.coef <- data.frame(row.names(foo1$coefficients[-1,]),
+                              foo1$coefficients[-1,],
+                              foo1$coefficients[1,1],
+                              t(foo1$fstatistic),
+                              Species = blnew$Scientific.Name[1],
+                              foo1$adj.r.squared)
+    })
+  
+  ml.JYC <- do.call(rbind, ml.JYC)
+  colnames(ml.JYC) <- c("Variables", "Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  head(ml.JYC)
+
+sig.ml.JYC <- ml.JYC[ml.JYC$p.value < 0.05,]
+
+# there are 19 species significant for Avg_Lo, 15 for Raw_Precip, and 14 for the interaction 
+table(sig.ml.JYC$Variables)
+```
+
+
+# Species signficantly changing with the interaction of precipitation and low temperature
+```{r}
+sig.interaction.JYC <- ml.JYC[ml.JYC$p.value < 0.05 & ml.JYC$Variables == "Raw_Precip:Avg_Lo",]
+
+sig.in.merge <- merge(sig.interaction.JYC, min.dates, by.x = "Species",
+                      by.y = "Scientific.Name")
+
+
+ggplot(sig.in.merge, aes(Year,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+ summary(lm(startDayOfYear~Year, data = sig.in.merge))
+
+
+```
+
+# Signficant interaction species     
+Precip
+```{r}
+ggplot(sig.in.merge, aes(Raw_Precip,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Precipitation")+
+  xlab("Precipitation (mm)")+
+  ylab("Julian Date")
+
+ summary(lm(startDayOfYear~Raw_Precip, data = sig.in.merge))
+
+```
+
+
+```{r}
+ggplot(sig.in.merge, aes(Avg_Lo,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Low Temperature")+
+  xlab("Degrees Celcius")+
+  ylab("Julian Date")
+
+ summary(lm(startDayOfYear~Avg_Lo, data = sig.in.merge))
+
+```
+
+
+# extract climate data from .bil file time series    
+<https://github.com/ropensci/prism>  
+```{r}
+# slice out only elevations above 10,500" (3200m)
+latlongs <- read.delim(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Sampling Points/LatLongabove3200m.txt"), sep=",")
+
+ll <- mapply(FUN = function(x,y){
+  c(x,y)
+  },
+  latlongs$Long,latlongs$Lat
+  )
+
+head(latlongs)
+ll[,1]
+
+prism_slice(ll[,1],ls_prism_data()[3,1]) # picks one max temp at one point
+```
+
+Into Climate_MEDL
+```{r, eval=FALSE}
+options(prism.path = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Climate_MEDL")
+# takes a long long long time!!! Don't run again!
+ get_prism_dailys(type="tmin", 
+                 minDate = "1981-01-01", 
+                 maxDate = "2011-12-31", keepZip = FALSE)
+
+
+ls_prism_data()[3:13,]
+ls_prism_data(absPath = TRUE)[3:13,] #to see path to where they are
+ls_prism_data(name = TRUE)[3:13,] #details of the file
+prism_image(ls_prism_data()[3,1])
+
+ls_prism_data()[3,]
+
+
+```
+
+Into Climate_MEDL
+```{r, eval=FALSE}
+# error in download length != reported length
+options(prism.path = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Climate_MEDL")
+
+#get_prism_dailys(type="tmin", minDate = "1981-01-01", maxDate = "1981-02-01",
+#                 keepZip = FALSE, mode="wb") #but I don't think mode is a thing...
+
+
+# run 12/3/2015
+get_prism_dailys(type="tmax", 
+                 minDate = "1981-01-01", 
+                 maxDate = "2011-12-31", keepZip = FALSE)
+```
+
+
+Calculate average daily temperatures averaged over all locations above 3200m 10500"
+
+```{r, eval=FALSE}
+# combine by year
+sliceyear <- grep("1981",ls_prism_data()[,1],value = TRUE)
+sliceyear <- grep("tmin", sliceyear, value = TRUE) #only have tmin in this folder
+str(sliceyear)
+str(sliceyear[[1]][1])
+p <- prism_slice(c(-106.688031183,40.9074207425), sliceyear)
+prism_slice(ll[,1], sliceyear)
+p$data
+
+head(p$data)
+head(ll[,1:10])
+mean(p$data$data)
+
+# going through first 10 days of 1981
+ptest <- prism_slice(ll[,1],sliceyear[[1]][1:10]) 
+head(ptest)
+ptest$data
+
+length(ls_prism_data()[,1]) #22,644
+
+# test apply through a few points to get values for a mean
+test1981 <- lapply(1:5, function(y){
+  prism_slice(ll[,y], sliceyear[[1]][1:10])
+  })
+
+test1981[[1]]$data
+# data frame each $data part and then bind them
+test1981one <- do.call(rbind, lapply(test1981, function(x){
+  do.call(data.frame, x$data)
+  }))
+
+#aggregate for average over all the locations
+aggregate(data~date, data = test1981one, FUN = mean)
+
+length(ll) #2529 above 3200m points
+```
+
+```{r testing, eval=FALSE}
+# All the data held here
+options(prism.path = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Climate_MEDL")
+
+samplell <- sample(1:length(ll), 5)
+
+# raster instead of slice!
+avgTemps <- lapply(c(1:5,2000:2005), function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[1,2])
+  r2points <- data.frame(rasterToPoints(rastertemps))  # pulls out data from raster
+  r2p <- data.frame(r2points, colnames(r2points)[3])
+  merge(r2points, latlongs[,3:4], by.x = c("x","y"), by.y = c("Long","Lat"))
+})
+
+# no points match, that's silly!
+head(avgTemps[[1]])
+```
+
+Could limit days to months before latest of the earliest bloom days... 
+```{r Temp data}
+# raster and extract
+maxs <- grep("tmax", ls_prism_data(absPath=TRUE)[,2])
+mins <- grep("tmin", ls_prism_data(absPath=TRUE)[,2], value=TRUE)
+#Jan - Sept, exclude Oct, Nov, and Dec. Latest first bloom is 269 = Sept 26
+# exclude <- c("_[1-2][09][0-9][0-9][1][0]","_[1-2][09][0-9][0-9][1][1]","_[1-2][09][0-9][0-9][1][2]")
+mins <- grep("_[1-2][09][0-9][0-9][0][1-9]", mins)
+
+avgTemps.max <- lapply(maxs, function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rastertemps, latlongs[,c(4,3)]), date = ls_prism_data()[x,])
+})
+
+avgTemps.min <- lapply(mins, function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rastertemps, latlongs[,c(4,3)]), date = ls_prism_data()[x,])
+})
+```
+
+```{r}
+nrow(latlongs)
+# they all got pulled out!!! yay!!
+nrow(avgTemps.min[[1]])
+nrow(avgTemps.max[[1]])
+
+
+mins.avg <- do.call(rbind, avgTemps.min)
+meanmins <- aggregate(data~date, data = mins.avg, mean)
+maxs.avg <- do.call(rbind, avgTemps.max)
+meanmaxs <- aggregate(data~date, data = maxs.avg, mean)
+
+head(mins.avg)
+head(as.Date(substr(meanmins$date, 25, 32), "%Y%m%d"))
+
+# Make a day column
+meanmins$day <- as.Date(substr(meanmins$date, 25, 32), "%Y%m%d")
+meanmaxs$day <- as.Date(substr(meanmaxs$date, 25, 32), "%Y%m%d")
+
+# make a julian day column
+meanmins$Julian <- yday(meanmins$day)
+
+# merge min and max per day
+temps <- merge(meanmins, meanmaxs, by = "day")  #.x min, .y max
+temps$GDD cumsum(((max-min)/2)-base)
+temps$Julian <- yday(temps$day)
+
+#make a year column
+temps$Year <- as.numeric(format(temps$day, "%Y"))
+
+head(temps)
+
+ggplot(temps, aes(Julian, data.x))+
+  geom_line()
+```
+
+Calculate cumulative HDD per year   
+10 celsius is 50 fahrenheit   
+5 celsius is 41  
+Gordon and Bootsma (1993)   
+```{r}
+tbase <- 5
+
+HDD <- sapply(unique(temps$Year), function(year){
+  cumsum(sapply(grep(year, temps$Year), function(x){
+    if( (((temps$data.y[x] - temps$data.x[x])/2)-tbase) < tbase){
+      0
+      } else 
+        ((temps$data.y[x] - temps$data.x[x])/2)-tbase
+    }
+    ))
+  })
+
+
+temps$HDD <- HDD
+```
+
+
+```{r}
+ggplot(temps, aes(Julian, HDD))+
+  geom_line()+
+  facet_wrap(~Year)
+
+```
+
+
+## Can get worldclim data
+```{r}
+library(rgdal)
+
+w <- getData('worldclim', var='tmin', res=0.5, lon=5, lat=45)
+
+
+```
