@@ -99,8 +99,8 @@ summary(lm(bloom$Avg_Lo~bloom$Year))
 #plot(lm(bloom$Avg_Lo~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
 ```
 
-
-#This section runs linear regression on GDD by Year
+### not cumulative GDD
+### This section runs linear regression on GDD by Year
 ```{r}
 #hist(bloom$GDD)
 #hist(bloom$GDD2) #if Tbase is -10
@@ -247,6 +247,9 @@ ggplot(min.dates, aes(Year,Avg_Hi))+
   labs(title="Average High Temperature by Year")+
   xlab("Year")+
   ylab("Degrees Celsius")
+
+summary(lm(Avg_Hi~Year, data=min.dates))
+
 ```
 
 ```{r}
@@ -257,6 +260,8 @@ ggplot(min.dates, aes(Avg_Hi, startDayOfYear))+
   labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab("Degrees Celsius")+
   ylab("Julian Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=min.dates))
 ```
 
 Average low temperature
@@ -268,6 +273,8 @@ ggplot(min.dates, aes(Year,Avg_Lo))+
   labs(title="Average Low Temperature by Year")+
   xlab("Year")+
   ylab("Degrees Celsius")
+
+summary(lm(Avg_Lo~Year, data = min.dates))
 
 ```
 
@@ -721,7 +728,7 @@ avgTemps.min <- lapply(mins, function(x){
 })
 ```
 
-```{r, eval=FALSE}
+```{r}
 nrow(latlongs)
 # they all got pulled out!!! yay!!
 nrow(avgTemps.min[[1]])
@@ -803,20 +810,57 @@ head(min.dates)
 min.dates <- merge(min.dates, tmps, 
                    by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
+nrow(min.dates[complete.cases(min.dates),])
+nrow(min.dates)
+
 # HDD regression per species
 hdd.bl <- JulBloomDate("HDD")
+nrow(hdd.bl)
+nrow(hdd.bl[complete.cases(hdd.bl),]) # 2 rows with missing data? why!?
+hdd.bl[!complete.cases(hdd.bl),] # Kobresia schoenoides and Carex misandra
 
+hdd.bl <- hdd.bl[complete.cases(hdd.bl),]
 head(hdd.bl)
 hdd.sig <- hdd.bl[hdd.bl$p.value < 0.05,]
 
 #merge significant species iwth min.dates species
 hdd.sig.min <- merge(hdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
 
+
+nrow(hdd.sig) #278
+nrow(hdd.bl) #288
+hdd.bl[hdd.bl$p.value > 0.049,]
+
+
+
+```
+
+Average HDD? per year
+```{r}
+avg.HDD.yrs <- lapply(HDD.yrs, function(x){
+  mean(x)
+})
+
+avg.yrs <- do.call(c, avg.HDD.yrs)
+hddyrs <- cbind(Year=1981:2011, avgHDD = avg.yrs)
+
+
+ggplot(data.frame(hddyrs), aes(Year, avgHDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average cumulative HDD by Year")+
+  xlab("Year")+
+  ylab("Cumulative HDD")
+
+```
+
+```{r}
 ggplot(hdd.sig.min, aes(HDD,startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title= expression("HDD by Year, Tbase = 0"~degree*C))+
+  labs(title= expression("HDD with Tbase = 0"~degree*C))+
   xlab("GDD")+
   ylab("Julian Date")
 
@@ -824,16 +868,66 @@ summary(lm(hdd.sig.min$startDayOfYear~hdd.sig.min$HDD))
 
 ```
 
-```{r, eval=FALSE}
-ggplot(temps, aes(Julian, HDD))+
-  geom_line()+
-  facet_wrap(~Year)
+HDD with Tbase = 0$^\circ$C
+```{r}
+ggplot(min.dates, aes(as.factor(Year), HDD))+
+  geom_boxplot()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="HDD by Year")+
+  xlab("Year")+
+  ylab("HDD")
+
+```
+
+First bloom date by HDD for all species
+```{r}
+ggplot(min.dates, aes(HDD, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="First bloom by HDD")+
+  xlab("HDD")+
+  ylab("First bloom date")
+
+```
+
+Heating degree days 
+
+```{r}
+ggplot(min.dates, aes(Year,HDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="HDD for each first bloom day")+
+  xlab("Year")+
+  ylab("HDD")
+```
+
+```{r}
+ggplot(min.dates, aes(HDD, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by HDD")+
+  xlab("HDD")+
+  ylab("Julian Date")
+```
+
+
+# Match herbarium data with NPN data
+```{r}
+
+
+
 
 ```
 
 
+
+
 ## Can get worldclim data
-```{r}
+```{r, eval=FALSE}
 library(rgdal)
 
 w <- getData('worldclim', var='tmin', res=0.5, lon=5, lat=45)
