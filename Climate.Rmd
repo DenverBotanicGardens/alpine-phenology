@@ -636,6 +636,12 @@ get_prism_dailys(type="tmax",
                  maxDate = "2011-12-31", keepZip = FALSE)
 ```
 
+```{r}
+
+
+```
+
+
 
 Calculate average daily temperatures averaged over all locations above 3200m 10500"
 
@@ -736,19 +742,22 @@ meanmaxs$day <- as.Date(substr(meanmaxs$date, 25, 32), "%Y%m%d")
 
 # make a julian day column
 meanmins$Julian <- yday(meanmins$day)
+meanmaxs$Julian <- yday(meanmaxs$day)
 
 # merge min and max per day
 temps <- merge(meanmins, meanmaxs, by = "day")  #.x min, .y max
-temps$GDD cumsum(((max-min)/2)-base)
-temps$Julian <- yday(temps$day)
+tmps <- temps[,c(1,3:4,6)]
+names(tmps) <- c("day","tmin","Julian","tmax")
+
 
 #make a year column
-temps$Year <- as.numeric(format(temps$day, "%Y"))
+tmps$Year <- as.numeric(format(temps$day, "%Y"))
 
-head(temps)
+head(tmps)
 
-ggplot(temps, aes(Julian, data.x))+
-  geom_line()
+ggplot(tmps, aes(as.factor(Year)))+
+  geom_boxplot(aes(y=tmin, colour = "red"))+
+  geom_boxplot(aes(y=tmax, colour = "blue"))
 ```
 
 Calculate cumulative HDD per year   
@@ -756,22 +765,64 @@ Calculate cumulative HDD per year
 5 celsius is 41  
 Gordon and Bootsma (1993)   
 ```{r, eval=FALSE}
-tbase <- 5
+tbase <- 0
 
-HDD <- sapply(unique(temps$Year), function(year){
-  cumsum(sapply(grep(year, temps$Year), function(x){
-    if( (((temps$data.y[x] - temps$data.x[x])/2)-tbase) < tbase){
+cumsum(((tmps$tmax-tmps$tmin)/2)-5)
+
+HDD <- sapply(unique(tmps$Year), function(year){
+  sapply(grep(year, tmps$Year), function(x){
+    if( (((tmps$tmax[x] - tmps$tmin[x])/2)-tbase) < tbase){
       0
-      } else 
-        ((temps$data.y[x] - temps$data.x[x])/2)-tbase
-    }
-    ))
+      } else {
+        ((tmps$tmax[x] - tmps$tmin[x])/2)-tbase
+        }
+    })
   })
 
+# now have daily HDD, need to cumsum each year, which is each list. 
+head(HDD)
 
-temps$HDD <- HDD
+HDD.yrs <- lapply(HDD, function(x){
+  cumsum(x)
+})
+  
+head(HDD.yrs[[1]])
+HDD.all <- do.call(c,HDD.yrs)
+tmps$HDD <- HDD.all
+head(tmps)
+tail(tmps)
 ```
 
+Combine HDD per Julian day for 1981 through 2011 with herbarium data
+```{r}
+# remove two attempts at not real HDD
+min.dates <- min.dates[,-c((length(min.dates)-1):length(min.dates))]
+head(min.dates)
+
+#assign real HDD
+min.dates <- merge(min.dates, tmps, 
+                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
+
+# HDD regression per species
+hdd.bl <- JulBloomDate("HDD")
+
+head(hdd.bl)
+hdd.sig <- hdd.bl[hdd.bl$p.value < 0.05,]
+
+#merge significant species iwth min.dates species
+hdd.sig.min <- merge(hdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+
+ggplot(hdd.sig.min, aes(HDD,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title= expression("HDD by Year, Tbase = 0"~degree*C))+
+  xlab("GDD")+
+  ylab("Julian Date")
+
+summary(lm(hdd.sig.min$startDayOfYear~hdd.sig.min$HDD))
+
+```
 
 ```{r, eval=FALSE}
 ggplot(temps, aes(Julian, HDD))+
