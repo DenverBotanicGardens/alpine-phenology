@@ -376,6 +376,7 @@ colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 max(earcol$Collections)
 earcol[which.max(earcol$Collections),]
+mean(earcol$Collections)
 
 ggplot(earcol, aes(Year, Collections, group = 1))+
   geom_line()+
@@ -811,6 +812,7 @@ head(tmps)
 tail(tmps)
 ```
 
+# Calculate GDD or HDD
 Combine HDD per Julian day for 1981 through 2011 with herbarium data
 ```{r}
 # remove two attempts at not real HDD
@@ -971,12 +973,44 @@ npn.sp$Observation_Date <-
   as.POSIXct(as.numeric(as.character(npn.sp$Observation_Date)), fomat="%m/%e/%Y")
 
 
+
+# need to match year 
 npn.sp$Year <- format(as.Date(npn.sp$Observation_Date),format="%Y")
 
 npn.specimens <- merge(min.dates,npn.sp, by = "SciName")
 nrow(npn.specimens)
 nrow(min.dates)
 nrow(npn.sp)
+
+
+
+spec.sps <- unique(min.dates$SciName)
+npn.sps <- unique(npn.sp$SciName)
+
+#three and three shorted? 
+gsub("(.*)?(.{4}).*$", "\\1", spec.sps) #removed the last three... closer
+firstword <- sub("(?<=.{3})(.)*", "", spec.sps, perl = TRUE) 
+sub("( .*)(?<=.{3})(.)*", "", spec.sps, perl = TRUE) # everyting up to the first space
+secondword <- substr(sub(".*? (.+)", "\\1", spec.sps),1,3) 
+spec.three <- paste(firstword,secondword,sep="")
+
+firstwordn <- sub("(?<=.{3})(.)*", "", npn.sps, perl = TRUE) 
+secondwordn <- substr(sub(".*? (.+)", "\\1", npn.sps),1,3) 
+spec.threenpn <- paste(firstwordn,secondwordn,sep="")
+
+npn.sps.1 <- match(spec.three,spec.threenpn)
+m.s.1 <- npn.sps.1[complete.cases(npn.sps.1)]
+spec.threenpn[m.s.1] #5 of them
+
+m.sps <- match(spec.sps, npn.sps)
+m.s <- m.sps[complete.cases(m.sps)]
+npn.sps[m.s] #5 
+
+
+spec.sps[grep("coerulea", spec.sps)]
+min.dates$Scientific.Name <- gsub("coerulea", "caerulea", min.dates$Scientific.Name)
+
+
 ```
 
 
