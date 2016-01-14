@@ -224,6 +224,11 @@ head(minJul.dates[[219]])
 
 min.dates <- do.call(rbind,minJul.dates)
 
+#Fix spelling error
+min.dates <- as.data.frame(sapply(min.dates, gsub, 
+                                  pattern = "coerulea", 
+                                  replacement = "caerulea"))
+
 head(table(min.dates$Year, min.dates$sppListID))
 
 ```
@@ -963,12 +968,18 @@ summary(lm(startDayOfYear~Raw_Precip, data = min.dates))
 ```{r}
 npn.sp <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/NPN data/Study species data 20160104.csv"))
 
+npn.all <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/NPN data/2015_species_list_complete.csv"))
+
 head(npn.sp)
 head(min.dates)
+head(npn.all)
 
 min.dates$SciName <- sub( "(^[^ ]+[ ][^ ]+)(.+$)", "\\1", min.dates$Scientific.Name)
 npn.sp$SciName <- apply(npn.sp[,c("Genus","Species")], 1, 
                         function(x) paste(x[1],x[2],collapse=" "))
+npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
+                         function(x) paste(x[1],x[2], collapse=" "))
+
 npn.sp$Observation_Date <- 
   as.POSIXct(as.numeric(as.character(npn.sp$Observation_Date)), fomat="%m/%e/%Y")
 
@@ -977,26 +988,26 @@ npn.sp$Observation_Date <-
 # need to match year 
 npn.sp$Year <- format(as.Date(npn.sp$Observation_Date),format="%Y")
 
-npn.specimens <- merge(min.dates,npn.sp, by = "SciName")
-nrow(npn.specimens)
-nrow(min.dates)
-nrow(npn.sp)
-
-
 
 spec.sps <- unique(min.dates$SciName)
 npn.sps <- unique(npn.sp$SciName)
+npn.all.sps <- unique(npn.all$SciName)
 
 #three and three shorted? 
-gsub("(.*)?(.{4}).*$", "\\1", spec.sps) #removed the last three... closer
 firstword <- sub("(?<=.{3})(.)*", "", spec.sps, perl = TRUE) 
-sub("( .*)(?<=.{3})(.)*", "", spec.sps, perl = TRUE) # everyting up to the first space
 secondword <- substr(sub(".*? (.+)", "\\1", spec.sps),1,3) 
 spec.three <- paste(firstword,secondword,sep="")
 
+#NPN three shortened
 firstwordn <- sub("(?<=.{3})(.)*", "", npn.sps, perl = TRUE) 
 secondwordn <- substr(sub(".*? (.+)", "\\1", npn.sps),1,3) 
 spec.threenpn <- paste(firstwordn,secondwordn,sep="")
+
+
+#NPN.all three shortened
+firstwordna <- sub("(?<=.{3})(.)*", "", npn.all.sps, perl = TRUE) 
+secondwordna <- substr(sub(".*? (.+)", "\\1", npn.all.sps),1,3) 
+spec.threenpna <- paste(firstwordna,secondwordna,sep="")
 
 npn.sps.1 <- match(spec.three,spec.threenpn)
 m.s.1 <- npn.sps.1[complete.cases(npn.sps.1)]
@@ -1006,9 +1017,18 @@ m.sps <- match(spec.sps, npn.sps)
 m.s <- m.sps[complete.cases(m.sps)]
 npn.sps[m.s] #5 
 
+# with all NPN
+npn.all.sps.1 <- match(spec.three,spec.threenpna)
+m.a.s.1 <- npn.all.sps.1[complete.cases(npn.all.sps.1)]
+length(spec.threenpna[m.a.s.1] ) # 20 match
 
-spec.sps[grep("coerulea", spec.sps)]
-min.dates$Scientific.Name <- gsub("coerulea", "caerulea", min.dates$Scientific.Name)
+m.sps <- match(spec.sps, npn.sps)
+m.s <- m.sps[complete.cases(m.sps)]
+npn.sps[m.s] #5 
+
+all.scinames <- match(min.dates$SciName, npn.all$SciName)
+a.s <- all.scinames[complete.cases(all.scinames)]
+sort(unique(npn.all$SciName[a.s]))
 
 
 ```
