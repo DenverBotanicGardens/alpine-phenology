@@ -37,6 +37,21 @@ bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGa
 head(bloom)
 ```
 
+About the data:
+```{r}
+length(unique(bloom$sppListID)) #290
+datatbl <- as.data.frame(table(bloom$sppListID, bloom$Year))
+
+# length of years that aren't zero
+yrswithdata <- lapply(unique(datatbl$Var1), function(x){
+  length(datatbl$Var2[datatbl$Var1 == x & datatbl$Freq > 0])
+}) 
+
+sort(do.call(c,yrswithdata)) # years of data (not consecutive) 9 to 44
+
+
+```
+
 If not working to load from github:
 ```{r}
 #bloom<-read.csv(path.expand("P:/alpine-phenology/QR_final_R_plant_climate_data.csv"))
@@ -236,6 +251,7 @@ cor(min.dates[,-(1:4)])
 
 ```
 
+## Subsetted data to only earliest bloom observation
 
 ggplot option after subset to earliest observation per year per species    
 Avg high temperature    
@@ -318,33 +334,6 @@ ggplot(min.dates, aes(Raw_Precip, startDayOfYear))+
 summary(lm(startDayOfYear~Raw_Precip, data = min.dates))
 ```
 
-## not real GDD!
-GDD    
-```{r}
-ggplot(min.dates, aes(Year,GDD))+
-  geom_point()+
-  stat_smooth(method="lm")+
-  theme_bw()+
-  labs(title="Average Growing Degree Days by Year")+
-  xlab("Year")+
-  ylab("Growing Degree Day")
-
-
-summary(lm(GDD~Year, data = min.dates))
-```
-
-```{r}
-ggplot(min.dates, aes(GDD, startDayOfYear))+
-  geom_point()+
-  stat_smooth(method="lm")+
-  theme_bw()+
-  labs(title="Earliest Bloom Date by Growing Degree Days") +
-  xlab("GDD")+
-  ylab("Julian Date")
-
-summary(lm(startDayOfYear~GDD, data = min.dates))
-```
-
 
 ### Minimum Julian bloom date by year
 ```{r}
@@ -377,6 +366,28 @@ summary(lm(min.dates$startDayOfYear~min.dates$Year))
 #plot(lm(bloom$startDayOfYear ~bloom$Year)) #check residuals for heteroscedasticity and nonlinearity
 ```
 
+Collections now that data is only earliest bloom date
+```{r}
+earliestcollection <- data.frame(colSums(table(min.dates$sppListID,
+                                                min.dates$Year)))
+earcol <- data.frame(Year = row.names(earliestcollection),
+                     Collections = earliestcollection)
+colnames(earcol)[2] <- "Collections"
+earcol[,1] <- as.numeric(levels(earcol[,1]))
+max(earcol$Collections)
+earcol[which.max(earcol$Collections),]
+
+ggplot(earcol, aes(Year, Collections, group = 1))+
+  geom_line()+
+  stat_smooth()+
+  xlab("Year")+
+  ylab("Collections species")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
+
+
+```
 
 
 #Regression per species
@@ -513,7 +524,7 @@ nrow(gdd.sig[gdd.sig$Slope > 0,]) # no species have later bloom dates as the GDD
 
 
 # multiple linear regression
-
+#### precipitation and average low temperature multiple linear regression
 ```{r}
   namesID <- unique(min.dates$sppListID)
   
@@ -830,8 +841,11 @@ hdd.sig.min <- merge(hdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Na
 nrow(hdd.sig) #278
 nrow(hdd.bl) #288
 hdd.bl[hdd.bl$p.value > 0.049,]
-
-
+nrow(hdd.bl[hdd.bl$p.value < 0.05 & hdd.bl$Slope < 0,])
+nrow(hdd.bl[hdd.bl$Slope < 0,])
+nrow(hdd.bl[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0,]) #278
+mean(hdd.bl$Slope[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0])
+mean(hdd.bl$adj.r.squ[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0])
 
 ```
 
@@ -915,12 +929,54 @@ ggplot(min.dates, aes(HDD, startDayOfYear))+
 ```
 
 
+HDD
+```{r}
+ggplot(min.dates, aes(Year,Raw_Precip))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Precipitation by Year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")
+
+
+summary(lm(Raw_Precip~Year, data = min.dates))
+```
+
+```{r}
+ggplot(min.dates, aes(Raw_Precip, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Raw_Precip, data = min.dates))
+```
+
+
+
 # Match herbarium data with NPN data
 ```{r}
+npn.sp <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/NPN data/Study species data 20160104.csv"))
+
+head(npn.sp)
+head(min.dates)
+
+min.dates$SciName <- sub( "(^[^ ]+[ ][^ ]+)(.+$)", "\\1", min.dates$Scientific.Name)
+npn.sp$SciName <- apply(npn.sp[,c("Genus","Species")], 1, 
+                        function(x) paste(x[1],x[2],collapse=" "))
+npn.sp$Observation_Date <- 
+  as.POSIXct(as.numeric(as.character(npn.sp$Observation_Date)), fomat="%m/%e/%Y")
 
 
+npn.sp$Year <- format(as.Date(npn.sp$Observation_Date),format="%Y")
 
-
+npn.specimens <- merge(min.dates,npn.sp, by = "SciName")
+nrow(npn.specimens)
+nrow(min.dates)
+nrow(npn.sp)
 ```
 
 
