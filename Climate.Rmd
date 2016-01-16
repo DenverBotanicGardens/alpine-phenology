@@ -229,6 +229,11 @@ min.dates <- as.data.frame(sapply(min.dates, gsub,
                                   pattern = "coerulea", 
                                   replacement = "caerulea"))
 
+#Fix double space in Hierochola hirta
+min.dates <- as.data.frame(sapply(min.dates, gsub,
+                                  pattern="Hierochlo  hirta",
+                                  replacement = "Hierochlo hirta"))
+
 head(table(min.dates$Year, min.dates$sppListID))
 
 ```
@@ -980,13 +985,13 @@ npn.sp$SciName <- apply(npn.sp[,c("Genus","Species")], 1,
 npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
                          function(x) paste(x[1],x[2], collapse=" "))
 
-npn.sp$Observation_Date <- 
-  as.POSIXct(as.numeric(as.character(npn.sp$Observation_Date)), fomat="%m/%e/%Y")
+#npn.sp$Observation_Date <- 
+#  as.POSIXct(as.numeric(as.character(npn.sp$Observation_Date)), fomat="%m/%e/%Y")
 
 
 
 # need to match year 
-npn.sp$Year <- format(as.Date(npn.sp$Observation_Date),format="%Y")
+#npn.sp$Year <- format(as.Date(npn.sp$Observation_Date),format="%Y")
 
 
 spec.sps <- unique(min.dates$SciName)
@@ -1011,11 +1016,11 @@ spec.threenpna <- paste(firstwordna,secondwordna,sep="")
 
 npn.sps.1 <- match(spec.three,spec.threenpn)
 m.s.1 <- npn.sps.1[complete.cases(npn.sps.1)]
-spec.threenpn[m.s.1] #5 of them
+spec.threenpn[m.s.1] #6 of them
 
 m.sps <- match(spec.sps, npn.sps)
 m.s <- m.sps[complete.cases(m.sps)]
-npn.sps[m.s] #5 
+npn.sps[m.s] #6 
 
 # with all NPN
 npn.all.sps.1 <- match(spec.three,spec.threenpna)
@@ -1024,7 +1029,7 @@ length(spec.threenpna[m.a.s.1] ) # 20 match
 
 m.sps <- match(spec.sps, npn.sps)
 m.s <- m.sps[complete.cases(m.sps)]
-npn.sps[m.s] #5 
+npn.sps[m.s] #6 
 
 all.scinames <- match(min.dates$SciName, npn.all$SciName)
 a.s <- all.scinames[complete.cases(all.scinames)]
@@ -1033,6 +1038,122 @@ sort(unique(npn.all$SciName[a.s]))
 
 ```
 
+
+How have NPN species faired?
+```{r}
+npns <- unique(npn.all$SciName[a.s])
+
+npn.only <- min.dates[grep(paste(npns,collapse="|"), min.dates$SciName),]
+
+
+#Convert all factor columns to numeric
+npn.only[,-c(3,13,length(npn.only))] <- sapply(npn.only[,-c(3,13,length(npn.only))], 
+                                               function(x) as.numeric(as.character(x)))
+
+
+summary(lm(startDayOfYear~Year+HDD,data=npn.only))
+summary(lm(startDayOfYear~Year,data=npn.only))
+summary(lm(startDayOfYear~Year+HDD+SciName,data=npn.only))
+
+ggplot(npn.only, aes(Year,startDayOfYear,colour=SciName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+# do function on npn.only
+JulBloomDate.subset <- function(variable,dataset){
+  namesID <- unique(dataset$sppListID)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$sppListID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+
+yr.npn <- JulBloomDate.subset("Year",npn.only) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
+precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only) #mostly positive slope
+HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
+
+```
+
+
+NPN only by year
+```{r}
+
+#subset that signficantchange over time
+yr.npn.sig1 <- yr.npn[yr.npn$p.value < 0.05,]
+yr.npn.sig <- merge(yr.npn.sig1,npn.only,by.x="Species",by.y="Scientific.Name")
+
+ggplot(yr.npn.sig, aes(Year,startDayOfYear,colour=SciName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Year+SciName,data=yr.npn.sig))
+
+nrow(yr.npn.sig1) 
+yr.npn.sig1[yr.npn.sig1$Slope > 0,] #Eriophorum angustifolium
+
+```
+NPN only by precipiation
+```{r}
+
+#subset that signficantchange over time
+precip.npn.sig1 <- precip.npn[precip.npn$p.value < 0.05,]
+precip.npn.sig <- merge(precip.npn.sig1,npn.only,by.x="Species",by.y="Scientific.Name")
+
+ggplot(precip.npn.sig, aes(Year,startDayOfYear,colour=SciName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Year+SciName,data=precip.npn.sig))
+
+nrow(precip.npn.sig1) 
+precip.npn.sig1[precip.npn.sig1$Slope > 0,] 
+
+```
+
+NPN only by HDD
+```{r}
+
+#subset that signficantchange over time
+HDD.npn.sig1 <- HDD.npn[HDD.npn$p.value < 0.05,]
+HDD.npn.sig <- merge(HDD.npn.sig1,npn.only,by.x="Species",by.y="Scientific.Name")
+
+ggplot(HDD.npn.sig, aes(Year,startDayOfYear,colour=SciName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Year+SciName,data=HDD.npn.sig))
+
+nrow(npn.only)
+nrow(HDD.npn) 
+nrow(HDD.npn[HDD.npn$Slope > 0,] )
+
+```
 
 
 
