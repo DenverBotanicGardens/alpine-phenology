@@ -234,6 +234,12 @@ min.dates <- as.data.frame(sapply(min.dates, gsub,
                                   pattern="Hierochlo  hirta",
                                   replacement = "Hierochlo hirta"))
 
+
+tonumeric <- c(1:2,4:13)
+min.dates[,tonumeric] <- sapply(min.dates[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+
 head(table(min.dates$Year, min.dates$sppListID))
 
 ```
@@ -243,7 +249,7 @@ head(table(min.dates$Year, min.dates$sppListID))
 ```{r}
 minpyear <- table(min.dates$Year, min.dates$sppListID)
 mpy.df <- data.frame(minpyear)
-mpy.df[mpy.df$Freq > 1,] #when we have ealiestBloomDate in the lapply, that's not unique so it picks a few duplicates, now fixed
+mpy.df[mpy.df$Freq > 1,] 
 ```
 
 ```{r}
@@ -525,10 +531,10 @@ nrow(gdd.sig[gdd.sig$Slope > 0,]) # no species have later bloom dates as the GDD
 
 ########## Columns that you can use to compare to earliest bloom date (taken from "startDayOfYear")
               
-#[11] "startDayOfYear"   [20] "Raw_Precip"                 
-#[21] "Avg_Hi"                "Med_Hi"                      
-#[23] "Avg_Lo"                "Med_Lo"                       
-#[25] "Av_Temp"               "Med_Temp"       
+[11] "startDayOfYear"   [20] "Raw_Precip"                 
+[21] "Avg_Hi"                "Med_Hi"                      
+[23] "Avg_Lo"                "Med_Lo"                       
+[25] "Av_Temp"               "Med_Temp"       
 
 
 
@@ -665,12 +671,6 @@ get_prism_dailys(type="tmax",
                  maxDate = "2011-12-31", keepZip = FALSE)
 ```
 
-```{r}
-
-
-```
-
-
 
 Calculate average daily temperatures averaged over all locations above 3200m 10500"
 
@@ -800,10 +800,10 @@ cumsum(((tmps$tmax-tmps$tmin)/2)-5)
 
 HDD <- sapply(unique(tmps$Year), function(year){
   sapply(grep(year, tmps$Year), function(x){
-    if( (((tmps$tmax[x] - tmps$tmin[x])/2)-tbase) < tbase){
+    if( (((tmps$tmax[x] + tmps$tmin[x])/2)-tbase) < tbase){
       0
       } else {
-        ((tmps$tmax[x] - tmps$tmin[x])/2)-tbase
+        ((tmps$tmax[x] + tmps$tmin[x])/2)-tbase
         }
     })
   })
@@ -826,10 +826,14 @@ tail(tmps)
 Combine HDD per Julian day for 1981 through 2011 with herbarium data
 ```{r}
 # remove two attempts at not real HDD
-min.dates <- min.dates[,-c((length(min.dates)-1):length(min.dates))]
+min.dates <- min.dates[,grep("GDD", names(min.dates), invert=TRUE)]
 head(min.dates)
 
 #assign real HDD
+min.foo <- sapply(unique(tmps$Year), function(x){
+  tmps[tmps$Julian[tmps$Year == x] %in% min.dates$startDayOfYear[min.dates$Year == x],]
+})
+
 min.dates <- merge(min.dates, tmps, 
                    by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
@@ -843,21 +847,21 @@ nrow(hdd.bl[complete.cases(hdd.bl),]) # 2 rows with missing data? why!?
 hdd.bl[!complete.cases(hdd.bl),] # Kobresia schoenoides and Carex misandra
 
 hdd.bl <- hdd.bl[complete.cases(hdd.bl),]
-head(hdd.bl)
+head(hdd.bl) #290
 hdd.sig <- hdd.bl[hdd.bl$p.value < 0.05,]
 
-#merge significant species iwth min.dates species
-hdd.sig.min <- merge(hdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+#select significant species from min.dates species
+hdd.sig.min <- min.dates[min.dates$Scientific.Name %in% unique(hdd.sig$Species),]
 
 
-nrow(hdd.sig) #278
+nrow(hdd.sig) #277
 nrow(hdd.bl) #288
 hdd.bl[hdd.bl$p.value > 0.049,]
 nrow(hdd.bl[hdd.bl$p.value < 0.05 & hdd.bl$Slope < 0,])
 nrow(hdd.bl[hdd.bl$Slope < 0,])
-nrow(hdd.bl[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0,]) #278
-mean(hdd.bl$Slope[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0])
-mean(hdd.bl$adj.r.squ[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0])
+nrow(hdd.bl[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0,]) #277
+mean(hdd.bl$Slope[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0]) #0.08373384
+mean(hdd.bl$adj.r.squ[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0]) #0.7130227
 
 ```
 

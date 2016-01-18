@@ -1,0 +1,49 @@
+---
+title: "Results"
+author: "Michelle DePrenger-Levin"
+date: "January 18, 2016"
+output: html_document
+---
+
+Data without growing degree days or monthly precipitation
+```{r}
+bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv"))
+
+head(bloom)
+```
+
+Snowmelt data or time at which heating degree days reach a certain point per year
+download of prism data in 'Climate.Rmd'
+```{r}
+tbase <- 0
+
+HDD.0 <- sapply(unique(tmps$Year), function(year){
+  sapply(grep(year, tmps$Year), function(x){
+    if( (((tmps$tmax[x] + tmps$tmin[x])/2)-tbase) < tbase){
+      0
+      } else {
+        ((tmps$tmax[x] + tmps$tmin[x])/2)-tbase
+        }
+    })
+  })
+
+# now have daily HDD, need to cumsum each year, which is each list. 
+head(HDD.0)
+
+HDD.0.yrs <- lapply(HDD.0, function(x){
+  cumsum(x)
+})
+
+head(HDD.0.yrs[[1]])
+HDD.0.all <- do.call(c,HDD.0.yrs)
+tmps.0 <- tmps
+tmps.0$HDD.0 <- HDD.0.all
+```
+
+```{r}
+
+
+
+```
+
+
