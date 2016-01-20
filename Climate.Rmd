@@ -830,9 +830,8 @@ min.dates <- min.dates[,grep("GDD", names(min.dates), invert=TRUE)]
 head(min.dates)
 
 #assign real HDD
-min.foo <- sapply(unique(tmps$Year), function(x){
-  tmps[tmps$Julian[tmps$Year == x] %in% min.dates$startDayOfYear[min.dates$Year == x],]
-})
+nrow(min.dates)
+data.frame(min.dates, tmps[match(min.dates$startDayOfYear, tmps$Julian)]) #... use %in%? 
 
 min.dates <- merge(min.dates, tmps, 
                    by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
@@ -1152,6 +1151,7 @@ ggplot(HDD.npn.sig, aes(Year,startDayOfYear,colour=SciName))+
   ylab("Julian Date")
 
 summary(lm(startDayOfYear~Year+SciName,data=HDD.npn.sig))
+summary(lm(startDayOfYear~Year, data=HDD.npn.sig))
 
 nrow(npn.only)
 nrow(HDD.npn) 
@@ -1169,3 +1169,18 @@ w <- getData('worldclim', var='tmin', res=0.5, lon=5, lat=45)
 
 
 ```
+
+
+Poop: this is for python, not R....
+Snowmelt data from [Snotel NRCS](http://wcc.sc.egov.usda.gov/nwcc/rgrpt?report=snowmonth_hist&state=CO) through [github](https://github.com/gunnarleffler/getSnotel/blob/master/getSnotel) 
+```{r}
+
+
+
+
+
+```
+
+http://wcc.sc.egov.usda.gov/reportGenerator/view_csv/customGroupByMonthReport/monthly/05L05:CO:SNOW%7Cid=%22%22%7Cname/POR_BEGIN,POR_END:1,2,3,4,5,6/WTEQ::collectionDate,SNWD::value,WTEQ::value
+
+
