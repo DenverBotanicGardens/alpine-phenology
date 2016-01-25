@@ -7,6 +7,14 @@ output: html_document
 
 Data without growing degree days or monthly precipitation
 ```{r}
+
+library(RCurl)
+library(ggplot2)
+library(data.table)
+library(raster)
+require(rgdal)
+library(devtools)
+
 bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv"))
 
 head(bloom)
@@ -40,10 +48,62 @@ tmps.0 <- tmps
 tmps.0$HDD.0 <- HDD.0.all
 ```
 
-```{r}
+test reading in 
+read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data/Black Mesa 11580 2013-2016.txt"),skip=7,header=TRUE,sep=",")
 
+####Get snow pack depth 
+```{r}
+files <- list.files(path="Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data", pattern="*.txt", full.names=TRUE, recursive = FALSE)
+
+snotel <- lapply(files, function(x){
+  t<-read.table(path.expand(x),skip=9, header=FALSE,sep=",", na.strings = " ")
+  header <- scan(x,skip=7,nlines=1, what=character(),sep=",")
+  header2 <- scan(x,skip=8,nlines=1,what=character(),sep=",")
+  names(t)<-paste(header,header2,sep=" ")
+  t
+})
+
+snotel.all <- do.call(rbind,snotel)
+head(snotel.all)
+```
+
+```{r}
+snowdepth <- grep("Depth", names(snotel.all))
+
+avg.snowdepth <- aggregate(snotel.all[,c(1,snowdepth)],
+          by=list(snotel.all$'Water Year '), function(x) mean(x, na.rm=TRUE)) 
+
+long.avg.snow <- reshape(avg.snowdepth[,-1], direction="long", 
+                         varying= c(names(avg.snowdepth[,-c(1:2)])),
+                         timevar = "Month",
+                         times= names(avg.snowdepth[,-c(1:2)]),
+                         idvar = "Water Year ",
+                         v.names = "Snow.Depth",
+                         new.row.names = 1:(nrow(avg.snowdepth)*(length(avg.snowdepth)-2))) 
+head(long.avg.snow)
+names(long.avg.snow) <- c("Year","Month","Snow.Depth")
+
+```
+
+```{r}
+ggplot(long.avg.snow, aes(Year, Snow.Depth, colour = Month))+
+  geom_line()+
+#  geom_hline(yintercept="mean")+
+  facet_wrap(~Month)+
+  geom_smooth(method = "lm")
 
 
 ```
 
+Snow report generator http://wcc.sc.egov.usda.gov/reportGenerator/view/customWaterYearGroupByMonthReport,metric/monthly/state=%22CO%22%20AND%20network=%22SNTLT%22,%22SNTL%22%20AND%20element=%22SNWD%22%20AND%20outServiceDate=%222100-01-01%22%7Cname/POR_BEGIN,POR_END/name,stationId,WTEQ::value,WTEQ::delta,SNWD::value,SNWD::delta?fitToScreen=false
+```{r}
+snow <- read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016.txt"),
+                   skip=7, header=FALSE,sep=",", na.strings = " ")
 
+
+header <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016.txt",skip=5,nlines=1, what=character(),sep=",")
+header2 <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016.txt",skip=6,nlines=1,what=character(),sep=",")
+names(snow)<-paste(header,header2,sep="_")
+
+head(snow)
+```
