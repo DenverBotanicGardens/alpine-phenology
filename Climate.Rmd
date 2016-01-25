@@ -446,8 +446,8 @@ head(yr.bl)
 yr.sig <- yr.bl[yr.bl$p.value < 0.05,]
 
 #merge the significant species with the min.dates species
-yr.sig.min <- merge(yr.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
-
+#yr.sig.min <- merge(yr.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")  
+yr.sig.min <- min.dates[min.dates$Scientific.Name %in% yr.sig$Species,]
 
 ggplot(yr.sig.min, aes(Year,startDayOfYear))+
   geom_point()+
@@ -479,8 +479,8 @@ head(precip.bl)
 precip.sig <- precip.bl[precip.bl$p.value < 0.05,]
 
 #merge the significant species with the min.dates species
-precip.sig.min <- merge(precip.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
-
+#precip.sig.min <- merge(precip.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+precip.sig.min <- min.dates[min.dates$Scientific.Name %in% yr.sig$Species, ]
 
 ggplot(precip.sig.min, aes(Raw_Precip,startDayOfYear))+
   geom_point()+
@@ -508,8 +508,8 @@ head(gdd.bl)
 gdd.sig <- gdd.bl[gdd.bl$p.value < 0.05,]
 
 #merge the significant species with the min.dates species
-gdd.sig.min <- merge(gdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
-
+#gdd.sig.min <- merge(gdd.sig, min.dates, by.x = "Species", by.y = "Scientific.Name")
+gdd.sig.min <- min.dates[min.dates$Scientific.Name %in% gdd.sig$Species,]
 
 ggplot(gdd.sig.min, aes(GDD,startDayOfYear))+
   geom_point()+
@@ -572,9 +572,9 @@ table(sig.ml.JYC$Variables)
 ```{r}
 sig.interaction.JYC <- ml.JYC[ml.JYC$p.value < 0.05 & ml.JYC$Variables == "Raw_Precip:Avg_Lo",]
 
-sig.in.merge <- merge(sig.interaction.JYC, min.dates, by.x = "Species",
-                      by.y = "Scientific.Name")
-
+#sig.in.merge <- merge(sig.interaction.JYC, min.dates, by.x = "Species",
+#                      by.y = "Scientific.Name")
+sig.in.merge <- min.dates[min.dates$Scientific.Name %in% sig.interaction.JYC$Species,]
 
 ggplot(sig.in.merge, aes(Year,startDayOfYear))+
   geom_point()+

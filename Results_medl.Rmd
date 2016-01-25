@@ -97,13 +97,104 @@ ggplot(long.avg.snow, aes(Year, Snow.Depth, colour = Month))+
 
 Snow report generator http://wcc.sc.egov.usda.gov/reportGenerator/view/customWaterYearGroupByMonthReport,metric/monthly/state=%22CO%22%20AND%20network=%22SNTLT%22,%22SNTL%22%20AND%20element=%22SNWD%22%20AND%20outServiceDate=%222100-01-01%22%7Cname/POR_BEGIN,POR_END/name,stationId,WTEQ::value,WTEQ::delta,SNWD::value,SNWD::delta?fitToScreen=false
 ```{r}
-snow <- read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016.txt"),
+snow <- read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016_over3200m.txt"),
                    skip=7, header=FALSE,sep=",", na.strings = " ")
 
 
-header <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016.txt",skip=5,nlines=1, what=character(),sep=",")
-header2 <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016.txt",skip=6,nlines=1,what=character(),sep=",")
+header <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016_over3200m.txt",skip=5,nlines=1, what=character(),sep=",")
+header2 <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016_over3200m.txt",skip=6,nlines=1,what=character(),sep=",")
 names(snow)<-paste(header,header2,sep="_")
 
 head(snow)
 ```
+
+
+Reformat snow data:
+```{r}
+snow.depth <- grep("Mean Monthly", names(snow))
+avg.snow <- aggregate(snow[,c(3,snow.depth)], by=list(snow$`Water Year_`),
+                      function(x) mean(x,na.rm=TRUE))
+snow.long <- reshape(avg.snow[,-1], direction="long",
+                     varying=c(names(avg.snow[,-c(1:2)])),
+                     timevar="Month",
+                     times=names(avg.snow[,-c(1:2)]),
+                     idvar="Water Year_",
+                     v.names="Snow.Depth",
+                     new.row.names = 1:(nrow(avg.snow)*(length(avg.snow)-2)))
+
+tail(snow.long)
+snow.long$Month <- factor(snow.long$Month, levels = unique(snow.long$Month))
+levels(snow.long$Month)
+names(snow.long) <- c("Year","Month","Snow.Depth")
+sort(unique(snow.long$Year[complete.cases(snow.long)]))
+
+```
+
+```{r}
+ggplot(snow.long[complete.cases(snow.long),], aes(Year, Snow.Depth, colour=Month))+
+  geom_line()+
+  theme_bw()+
+  facet_wrap(~Month)+
+  geom_smooth(method="lm")
+
+```
+
+```{r}
+snow.long <- snow.long[complete.cases(snow.long),]
+```
+
+```{r}
+names <- unique(snow.long$Month)
+
+lmlist <- lapply(names, function(month){
+  summary(lm(Snow.Depth~Year,data=snow.long[snow.long$Month == month,]))
+  })
+
+names(lmlist) <- names
+
+```
+
+```{r}
+min.dates.snow <- merge(min.dates, avg.snow[avg.snow$`Water Year_` > 1996,], by.x="Year",
+                        by.y=names(snow)[3])
+
+```
+
+```{r}
+maysnow <- JulBloomDate.subset("May_Mean Monthly Snow Depth (cm)",min.dates.snow)
+
+maysnow.sig <- maysnow[maysnow$p.value < 0.05,]
+
+maysnow.min <- min.dates[min.dates$Scientific.Name %in% maysnow.sig$Species,]
+nrow(maysnow.min) #2375
+
+head(maysnow.min)
+
+```
+
+```{r}
+ggplot(min.dates.snow, aes(Year,startDayOfYear))+
+   geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+```
+
+
+```{r}
+ggplot(min.dates.snow, aes(min.dates.snow$`May_Snow Depth (cm)`,startDayOfYear))+
+   geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("May snow depth")+
+  ylab("Julian Date")
+
+```
+
+
+
+
