@@ -1072,7 +1072,7 @@ JulBloomDate.subset <- function(variable,dataset){
   colnum <- match(variable,names(dataset))
   JYC <- lapply(namesID, function(x){
     blnew <- dataset[dataset$sppListID == x,]
-    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    foo1 <- summary(lm(dataset$startDayOfYear~dataset[,colnum]))
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),

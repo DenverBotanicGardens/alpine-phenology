@@ -48,6 +48,27 @@ tmps.0 <- tmps
 tmps.0$HDD.0 <- HDD.0.all
 ```
 
+```{r}
+#day of first HDD value > 0
+first.hdd <- do.call(rbind,lapply(unique(tmps.0$Year), function(x){
+  t.0 <- tmps.0[tmps.0$Year == x,]
+  do.call(rbind, lapply(split(t.0, t.0$HDD.0), head, 1))[2,]
+}))
+
+  
+ggplot(first.hdd, aes(Year,Julian))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="First non-zero HDD")+
+  xlab("Year")+
+  ylab("Degrees Celsius")
+
+summary(lm(Julian~Year, data=first.hdd))
+```
+
+
+
 test reading in 
 read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data/Black Mesa 11580 2013-2016.txt"),skip=7,header=TRUE,sep=",")
 
@@ -95,7 +116,7 @@ ggplot(long.avg.snow, aes(Year, Snow.Depth, colour = Month))+
 
 ```
 
-Snow report generator http://wcc.sc.egov.usda.gov/reportGenerator/view/customWaterYearGroupByMonthReport,metric/monthly/state=%22CO%22%20AND%20network=%22SNTLT%22,%22SNTL%22%20AND%20element=%22SNWD%22%20AND%20outServiceDate=%222100-01-01%22%7Cname/POR_BEGIN,POR_END/name,stationId,WTEQ::value,WTEQ::delta,SNWD::value,SNWD::delta?fitToScreen=false
+Snow report generator http://wcc.sc.egov.usda.gov/reportGenerator/
 ```{r}
 snow <- read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016_over3200m.txt"),
                    skip=7, header=FALSE,sep=",", na.strings = " ")
@@ -106,6 +127,31 @@ header2 <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS 
 names(snow)<-paste(header,header2,sep="_")
 
 head(snow)
+```
+
+sum of snow? 
+```{r}
+#average over all stations per year
+avg.p.yr <- do.call(rbind,lapply(split(snow[,grep("_Snow Depth", names(snow))], 
+                                       snow$`Water Year_`), 
+                                 function(x) colMeans(x, na.rm = TRUE)))
+
+snow.total <- rowSums(avg.p.yr,na.rm = TRUE)
+
+head(snow)
+snow.total
+
+snow1 <- snow.total[snow.total>0]
+snow2 <- data.frame(year = 1997:2016, depth = snow1)
+
+ggplot(snow2, aes(year,depth))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Snow depth")+
+  xlab("Year")+
+  ylab("Total snow depth (cm)")
+
 ```
 
 
@@ -185,7 +231,7 @@ ggplot(min.dates.snow, aes(Year,startDayOfYear))+
 
 
 ```{r}
-ggplot(min.dates.snow, aes(min.dates.snow$`May_Snow Depth (cm)`,startDayOfYear))+
+ggplot(min.dates.snow, aes(`May_Mean Monthly Snow Depth (cm)`,startDayOfYear))+
    geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -193,8 +239,56 @@ ggplot(min.dates.snow, aes(min.dates.snow$`May_Snow Depth (cm)`,startDayOfYear))
   xlab("May snow depth")+
   ylab("Julian Date")
 
+summary(lm(startDayOfYear~min.dates.snow$'May_Mean Monthly Snow Depth (cm)',
+           data = min.dates.snow))
+
 ```
 
+
+NPN data downloaded by Mary
+```{r}
+npn <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/Alpine spp. NPN download 2016-01-26/Alpine Species NPN data download.csv"))
+
+head(npn)
+table(npn$Common_Name,npn$First_Yes_Year)
+table(npn$Genus,npn$State)
+
+npn.CO <- npn[npn$State == "CO",]
+table(npn.CO$Common_Name,npn.CO$First_Yes_Year)
+
+npn.CO.alpine <- npn.CO[npn.CO$Elevation_in_Meters > 3199,]
+# No collections from alpine sites.
+table(npn.CO.alpine$Common_Name,npn.CO.alpine$First_Yes_Year)
+
+```
+
+Find earliest bloom date per year per species (to match the herbarium specimens)    for all collections across their range
+
+```{r}
+npn.first <- lapply(unique(npn$Common_Name), function(x){
+  this.species <- npn[npn$Common_Name == x,]
+  these.rows <- aggregate(First_Yes_DOY~First_Yes_Year, this.species, FUN=min)
+  unique(merge(this.species,these.rows,by=c("First_Yes_Year","First_Yes_DOY")))
+})
+
+npn.first.dates <- do.call(rbind, npn.first)
+
+table(npn.first.dates$Common_Name,npn.first.dates$First_Yes_Year)
+npn.first.dates[npn.first.dates$Common_Name == "Colorado blue columbine",]
+```
+
+```{r}
+ggplot(npn.first.dates, aes(First_Yes_Year,First_Yes_DOY))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab("Degrees Celsius")
+
+summary(lm(Avg_Hi~Year, data=min.dates))
+
+```
 
 
 
