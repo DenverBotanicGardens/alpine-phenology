@@ -154,6 +154,34 @@ ggplot(snow2, aes(year,depth))+
 
 ```
 
+```{r}
+hdd.snow <- merge(first.hdd,snow2,by.x="Year",by.y="year")
+head(hdd.snow)
+
+# the first day each year of some accumulated GDD against snow depth of the year
+ggplot(hdd.snow, aes(Julian,depth))+
+  geom_point()+
+  xlab("Day of Year with some accumulated GDD")+
+  ylab("Snow Depth (cm)")+
+  stat_smooth(method = "lm")
+```
+
+
+```{r}
+data.frame(hddyrs)
+hddavg.snow <- merge(hddyrs, snow2,by.x="Year",by.y="year")
+head(hddavg.snow)
+
+ggplot(hddavg.snow, aes(avgHDD,depth))+
+  geom_point()+
+  xlab("Average annual cumulative GDD")+
+  ylab("Annual total snow depth (cm)")+
+  stat_smooth(method = "lm")+
+  theme_bw()
+
+summary(lm(depth~avgHDD, data=hddavg.snow))
+
+```
 
 Reformat snow data:
 ```{r}
@@ -275,6 +303,10 @@ npn.first.dates <- do.call(rbind, npn.first)
 
 table(npn.first.dates$Common_Name,npn.first.dates$First_Yes_Year)
 npn.first.dates[npn.first.dates$Common_Name == "Colorado blue columbine",]
+
+uni.npn.first <- unique(npn.first.dates[npn.first.dates$State == "CO",c(1:11)])
+table(uni.npn.first$Common_Name,uni.npn.first$First_Yes_Year)
+uni.npn.first[uni.npn.first$Common_Name == "Colorado blue columbine",]
 ```
 
 ```{r}
@@ -290,5 +322,15 @@ summary(lm(Avg_Hi~Year, data=min.dates))
 
 ```
 
+```{r}
+ggplot(uni.npn.first, aes(First_Yes_Year,First_Yes_DOY))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab("Degrees Celsius")
 
+summary(lm(Avg_Hi~Year, data=min.dates))
+```
 

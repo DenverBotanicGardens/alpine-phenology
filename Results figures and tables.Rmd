@@ -1,0 +1,337 @@
+---
+title: "Alpine-phenology figures and tables"
+author: "Michelle DePrenger-Levin"
+date: "February 1, 2016"
+output: html_document
+---
+
+Some data taken from "Climate.Rmd" will not be rerun (takes too long)   
+   
+
+```{r}
+library(RCurl)
+library(ggplot2)
+library(data.table)
+library(raster)
+require(rgdal)
+library(devtools)
+# devtools::install_github("ropensci/prism")
+library(prism)
+```
+
+Bring csv in from the website
+```{r, echo=FALSE}
+bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv"))
+
+head(bloom)
+```
+
+Pull out the earliest bloom date per year per species   
+
+```{r}
+
+minJul.dates <- lapply(unique(bloom$sppListID), function(x){
+  this.species <- bloom[bloom$sppListID == x,c(4:5,11,19:26)]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
+  })
+
+names(minJul.dates) <- unique(bloom$sppListID)
+
+min.dates <- do.call(rbind,minJul.dates)
+
+#Fix spelling error
+min.dates <- as.data.frame(sapply(min.dates, gsub, 
+                                  pattern = "coerulea", 
+                                  replacement = "caerulea"))
+
+#Fix double space in Hierochola hirta
+min.dates <- as.data.frame(sapply(min.dates, gsub,
+                                  pattern="Hierochlo  hirta",
+                                  replacement = "Hierochlo hirta"))
+
+
+tonumeric <- c(1:2,4:length(min.dates))
+min.dates[,tonumeric] <- sapply(min.dates[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+
+```
+
+
+##Figure 1
+```{r}
+earliestcollection <- data.frame(colSums(table(min.dates$sppListID,
+                                                min.dates$Year)))
+earcol <- data.frame(Year = row.names(earliestcollection),
+                     Collections = earliestcollection)
+colnames(earcol)[2] <- "Collections"
+earcol[,1] <- as.numeric(levels(earcol[,1]))
+max(earcol$Collections)
+earcol[which.max(earcol$Collections),]
+mean(earcol$Collections)
+
+ggplot(earcol, aes(Year, Collections, group = 1))+
+  geom_line()+
+  stat_smooth()+
+  xlab("Year")+
+  ylab("Number of Study Species")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
+
+```
+
+
+##Figure 2a
+Avg high temperature     
+```{r, echo=FALSE}
+ggplot(min.dates, aes(Year,Avg_Hi))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+#  stat_smooth(geom = "smooth")+
+  theme_bw()+
+  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+summary(lm(Avg_Hi~Year, data=min.dates))
+
+```
+
+##Figure 2b     
+```{r, echo=FALSE}
+ggplot(min.dates, aes(Year,Avg_Lo))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Low Temperature by Year")+
+  xlab("Year")+
+  ylab(~degree~C)+
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+summary(lm(Avg_Lo~Year, data = min.dates))
+```
+
+##Figure 2c
+```{r, echo=FALSE}
+ggplot(min.dates, aes(Year,Raw_Precip))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Precipitation by Year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")+
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+
+summary(lm(Raw_Precip~Year, data = min.dates))
+```
+
+##Figure 3a
+```{r, eval=FALSE}
+ggplot(min.dates, aes(Avg_Hi, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=min.dates))
+```
+
+##Figure 3b
+
+```{r}
+ggplot(min.dates, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Low Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Avg_Lo, data = min.dates))
+```
+
+##Figure 3c
+```{r}
+ggplot(min.dates, aes(Raw_Precip, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Raw_Precip, data = min.dates))
+```
+
+
+#Daily temperatures for growing degree days
+```{r, eval=FALSE}
+latlongs <- read.delim(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Sampling Points/LatLongabove3200m.txt"), sep=",")
+
+maxs <- grep("tmax", ls_prism_data(absPath=TRUE)[,2])
+mins <- grep("_[1-2][09][0-9][0-9][0][1-9]", mins)
+
+avgTemps.max <- lapply(maxs, function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rastertemps, latlongs[,c(4,3)]), date = ls_prism_data()[x,])
+})
+
+avgTemps.min <- lapply(mins, function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rastertemps, latlongs[,c(4,3)]), date = ls_prism_data()[x,])
+})
+
+
+mins.avg <- do.call(rbind, avgTemps.min)
+meanmins <- aggregate(data~date, data = mins.avg, mean)
+maxs.avg <- do.call(rbind, avgTemps.max)
+meanmaxs <- aggregate(data~date, data = maxs.avg, mean)
+# Make a day column
+meanmins$day <- as.Date(substr(meanmins$date, 25, 32), "%Y%m%d")
+meanmaxs$day <- as.Date(substr(meanmaxs$date, 25, 32), "%Y%m%d")
+
+# make a julian day column
+meanmins$Julian <- yday(meanmins$day)
+meanmaxs$Julian <- yday(meanmaxs$day)
+
+# merge min and max per day
+temps <- merge(meanmins, meanmaxs, by = "day")  #.x min, .y max
+tmps <- temps[,c(1,3:4,6)]
+names(tmps) <- c("day","tmin","Julian","tmax")
+
+
+#make a year column
+tmps$Year <- as.numeric(format(temps$day, "%Y"))
+
+```
+
+```{r, eval=FALSE}
+tbase <- 0
+
+HDD <- sapply(unique(tmps$Year), function(year){
+  sapply(grep(year, tmps$Year), function(x){
+    if( (((tmps$tmax[x] + tmps$tmin[x])/2)-tbase) < tbase){
+      0
+      } else {
+        ((tmps$tmax[x] + tmps$tmin[x])/2)-tbase
+        }
+    })
+  })
+
+HDD.yrs <- lapply(HDD, function(x){
+  cumsum(x)
+})
+  
+HDD.all <- do.call(c,HDD.yrs)
+tmps$HDD <- HDD.all
+
+nrow(min.dates[min.dates$Year > 1980,]) # 4404
+
+min.dates <- merge(min.dates, tmps, 
+                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
+
+length(unique(min.dates$day))
+```
+
+
+
+
+##Figure 4a.  Growing Degree Days (GDD)    
+Only data from 1981 - 2011   
+Average HDD? per year
+```{r}
+ggplot(min.dates, aes(Year,HDD)) +
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title="Cumulative Growing Degree Days (GDD) by Bloom Date")+
+  xlab("Year")+
+  ylab("GDD per First Bloom")
+
+summary(lm(HDD~Year, data=min.dates))
+
+```
+
+Figure 4b     
+HDD.yrs is the cumsum of the HDD over each year Jan-Julian date 273 (274 for leap years) the latest blooming first bloom date
+```{r}
+avg.HDD.yrs <- lapply(HDD.yrs, function(x){
+  mean(x)
+})
+
+avg.yrs <- do.call(c, avg.HDD.yrs)
+hddyrs <- data.frame(Year=1981:2011, avgHDD = avg.yrs)
+
+
+ggplot(hddyrs, aes(Year, avgHDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average cumulative GDD by Year")+
+  xlab("Year")+
+  ylab("Cumulative GDD")
+
+summary(lm(avgHDD~Year, data=hddyrs))
+
+```
+
+Figure 4c
+```{r}
+ggplot(min.dates, aes(HDD,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("GDD")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~HDD, data=min.dates))
+
+```
+
+
+
+```{r}
+avg.HDD.yrs <- lapply(HDD.yrs, function(x){
+  mean(x)
+})
+
+
+avg.yrs <- do.call(c, avg.HDD.yrs)
+hddyrs <- cbind(Year=1981:2011, avgHDD = avg.yrs)
+
+
+ggplot(data.frame(hddyrs), aes(Year, avgHDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average cumulative HDD by Year")+
+  xlab("Year")+
+  ylab("Cumulative HDD")
+
+
+max.HDD.yrs <- lapply(HDD.yrs, function(x){
+  max(x)
+})
+
+max.yrs <- do.call(c, max.HDD.yrs)
+hddmaxyrs <- cbind(Year=1981:2011, maxHDD = max.yrs)
+
+ggplot(data.frame(hddmaxyrs), aes(Year, maxHDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average cumulative HDD by Year")+
+  xlab("Year")+
+  ylab("Cumulative HDD")
+
+
+```
+
+
