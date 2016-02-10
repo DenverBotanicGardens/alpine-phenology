@@ -1,0 +1,56 @@
+---
+title: "Earliest Bloom and LM"
+author: "Michelle DePrenger-Levin"
+date: "February 10, 2016"
+output: html_document
+---
+
+Pull out the earliest bloom date per year per species
+## Break up the function into gathering the earliest bloom day per year seperate from regression per species
+
+```{r}
+
+minJul.dates <- lapply(unique(bl50$sppListID), function(x){
+  this.species <- bl50[bl50$sppListID == x,c(4:5,11,19:28)]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
+  })
+```
+
+
+
+```{r}
+JulBloomDate.subset <- function(variable,dataset){
+  namesID <- unique(dataset$sppListID)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$sppListID == x,]
+    foo1 <- summary(lm(dataset$startDayOfYear~dataset[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+
+yr.npn <- JulBloomDate.subset("Year",npn.only) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
+precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only) #mostly positive slope
+HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
+
+```
+
+
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
