@@ -28,6 +28,26 @@ mindate <- function(bl50){
 }
 ```
 
+
+merge the min dates and Growing Degree days
+```{r}
+
+mergeMinGDD <- function(mindates,GDD){
+  merge(mindates, GDD, by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
+}
+
+
+```
+
+```{r}
+#example
+
+test.mingdd <- mergeMinGDD(min1950,tmps)
+nrow(test.mingdd)
+
+
+```
+
 1950:2010 min dates
 ```{r}
 min1950 <- mindate(bl50)

@@ -233,10 +233,12 @@ tmps$HDD <- HDD.all
 
 nrow(min.dates[min.dates$Year > 1980,]) # 4404
 
-min.dates <- merge(min.dates, tmps, 
-                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
+#min.dates <- merge(min.dates, tmps, 
+#                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
-length(unique(min.dates$day))
+min1950GDD <- mergeMinGDD(min1950,tmps)
+
+length(unique(min1950GDD$day)) #824
 ```
 
 
@@ -246,7 +248,7 @@ length(unique(min.dates$day))
 Only data from 1981 - 2011   
 Average HDD? per year
 ```{r}
-ggplot(min.dates, aes(Year,HDD)) +
+ggplot(min1950GDD, aes(Year,HDD)) +
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
@@ -254,7 +256,7 @@ ggplot(min.dates, aes(Year,HDD)) +
   xlab("Year")+
   ylab("GDD per First Bloom")
 
-summary(lm(HDD~Year, data=min.dates))
+summary(lm(HDD~Year, data=min1950GDD))
 
 ```
 
@@ -283,7 +285,7 @@ summary(lm(avgHDD~Year, data=hddyrs))
 
 Figure 4c
 ```{r}
-ggplot(min.dates, aes(HDD,startDayOfYear))+
+ggplot(min1950GDD, aes(HDD,startDayOfYear))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
@@ -291,10 +293,66 @@ ggplot(min.dates, aes(HDD,startDayOfYear))+
   xlab("GDD")+
   ylab("Julian Date")
 
-summary(lm(startDayOfYear~HDD, data=min.dates))
+summary(lm(startDayOfYear~HDD, data=min1950GDD))
 
 ```
 
+
+LM summary results 
+1980:2011
+```{r}
+summary(lm(Avg_Hi~Year, data=min1950GDD))
+summary(lm(Avg_Lo~Year, data=min1950GDD))
+summary(lm(Raw_Precip~Year, data=min1950GDD))
+```
+
+1950:2010  
+variable by year
+```{r}
+summary(lm(Avg_Hi~Year, data=min1950))
+summary(lm(Avg_Lo~Year, data=min1950))
+summary(lm(Raw_Precip~Year, data=min1950))
+```
+
+1950:2010
+First bloom by variable   
+```{r}
+summary(lm(startDayOfYear ~ Avg_Hi, data=min1950))
+summary(lm(startDayOfYear ~ Avg_Lo, data=min1950))
+summary(lm(startDayOfYear ~ Raw_Precip, data=min1950))
+```
+
+## start here, something wrong!!
+Phenology summary table
+```{r}
+yr.1950 <- JulBloomDate.subset("Year",min1950)
+# Didn't change
+nrow(yr.1950$p.value>0.05)
+
+```
+
+
+Figure : First day of accumulated GDD each year
+```{r}
+hdd.first <- lapply(HDD.yrs, function(x){
+  min(which(x>0))
+})
+
+hdd.first.all <- do.call(c,hdd.first)
+hdd.f <- data.frame(Year=1981:2011, FirstGDD = hdd.first.all)
+
+ggplot(hdd.f, aes(Year,FirstGDD))+
+  geom_point()+
+  stat_smooth(method="lm")+
+ # stat_smooth(method="loess",colour="green")+
+  theme_bw()+
+  labs(title="First cumulative GDD above zero")+
+  xlab("Year")+
+  ylab("Julian Date")
+
+summary(lm(FirstGDD~Year, data=hdd.f))
+
+```
 
 
 ```{r}
