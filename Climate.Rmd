@@ -43,8 +43,10 @@ length(unique(bloom$sppListID)) #290
 datatbl <- as.data.frame(table(bloom$sppListID, bloom$Year))
 
 # length of years that aren't zero
+# Var1 is the sppListID - unique identifier per species
+# Var2 is the number of bloomdates for that species:year (Var1:Var2)
 yrswithdata <- lapply(unique(datatbl$Var1), function(x){
-  length(datatbl$Var2[datatbl$Var1 == x & datatbl$Freq > 0])
+  length(datatbl$Var2[datatbl$Var1 == x & datatbl$Freq > 0]) #not consecutive years
 }) 
 
 sort(do.call(c,yrswithdata)) # years of data (not consecutive) 9 to 44
@@ -68,27 +70,14 @@ Cumulative Growing Degree Days
 $\sum_{i=1}^{n} \left(T_{mean} - T_{base})$   
 $T_{base}$ should be the lowest air temperature when flowering will occur    
 Temperature Threshold and GDD models...
-    
-    
-In the csv Tbase is 10, not negative 10. Which is correct?     
+       
  McMaster and Wilhelm 1997:      
 Tbase = -10    
 Corn $T_{base} = 10$   
 Winter wheat $T_{base} = 0$   
 temperature below which the process of interest does not progress
 $$GDD = \frac{T_{MAX} + T_{MIN}}{2} - T_{BASE}$$   
-
-
-# not really GDD... 
-```{r}
-Tbase <- -10
-bloom$GDD2 <- (bloom$Avg_Hi + bloom$Avg_Lo)/2 - Tbase 
-
-#cumsum(bloom$GDD2) # need by day not by species, same data per species
-
-
-```
-
+Growing degree days in csv is wrong - not cummulative
 
 ```{r}
 #created new column that divides Raw_precip by 100 (see PRISM documentation) to get mm
@@ -157,6 +146,8 @@ head(bl50)
 ```
 
 
+# All bloom dates, not just the earliest per year per species
+
 ```{r}
  names <- unique(bl50$Scientific.Name)		# Names includes synonyms, sspListID contains unique taxa
  namesID <- unique(bl50$sppListID)
@@ -176,8 +167,46 @@ ggplot(collections, aes(Var2, Freq))+
   ylab("Number of Species")+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))
+```
+# When are collections made
+```{r}
+ggplot(bl50, aes(x=startDayOfYear))+
+  geom_histogram(position="identity",binwidth = 7)+
+  xlim(0,365)+
+  xlab("Julian Day")+
+  labs(title="Alpine Collections")
+
+```
+# When are collections made
+```{r}
+bl50.gr <- data.frame(bl50, Group=
+                    
+mapply(
+  
+  bl50,1,function(x){
+  if(bl50$Year <= 1951+(20*x)){
+    x
+  }
+})
+
+)
+
+ggplot(bl50.gr, aes(x=startDayOfYear))+
+  geom_histogram(position="identity",binwidth = 7)+
+  xlim(0,365)+
+  xlab("Julian Day")+
+  labs(title="Alpine Collections")+
+  facet_wrap(~Group)
+
+lm.1 <- summary(lm(startDayOfYear~Year, data=bl50))
+lm.1$coefficients[2,1]*365.25
+#22.85 days earlier - per year, right?
+
+```
+
 
 # collections per month
+```{r}
 collJ <- data.frame(table(bl50$sppListID, bl50$startDayOfYear))
 
 ggplot(collJ, aes(Var2, Freq, group =1))+
@@ -185,7 +214,8 @@ ggplot(collJ, aes(Var2, Freq, group =1))+
   xlab("Julian date")+
   ylab("Collections per species")+
   theme_bw()+
-  theme(axis.text.x = element_text(angle=90, hjust=1))
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  labs(title="All collections per species")
 
 # collections getting 
 
@@ -876,10 +906,13 @@ hdd.f <- data.frame(Year=1981:2011, FirstGDD = hdd.first.all)
 ggplot(hdd.f, aes(Year,FirstGDD))+
   geom_point()+
   stat_smooth(method="lm")+
+ # stat_smooth(method="loess",colour="green")+
   theme_bw()+
   labs(title="First cumulative GDD above zero")+
   xlab("Year")+
   ylab("Julian Date")
+
+summary(lm(FirstGDD~Year, data=hdd.f))
 ```
 
 Average HDD? per year
@@ -896,9 +929,9 @@ ggplot(data.frame(hddyrs), aes(Year, avgHDD))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Average cumulative HDD by Year")+
+  labs(title="Average cumulative Growing Degree Days by Year")+
   xlab("Year")+
-  ylab("Cumulative HDD")
+  ylab("Cumulative GDD")
 
 ```
 

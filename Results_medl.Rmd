@@ -20,6 +20,17 @@ bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGa
 head(bloom)
 ```
 
+Earliest bloom data
+```{r}
+
+
+
+
+
+```
+
+
+
 Snowmelt data or time at which heating degree days reach a certain point per year
 download of prism data in 'Climate.Rmd'
 ```{r}
@@ -62,7 +73,7 @@ ggplot(first.hdd, aes(Year,Julian))+
   theme_bw()+
   labs(title="First non-zero HDD")+
   xlab("Year")+
-  ylab("Degrees Celsius")
+  ylab("Julian Day")
 
 summary(lm(Julian~Year, data=first.hdd))
 ```

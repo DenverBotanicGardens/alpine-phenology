@@ -86,7 +86,7 @@ ggplot(earcol, aes(Year, Collections, group = 1))+
 ##Figure 2a
 Avg high temperature     
 ```{r, echo=FALSE}
-ggplot(min.dates, aes(Year,Avg_Hi))+
+ggplot(min1950, aes(Year,Avg_Hi))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
 #  stat_smooth(geom = "smooth")+
@@ -96,13 +96,13 @@ ggplot(min.dates, aes(Year,Avg_Hi))+
   ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
   scale_x_continuous(breaks = seq(1950,2011,10))
 
-summary(lm(Avg_Hi~Year, data=min.dates))
+summary(lm(Avg_Hi~Year, data=min1950))
 
 ```
 
 ##Figure 2b     
 ```{r, echo=FALSE}
-ggplot(min.dates, aes(Year,Avg_Lo))+
+ggplot(min1950, aes(Year,Avg_Lo))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -111,12 +111,12 @@ ggplot(min.dates, aes(Year,Avg_Lo))+
   ylab(~degree~C)+
   scale_x_continuous(breaks = seq(1950,2011,10))
 
-summary(lm(Avg_Lo~Year, data = min.dates))
+summary(lm(Avg_Lo~Year, data = min1950))
 ```
 
 ##Figure 2c
 ```{r, echo=FALSE}
-ggplot(min.dates, aes(Year,Raw_Precip))+
+ggplot(min1950, aes(Year,Raw_Precip))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -126,12 +126,12 @@ ggplot(min.dates, aes(Year,Raw_Precip))+
   scale_x_continuous(breaks = seq(1950,2011,10))
 
 
-summary(lm(Raw_Precip~Year, data = min.dates))
+summary(lm(Raw_Precip~Year, data = min1950))
 ```
 
 ##Figure 3a
 ```{r, eval=FALSE}
-ggplot(min.dates, aes(Avg_Hi, startDayOfYear))+
+ggplot(min1950, aes(Avg_Hi, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -139,13 +139,13 @@ ggplot(min.dates, aes(Avg_Hi, startDayOfYear))+
   xlab(expression(~degree~C))+
   ylab("Julian Date")
 
-summary(lm(startDayOfYear~Avg_Hi, data=min.dates))
+summary(lm(startDayOfYear~Avg_Hi, data=min1950))
 ```
 
 ##Figure 3b
 
 ```{r}
-ggplot(min.dates, aes(Avg_Lo, startDayOfYear))+
+ggplot(min1950, aes(Avg_Lo, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -153,12 +153,12 @@ ggplot(min.dates, aes(Avg_Lo, startDayOfYear))+
   xlab(expression(~degree~C))+
   ylab("Julian Date")
 
-summary(lm(startDayOfYear~Avg_Lo, data = min.dates))
+summary(lm(startDayOfYear~Avg_Lo, data = min1950))
 ```
 
 ##Figure 3c
 ```{r}
-ggplot(min.dates, aes(Raw_Precip, startDayOfYear))+
+ggplot(min1950, aes(Raw_Precip, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -166,7 +166,7 @@ ggplot(min.dates, aes(Raw_Precip, startDayOfYear))+
   xlab("Precipitation (mm)")+
   ylab("Julian Date")
 
-summary(lm(startDayOfYear~Raw_Precip, data = min.dates))
+summary(lm(startDayOfYear~Raw_Precip, data = min1950))
 ```
 
 

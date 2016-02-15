@@ -9,12 +9,29 @@ Pull out the earliest bloom date per year per species
 ## Break up the function into gathering the earliest bloom day per year seperate from regression per species
 
 ```{r}
+# turn into a function
+# minJul.dates 
 
-minJul.dates <- lapply(unique(bl50$sppListID), function(x){
-  this.species <- bl50[bl50$sppListID == x,c(4:5,11,19:28)]
+mindate <- function(bl50){
+  lapply(unique(bl50$sppListID), function(x){
+  #almost, need to use grep with "Avg" or type them all out...
+  this.species <- bl50[bl50$sppListID == x,names(bl50) %in% c("Scientific.Name",
+                                             "sppListID",
+                                             "startDayOfYear",
+                                             "Year","Raw_Precip",
+                                             "Avg_Hi","Avg_Lo")]   #c(4:5,11,19:28)]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
   unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
   })
+  names(minJul.dates) <- unique(bl50$sppListID)
+  min.dates <- do.call(rbind,minJul.dates)
+}
+```
+
+1950:2010 min dates
+```{r}
+min1950 <- mindate(bl50)
+head(min1950)
 ```
 
 
@@ -44,13 +61,3 @@ HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
 
 ```
 
-
-```
-
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
