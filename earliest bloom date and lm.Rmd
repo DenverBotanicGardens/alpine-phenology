@@ -54,7 +54,24 @@ min1950 <- mindate(bl50)
 head(min1950)
 ```
 
+  JYC <- lapply(namesID, function(x){
+    blnew <- min.dates[min.dates$sppListID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    foo1$adj.r.squared))
+    })
+  
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
 
+variable <- "Year"
+dataset <- min1950
 
 ```{r}
 JulBloomDate.subset <- function(variable,dataset){
@@ -62,7 +79,7 @@ JulBloomDate.subset <- function(variable,dataset){
   colnum <- match(variable,names(dataset))
   JYC <- lapply(namesID, function(x){
     blnew <- dataset[dataset$sppListID == x,]
-    foo1 <- summary(lm(dataset$startDayOfYear~dataset[,colnum]))
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),

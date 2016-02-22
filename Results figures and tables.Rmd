@@ -26,6 +26,17 @@ bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGa
 head(bloom)
 ```
 
+
+Appendix A
+```{r}
+head(min1950)
+table(min1950$Scientific.Name,min1950$Year)
+
+
+
+
+```
+
 Pull out the earliest bloom date per year per species   
 
 ```{r}
@@ -322,14 +333,67 @@ summary(lm(startDayOfYear ~ Avg_Lo, data=min1950))
 summary(lm(startDayOfYear ~ Raw_Precip, data=min1950))
 ```
 
-## start here, something wrong!!
+
 Phenology summary table
 ```{r}
 yr.1950 <- JulBloomDate.subset("Year",min1950)
-# Didn't change
-nrow(yr.1950$p.value>0.05)
+write.table(yr.1950, file = "Q:/Research/Projects/alpine-phenology/phenology_summary.csv", sep=",")
+```
+
+## make sure I didn't change names in the excel sheets from the original ... I think that's why I'm missing some signficant ones for the tables.   
+Families per species
+```{r}
+fams <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/phenology_summary.csv"))
+
+head(fams)
 
 ```
+
+```{r}
+nrow(yr.1950[yr.1950$p.value<0.05,])
+sig.yr.1950 <- yr.1950[yr.1950$p.value<0.05,]
+nrow(sig.yr.1950)
+foo1 <- merge(fams[,c(2,4)],sig.yr.1950, by = "Species")
+nrow(foo1)
+write.table(foo1, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryYearsig.csv", sep=",")
+
+
+```
+
+```{r}
+high.1950 <- JulBloomDate.subset("Avg_Hi", min1950)
+write.table(high.1950, file = "Q:/Research/Projects/alpine-phenology/phenology_summary_high.csv", sep=",")
+foo2 <- merge(fams[,c(2,4)], high.1950[high.1950$p.value<0.05,])
+nrow(high.1950[high.1950$p.value<0.05,])
+nrow(foo2)
+write.table(foo2, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryhighsig.csv", sep=",")
+
+```
+
+
+```{r}
+low.1950 <- JulBloomDate.subset("Avg_Lo", min1950)
+write.table(low.1950, file = "Q:/Research/Projects/alpine-phenology/phenology_summary_low.csv", sep=",")
+nrow(low.1950)
+foo3 <- merge(fams[,c(2,4)], low.1950[low.1950$p.value<0.05,])
+nrow(foo3)
+write.table(foo3, file = "Q:/Research/Projects/alpine-phenology/phenology_summarylowsig.csv", sep=",")
+
+```
+
+
+
+```{r}
+precip.1950 <- JulBloomDate.subset("Raw_Precip", min1950)
+write.table(precip.1950, file = "Q:/Research/Projects/alpine-phenology/phenology_summary_Raw_Precip.csv", sep=",")
+nrow(precip.1950)
+foo4 <- merge(fams[,c(2,4)], precip.1950[precip.1950$p.value<0.05,])
+nrow(foo4)
+write.table(foo4, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryprecipsig.csv", sep=",")
+
+```
+
+### start here and use the GDD data for the last table... then NPN species
 
 
 Figure : First day of accumulated GDD each year
