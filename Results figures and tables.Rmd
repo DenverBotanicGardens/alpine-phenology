@@ -30,11 +30,7 @@ head(bloom)
 Appendix A
 ```{r}
 head(min1950)
-table(min1950$Scientific.Name,min1950$Year)
-
-
-
-
+write.table(rowSums(table(min1950$Scientific.Name,min1950$Year)), file = "Q:/Research/Projects/alpine-phenology/AppendixA_r.csv", sep=",")
 ```
 
 Pull out the earliest bloom date per year per species   
@@ -394,6 +390,18 @@ write.table(foo4, file = "Q:/Research/Projects/alpine-phenology/phenology_summar
 ```
 
 ### start here and use the GDD data for the last table... then NPN species
+
+
+```{r}
+GDD.1981 <- JulBloomDate.subset("HDD", min1950GDD)
+write.table(GDD.1981, file = "Q:/Research/Projects/alpine-phenology/phenology_summary_GDD.csv", sep=",")
+nrow(GDD.1981)
+foo5 <- merge(fams[,c(2,4)], GDD.1981[GDD.1981$p.value<0.05,])
+nrow(foo5)
+write.table(foo5, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryGDDsig.csv", sep=",")
+
+```
+
 
 
 Figure : First day of accumulated GDD each year

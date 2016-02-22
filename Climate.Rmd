@@ -1049,24 +1049,56 @@ npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
 
 
 spec.sps <- unique(min.dates$SciName)
+length(spec.sps) #284
+length(unique(min1950$Scientific.Name)) #290
+
 npn.sps <- unique(npn.sp$SciName)
+length(npn.sps) #6
 npn.all.sps <- unique(npn.all$SciName)
+length(npn.all.sps) #735
 
 #three and three shorted? 
-firstword <- sub("(?<=.{3})(.)*", "", spec.sps, perl = TRUE) 
-secondword <- substr(sub(".*? (.+)", "\\1", spec.sps),1,3) 
-spec.three <- paste(firstword,secondword,sep="")
+#firstword <- sub("(?<=.{3})(.)*", "", spec.sps, perl = TRUE) 
+#secondword <- substr(sub(".*? (.+)", "\\1", spec.sps),1,3) 
+#spec.three <- paste(firstword,secondword,sep="")
 
-#NPN three shortened
+#Fix spelling error
+min1950 <- as.data.frame(sapply(min1950, gsub, 
+                                  pattern = "coerulea", 
+                                  replacement = "caerulea"))
+
+#Fix double space in Hierochola hirta
+min1950 <- as.data.frame(sapply(min1950, gsub,
+                                  pattern="Hierochlo  hirta",
+                                  replacement = "Hierochlo hirta"))
+
+tonumeric <- c(1:2,4:length(min1950))
+min1950[,tonumeric] <- sapply(min1950[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+
+i <- sapply(min1950,is.factor)
+min1950[i] <- lapply(min1950[i], as.character)
+
+
+#three and three shorted? 
+firstword <- sub("(?<=.{3})(.)*", "", unique(min1950$Scientific.Name), perl = TRUE) 
+secondword <- substr(sub(".*? (.+)", "\\1", unique(min1950$Scientific.Name)),1,3) 
+spec.three <- paste(firstword,secondword,sep="")
+length(spec.three) #290
+
+
+
+#NPN three shortened, only 6 species. these must be ones in CO
 firstwordn <- sub("(?<=.{3})(.)*", "", npn.sps, perl = TRUE) 
 secondwordn <- substr(sub(".*? (.+)", "\\1", npn.sps),1,3) 
 spec.threenpn <- paste(firstwordn,secondwordn,sep="")
-
 
 #NPN.all three shortened
 firstwordna <- sub("(?<=.{3})(.)*", "", npn.all.sps, perl = TRUE) 
 secondwordna <- substr(sub(".*? (.+)", "\\1", npn.all.sps),1,3) 
 spec.threenpna <- paste(firstwordna,secondwordna,sep="")
+length(spec.threenpna) #735
 
 npn.sps.1 <- match(spec.three,spec.threenpn)
 m.s.1 <- npn.sps.1[complete.cases(npn.sps.1)]
@@ -1078,20 +1110,70 @@ npn.sps[m.s] #6
 
 # with all NPN
 npn.all.sps.1 <- match(spec.three,spec.threenpna)
+length(npn.all.sps.1) #of the 290, position of match
+
+length(match(spec.threenpna,spec.three)) #735
+length(match(spec.threenpna,spec.three)[complete.cases(match(spec.threenpna,spec.three))]) #20 after fixing spelling errors from Bloom
+
 m.a.s.1 <- npn.all.sps.1[complete.cases(npn.all.sps.1)]
-length(spec.threenpna[m.a.s.1] ) # 20 match
+length(spec.threenpna[m.a.s.1] ) # 20 match, 
+          #19 but is that with spelling error? Aqu
+sort(spec.threenpna)
+sort(m.a.s.1)
+
+length(m.a.s.1) #20
 
 m.sps <- match(spec.sps, npn.sps)
 m.s <- m.sps[complete.cases(m.sps)]
 npn.sps[m.s] #6 
 
-all.scinames <- match(min.dates$SciName, npn.all$SciName)
+min1950$SciName <- sub( "(^[^ ]+[ ][^ ]+)(.+$)", "\\1", min1950$Scientific.Name)
+
+#all.scinames <- match(min.dates$SciName, npn.all$SciName)
+all.scinames <- match(min1950$SciName, npn.all$SciName)
 a.s <- all.scinames[complete.cases(all.scinames)]
-sort(unique(npn.all$SciName[a.s]))
+npn.names <- sort(unique(npn.all$SciName[a.s]))
+
+npnonly <- min1950[min1950$SciName %in%  npn.names,]
+
+```
+
+```{r}
+ggplot(npnonly, aes(Year,startDayOfYear,colour=SciName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Year")+
+  xlab("Year")+
+  ylab("Julian Date")
 
 
 ```
 
+NPN only species for regressions with Year, ??Precip, high, or low?
+```{r}
+summary(lm(startDayOfYear~Year,data = npnonly))
+sort(unique(npnonly$Scientific.Name))
+
+#Individuals
+npnYear <- JulBloomDate.subset("Year", npnonly)
+npnYear[npnYear$p.value<0.05,] # non signifcantly changed over years
+
+npnPrecip <- JulBloomDate.subset("Raw_Precip", npnonly)
+npnPrecip[npnPrecip$p.value<0.05,] #Mimulus guttatus
+
+npnHigh <- JulBloomDate.subset("Avg_Hi", npnonly)
+npnHigh[npnYear$p.value<0.05,] # none
+
+npnLow <- 
+```
+
+```{r}
+ggplot(min1950, aes(Year, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()
+```
 
 How have NPN species faired?
 ```{r}
