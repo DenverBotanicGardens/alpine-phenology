@@ -26,6 +26,86 @@ bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGa
 head(bloom)
 ```
 
+Rid of repeated yearly climate data for changes of average annual climate over time
+```{r}
+grep("Year",names(bloom)) #11, 19
+
+climate <- unique(bloom[,c(19:length(bloom))])
+head(climate)
+```
+
+##Figure 2a
+```{r}
+summary(lm(Avg_Hi~Year, data=climate))
+ggplot(climate, aes(Year,Avg_Hi))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+#  stat_smooth(geom = "smooth")+
+  theme_bw()+
+  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
+  scale_x_continuous(breaks = seq(1950,2011,10))
+```
+
+##Figure 2b     
+```{r, echo=FALSE}
+ggplot(climate, aes(Year,Avg_Lo))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Low Temperature by Year")+
+  xlab("Year")+
+  ylab(~degree~C)+
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+summary(lm(Avg_Lo~Year, data = climate))
+```
+
+##Figure 2c
+```{r, echo=FALSE}
+ggplot(climate, aes(Year,Raw_Precip))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Precipitation by Year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")+
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+
+summary(lm(Raw_Precip~Year, data = climate))
+```
+
+Number of species collected from herbarium before refining:   
+```{r}
+# number of years per species
+yrs.specimens <- apply(table(bloom$Year,bloom$Scientific.Name),2,function(x){
+  sapply(x,function(y){
+    if(y>0){
+      1
+    } else {0}})
+})
+
+rowSums(yrs.specimens)
+sort(colSums(yrs.specimens))
+length(colSums(yrs.specimens)[colSums(yrs.specimens)<=10])
+
+length(colSums(yrs.specimens)[colSums(yrs.specimens)>=10])
+
+
+```
+
+```{r}
+sort(apply(table(bloom$Year,bloom$Scientific.Name),2,max))
+sort(apply(table(bloom$Year,bloom$Scientific.Name),2,function(x){
+  min(do.call(c,sapply(x,function(y){
+    if(y==1) NA
+  })),na.rm = T)
+}))
+
+```
+
 
 Appendix A
 ```{r}
@@ -89,8 +169,8 @@ ggplot(earcol, aes(Year, Collections, group = 1))+
 
 ```
 
-
-##Figure 2a
+## This repeats climate for every specimen sampled, want to just see change over time
+Figure 2a
 Avg high temperature     
 ```{r, echo=FALSE}
 ggplot(min1950, aes(Year,Avg_Hi))+
@@ -107,7 +187,7 @@ summary(lm(Avg_Hi~Year, data=min1950))
 
 ```
 
-##Figure 2b     
+Figure 2b     
 ```{r, echo=FALSE}
 ggplot(min1950, aes(Year,Avg_Lo))+
   geom_point(shape=1)+
@@ -121,7 +201,7 @@ ggplot(min1950, aes(Year,Avg_Lo))+
 summary(lm(Avg_Lo~Year, data = min1950))
 ```
 
-##Figure 2c
+Figure 2c
 ```{r, echo=FALSE}
 ggplot(min1950, aes(Year,Raw_Precip))+
   geom_point(shape=1)+
@@ -136,6 +216,8 @@ ggplot(min1950, aes(Year,Raw_Precip))+
 summary(lm(Raw_Precip~Year, data = min1950))
 ```
 
+
+#Now we want repeated climate for each start day of year
 ##Figure 3a
 ```{r, eval=FALSE}
 ggplot(min1950, aes(Avg_Hi, startDayOfYear))+
@@ -290,7 +372,40 @@ summary(lm(avgHDD~Year, data=hddyrs))
 
 ```
 
-Figure 4c
+# Figure 4a 
+```{r}
+ggplot(min1950GDD, aes(Year,HDD))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab("cummulative GDD at collection date")
+
+summary(lm(HDD~Year, data=min1950GDD))
+
+```
+
+#Figure 4b   
+is the total accumulated GDD getting more each year?   
+```{r}
+totalGDD <- lapply(HDD.yrs, function(x){
+  max(x)
+})
+totalGDDyr <- data.frame(Year=1981:2011,MaxGDD = do.call(rbind,totalGDD))
+head(totalGDDyr)
+
+ggplot(totalGDDyr, aes(Year,MaxGDD))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Maximum cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab("cummulative GDD at end of year")
+summary(lm(MaxGDD~Year,data=totalGDDyr))
+```
+
+was: Figure 4c
 ```{r}
 ggplot(min1950GDD, aes(HDD,startDayOfYear))+
   geom_point()+
@@ -346,6 +461,8 @@ head(fams)
 ```
 
 ```{r}
+nrow(yr.1950)
+nrow(yr.1950[yr.1950$p.value>=0.05,])
 nrow(yr.1950[yr.1950$p.value<0.05,])
 sig.yr.1950 <- yr.1950[yr.1950$p.value<0.05,]
 nrow(sig.yr.1950)
@@ -363,6 +480,8 @@ foo2 <- merge(fams[,c(2,4)], high.1950[high.1950$p.value<0.05,])
 nrow(high.1950[high.1950$p.value<0.05,])
 nrow(foo2)
 write.table(foo2, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryhighsig.csv", sep=",")
+nrow(high.1950[high.1950$p.value<0.05,])
+nrow(high.1950[high.1950$p.value>=0.05,])
 
 ```
 
@@ -374,6 +493,9 @@ nrow(low.1950)
 foo3 <- merge(fams[,c(2,4)], low.1950[low.1950$p.value<0.05,])
 nrow(foo3)
 write.table(foo3, file = "Q:/Research/Projects/alpine-phenology/phenology_summarylowsig.csv", sep=",")
+
+nrow(low.1950[low.1950$p.value<0.05,])
+nrow(low.1950[low.1950$p.value>=0.05,])
 
 ```
 
@@ -387,11 +509,31 @@ foo4 <- merge(fams[,c(2,4)], precip.1950[precip.1950$p.value<0.05,])
 nrow(foo4)
 write.table(foo4, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryprecipsig.csv", sep=",")
 
+# later date
+nrow(precip.1950[precip.1950$p.value<0.05 & precip.1950$Slope > 0,])
+mean(precip.1950$Slope[precip.1950$p.value<0.05& precip.1950$Slope > 0])
+# earlier date
+nrow(precip.1950[precip.1950$p.value<0.05 & precip.1950$Slope < 0,])
+mean(precip.1950$Slope[precip.1950$p.value<0.05& precip.1950$Slope < 0])
+
+nrow(precip.1950[precip.1950$p.value>=0.05,])
+
 ```
 
-### start here and use the GDD data for the last table... then NPN species
+#NPN species   
+from Climate.Rmd
+```{r}
+m.a.s.1
+table(npnonly$Scientific.Name)
+
+table(npnonly$Scientific.Name, npnonly$Year)
+rowSums(table(npnonly$Scientific.Name, npnonly$Year))
+nrow(table(npnonly$Scientific.Name, npnonly$Year)) #17
 
 
+```
+
+# don't want this for GDD:
 ```{r}
 GDD.1981 <- JulBloomDate.subset("HDD", min1950GDD)
 write.table(GDD.1981, file = "Q:/Research/Projects/alpine-phenology/phenology_summary_GDD.csv", sep=",")
@@ -400,8 +542,75 @@ foo5 <- merge(fams[,c(2,4)], GDD.1981[GDD.1981$p.value<0.05,])
 nrow(foo5)
 write.table(foo5, file = "Q:/Research/Projects/alpine-phenology/phenology_summaryGDDsig.csv", sep=",")
 
-```
+ggplot(min1950GDD,aes(HDD,startDayOfYear,group=Scientific.Name))+
+  geom_point()+
+  geom_smooth(method="lm", alpha = 0.05)+
+  theme(legend.position="none")
+  
 
+head(GDD.1981)
+nrow(GDD.1981[GDD.1981$p.value<0.05 & GDD.1981$Slope > 0,])
+mean(GDD.1981$Slope[GDD.1981$p.value<0.05& GDD.1981$Slope > 0],na.rm = TRUE)
+
+nrow(GDD.1981[GDD.1981$p.value>=0.05,])
+
+```
+# want THIS for GDD:   
+```{r}
+ggplot(min1950GDD, aes(Year, HDD, group=Scientific.Name))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
+  theme_bw()+
+  ylab(expression(GDD[cum]))
+
+results <- lapply(unique(min1950GDD$Scientific.Name), function(x){
+  foo1 <- summary(lm(HDD~Year,data=min1950GDD[min1950GDD$Scientific.Name==x,]))
+  JYC <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                          foo1$coefficients[1,1],
+                          t(foo1$fstatistic),
+                          Species = x,
+                          foo1$adj.r.squared,
+                          N = nrow(min1950GDD[min1950GDD$Scientific.Name==x,])))
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ","N")
+  JYC
+  })
+
+
+results[[1]]
+rst <- do.call(rbind,results)
+head(rst)
+
+
+nrow(rst)
+rst[rst$p.value<0.05,]
+
+rst[is.na(rst$adj.r.squ),] # Kobresia schoenoides and Carex misandra have two records
+rst1 <- rst[complete.cases(rst),] 
+nrow(rst1[complete.cases(rst1),]) #288, removing the two with only two records. 
+nrow(rst1)
+
+nrow(rst1[rst1$p.value<0.05,]) #16
+rst1 <- merge(fams[,c(2,4)],rst1, by="Species")
+
+nrow(rst1[rst1$p.value>=0.05,])#272
+nrow(rst1[rst1$p.value<0.05 & rst1$Slope >0,])#7
+rst1[rst1$p.value<0.05 & rst1$Slope >0,]
+write.table(rst1[rst1$p.value<0.05 & rst1$Slope >0,],
+            file="Q:/Research/Projects/alpine-phenology/table5a.csv", sep=",")
+nrow(rst1[rst1$p.value<0.05 & rst1$Slope <=0,])#9
+write.table(rst1[rst1$p.value<0.05 & rst1$Slope <=0,],
+            file="Q:/Research/Projects/alpine-phenology/table5b.csv", sep=",")
+
+
+ggplot(min1950GDD, aes(Year, HDD, group=Scientific.Name))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
+  theme_bw()+
+  ylab(expression(GDD[cum]))
+
+
+```
 
 
 Figure : First day of accumulated GDD each year
@@ -422,7 +631,63 @@ ggplot(hdd.f, aes(Year,FirstGDD))+
   xlab("Year")+
   ylab("Julian Date")
 
-summary(lm(FirstGDD~Year, data=hdd.f))
+summary(lm(FirstGDD~Year, data=hdd.f))$coefficients
+
+```
+
+
+Plot a line for each year? 
+```{r}
+length(HDD.yrs[[1]])
+length(HDD.yrs[[4]])
+col.hdd.yrs <- lapply(HDD.yrs, function(x) x[1:273])
+col.hdd.yrs <- do.call(cbind,col.hdd.yrs)
+head(col.hdd.yrs)
+
+meltd<-melt(col.hdd.yrs)
+tail(meltd)
+names(meltd) <- c("Day","Year","GDD")
+
+ggplot(meltd, aes(Day,GDD, colour=factor(Year)))+
+  stat_smooth(method="loess")
+
+# group by decade?
+meltd$Decade <- 3
+meltd$Decade[meltd$Year<21] <- 2
+meltd$Decade[meltd$Year<11] <- 1
+
+ggplot(meltd, aes(Day,GDD,colour=factor(Decade)))+
+  stat_smooth(method = "lm")
+
+summary(lm(GDD~Day*Year, data=meltd))
+```
+
+
+## want to plot the coefiecent for each accumulation of GDD curve over years
+```{r}
+par(mfrow=c(2,2))
+curve(x^2, from=1,to=100)
+curve(x^(1/2), from=1,to=100)
+curve(x^3, from=1,to=100)
+curve(x^4, from=1,to=100)
+
+par(mfrow=c(1,1))
+lm.sum <- lapply(unique(meltd$Year), function(x){
+  summary(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year == x,]))
+})
+
+coefficients(lm.sum[[1]])[3,1]
+lm.sum[2]
+
+lm.coef <- lapply(lm.sum, function(x){
+  coefficients(x)[3,1]
+})
+
+toplot <- data.frame(Year=1981:2011, sqcoef = do.call(rbind,lm.coef))
+ggplot(toplot, aes(Year,sqcoef))+
+  geom_point()+
+  geom_smooth(method="lm")
+summary(lm(sqcoef~Year, data=toplot))
 
 ```
 
@@ -457,11 +722,127 @@ ggplot(data.frame(hddmaxyrs), aes(Year, maxHDD))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Average cumulative HDD by Year")+
+  labs(title="Cumulative GDD by Year")+
   xlab("Year")+
   ylab("Cumulative HDD")
 
+summary(lm(maxHDD~Year,data=data.frame(hddmaxyrs)))
 
 ```
 
+stepAIC models. Find the secant of the accumulation of GDD curve. First pick the best curve model for the data (for GDD/day each year. )
+```{r}
+head(meltd)
+max(meltd$Day) #273 the day of the latest colleciton
+
+fit1 <- lapply(unique(meltd$Year), function(x){
+  stepAIC(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year==x,]),
+          scope = lm(GDD~1, data=meltd),
+          direction = "backward")
+})
+
+fit1[[29]]$coefficients[3]
+summary(fit1[[2]])
+
+ggplot(meltd, aes(Day,GDD,colour=factor(Year)))+
+  stat_smooth()
+
+xx <- seq(0,273,length.out = 273)
+length(xx)
+length(predict(fit1[[1]]))
+plot(meltd$Day,meltd$GDD,pch=1, cex=0.25)
+lines(xx,predict(fit1[[1]]),lwd=2, col = "#000000")
+
+lapply(fit1,function(x){lines(xx,predict(x))})
+
+# can't get it with different colors
+palette <- colorRampPalette(colors=c("#000000", "#FFFFFF"))
+colfunc<-colorRampPalette(c("red","yellow","springgreen","royalblue"))
+colfunc(31)
+cols <- as.factor(colfunc(31)) #palette(31)
+mapply(function(y,x){lines(xx,predict(y), lwd=2, col = y)},
+       y = fit1, x = cols, SIMPLIFY = FALSE)
+
+
+lines(xx,predict(fit1[[1]]), col="blue", lwd=2)
+lines(xx,predict(fit1[[20]]),col="red", lwd=2)
+lines(xx,predict(fit1[[30]]),col="yellow", lwd=2)
+``` 
+
+#Figure 4b
+```{r}
+#install.packages("polynom")
+#library(polynom)
+as.function(polynomial(coef(fit1[[1]])))(273)
+as.function(polynomial(coef(fit1[[1]])))(100)
+
+
+poly.p <- lapply(fit1, function(fx){
+  polynomial(coef(fx))
+})
+sday <- 1
+eday <- 273
+
+secant.poly <- lapply(poly.p,function(x){
+  ((as.function(x)(eday)+1000) - (as.function(x)(sday)+1000))/(eday-sday)
+})
+secant.poly.all <- data.frame(Year=1981:2011, 
+                              Secant= do.call(rbind,secant.poly))
+
+ggplot(secant.poly.all, aes(Year,Secant))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  ylab("Average rate of change in GDD (day 1 to 273)")
+
+summary(lm(Secant~Year, data=secant.poly.all))
+```
+
+#Figure 4C  
+accumulation of GDD faster related to julian day per year
+```{r}
+head(secant.poly.all)
+min1950GDDsecant <- merge(min1950GDD, secant.poly.all,by="Year")
+head(min1950GDDsecant)
+
+ggplot(min1950GDDsecant, aes(Secant,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
+  xlab("Average rate of GDD accumulation")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Secant, data=min1950GDDsecant))
+```
+
+No no
+```{r}
+
+f_x <- lapply(fit1, function(x){
+  data.frame(m1 = x$coefficients[2],
+             m2 = x$coefficients[3],
+             b = x$coefficients[1])
+})
+
+f_x[[1]]
+
+```
+ No no no  
+```{r}
+#f(x) = m1x + m2x^2 + b
+# secant from day 50 to day 273?
+# change in y=GDD over x=day
+# change of Day 2 to day 273
+secant <- lapply(f_x,function(fx){
+  (((fx$m1*273)+(fx$m2*273)+(fx$b+1000))-((fx$m1*50)+(fx$m2*50)+(fx$b+1000)))/(273-50)
+})
+
+secant1 <- do.call(rbind,secant)
+length(secant1)
+secant2<-data.frame(Year=1981:2011,Secant=secant1)
+ggplot(secant2, aes(Year,Secant))+
+  geom_point()+
+  stat_smooth(method="lm")
+```
 

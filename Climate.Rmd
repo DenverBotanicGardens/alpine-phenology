@@ -26,6 +26,7 @@ require(rgdal)
 library(devtools)
 # devtools::install_github("ropensci/prism")
 library(prism)
+library(polynom)
 ```
 
 Bring csv in from the website
@@ -1219,7 +1220,22 @@ JulBloomDate.subset <- function(variable,dataset){
 }
 
 yr.npn <- JulBloomDate.subset("Year",npn.only) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
+yr.npn[yr.npn$p.value<0.05,]
+
+
+hi.npn <- JulBloomDate.subset("Avg_Hi", npn.only) #mostly positive slope
+hi.npn[hi.npn$p.value<0.05,]
+colMeans(hi.npn[hi.npn$p.value<0.05,-9])
+
+
+lo.npn <- JulBloomDate.subset("Avg_Lo", npn.only) #mostly positive slope
+lo.npn[lo.npn$p.value<0.05,]
+colMeans(lo.npn[lo.npn$p.value<0.05,-9])
+
 precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only) #mostly positive slope
+precip.npn[precip.npn$p.value<0.05,]
+colMeans(precip.npn[precip.npn$p.value<0.05,-9])
+
 HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
 
 ```
@@ -1315,5 +1331,17 @@ Snowmelt data from [Snotel NRCS](http://wcc.sc.egov.usda.gov/nwcc/rgrpt?report=s
 ```
 
 http://wcc.sc.egov.usda.gov/reportGenerator/view_csv/customGroupByMonthReport/monthly/05L05:CO:SNOW%7Cid=%22%22%7Cname/POR_BEGIN,POR_END:1,2,3,4,5,6/WTEQ::collectionDate,SNWD::value,WTEQ::value
+
+#Repeated Measures. Repeated in this case is year
+#wants an ID for the repeated measures at each point, we have one measure per
+```{r}
+summary(aov(GDD~factor(Decade)*factor(Day)+Error(factor(Year)),data=meltd))
+
+# make sure it's equal sample sizes just get rid of 2011...
+meltd.sym <- meltd[meltd$Year != 31,]
+summary(aov(GDD~factor(Decade)*factor(Day)+Error(factor(Year)),data=meltd.sym))
+
+summary(aov(GDD~Year*Day+Error(Year), data=meltd))
+```
 
 

@@ -20,15 +20,6 @@ bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGa
 head(bloom)
 ```
 
-Earliest bloom data
-```{r}
-
-
-
-
-
-```
-
 
 
 Snowmelt data or time at which heating degree days reach a certain point per year
@@ -291,6 +282,8 @@ npn <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/Alpine spp. N
 head(npn)
 table(npn$Common_Name,npn$First_Yes_Year)
 table(npn$Genus,npn$State)
+
+
 
 npn.CO <- npn[npn$State == "CO",]
 table(npn.CO$Common_Name,npn.CO$First_Yes_Year)
