@@ -84,6 +84,7 @@ JulBloomDate.subset <- function(variable,dataset){
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),
                                     Species = blnew$Scientific.Name[1],
+                                    #Species = blnew$Species[1],
                                     foo1$adj.r.squared))
     })
   JYC <- do.call(rbind, JYC)
@@ -92,8 +93,16 @@ JulBloomDate.subset <- function(variable,dataset){
   JYC
 }
 
-yr.npn <- JulBloomDate.subset("Year",npn.only) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
-precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only) #mostly positive slope
+# these need Species = blnew$Species[1]
+records.yr <- colSums(table(npn.only.1950$Year,npn.only.1950$Species))
+length(records.yr[records.yr>0])#17
+str(npn.only.1950)
+
+yr.npn <- JulBloomDate.subset("Year",npn.only.1950) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
+
+precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only.1950) #mostly positive slope
+
+# need to use the commented out Species=blnew$Scientific.Name
 HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
 
 ```

@@ -1181,24 +1181,41 @@ How have NPN species faired?
 npns <- unique(npn.all$SciName[a.s])
 
 npn.only <- min.dates[grep(paste(npns,collapse="|"), min.dates$SciName),]
-
+npn.only.1950 <- min1950[grep(paste(npns,collapse="|"), min1950$SciName),]
 
 #Convert all factor columns to numeric
-npn.only[,-c(3,13,length(npn.only))] <- sapply(npn.only[,-c(3,13,length(npn.only))], 
-                                               function(x) as.numeric(as.character(x)))
+npn.only[,-c(3,13,length(npn.only))] <- 
+  sapply(npn.only[,-c(3,13,length(npn.only))], 
+         function(x) as.numeric(as.character(x)))
+
+npn.only.1950[,-c(3,13,length(npn.only.1950))] <-
+  sapply(npn.only.1950[,-c(3,13,length(npn.only.1950))],
+         function(x) as.numeric(as.character(x)))
 
 
 summary(lm(startDayOfYear~Year+HDD,data=npn.only))
 summary(lm(startDayOfYear~Year,data=npn.only))
 summary(lm(startDayOfYear~Year+HDD+SciName,data=npn.only))
 
-ggplot(npn.only, aes(Year,startDayOfYear,colour=SciName))+
-  geom_point()+
-  stat_smooth(method="lm")+
+spelledright <- unique(npn.only.1950$Scientific.Name[grep("Aquilegia cae", npn.only.1950$SciName)])
+spelledwrong <- fams$Species[grep("Aquilegia coe",fams$Species)]
+levels(fams$Species)[levels(fams$Species)==spelledwrong] <- spelledright
+
+npn.only.1950 <- merge(fams[,c(2,4)],npn.only.1950,by.x="Species",by.y="Scientific.Name")
+head(fams)
+names(npn.only.1950)
+head(npn.only.1950)
+
+ggplot(npn.only.1950, aes(Year,startDayOfYear,group=SciName))+
+  facet_wrap(~Family, ncol = 2)+
+  scale_shape_manual(values=rep(1:6, length.out = length(unique(npn.only.1950$SciName))))+ 
+  geom_point(aes(shape=interaction(SciName,Family)))+
+  stat_smooth(method="lm", level = 0, color="black")+
   theme_bw()+
   labs(title="Earliest Bloom Date by Year")+
   xlab("Year")+
-  ylab("Julian Date")
+  ylab("Julian Date")+
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
 
 # do function on npn.only
 JulBloomDate.subset <- function(variable,dataset){
@@ -1219,6 +1236,56 @@ JulBloomDate.subset <- function(variable,dataset){
   JYC
 }
 
+records.yr <- colSums(table(npn.only.1950$Year,npn.only.1950$Species))
+length(records.yr[records.yr>0])#17
+str(npn.only.1950)
+
+yr.npn <- JulBloomDate.subset("Year",npn.only.1950) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
+yr.npn[yr.npn$p.value<0.05,] # none!
+
+hi.npn <- JulBloomDate.subset("Avg_Hi", npn.only.1950) #mostly positive slope
+hi.npn[hi.npn$p.value<0.05,]
+colMeans(hi.npn[hi.npn$p.value<0.05,-9])
+
+
+lo.npn <- JulBloomDate.subset("Avg_Lo", npn.only.1950) #mostly positive slope
+lo.npn.Jul <- lo.npn[lo.npn$p.value<0.05,]
+colMeans(lo.npn.Jul[-4,-9])
+colMeans(lo.npn[lo.npn$p.value<0.05,-9])
+
+precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only.1950) #mostly positive slope
+precip.npn[precip.npn$p.value<0.05,]
+
+
+
+rm(yr.npn)
+rm(hi.npn)
+rm(lo.npn)
+rm(precip.npn)
+```
+
+These are only 1981:2011
+```{r}
+# need to have the commented out Species=blnew$Scientific.Name
+results <- lapply(unique(npn.only$Scientific.Name), function(x){
+  foo1 <- summary(lm(HDD~Year,data=npn.only[npn.only$Scientific.Name==x,]))
+  JYC <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                          foo1$coefficients[1,1],
+                          t(foo1$fstatistic),
+                          Species = x,
+                          foo1$adj.r.squared,
+                          N = nrow(npn.only[npn.only$Scientific.Name==x,])))
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ","N")
+  JYC
+  })
+
+rsts <- do.call(rbind,results)
+rsts[rsts$p.value<0.05,]
+nrow(rsts[rsts$p.value<0.05,])
+
+
+
 yr.npn <- JulBloomDate.subset("Year",npn.only) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
 yr.npn[yr.npn$p.value<0.05,]
 
@@ -1236,7 +1303,12 @@ precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only) #mostly positive slope
 precip.npn[precip.npn$p.value<0.05,]
 colMeans(precip.npn[precip.npn$p.value<0.05,-9])
 
-HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
+
+ggplot(npn.only, aes(Year, HDD, group=Scientific.Name))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
+  theme_bw()+
+  ylab(expression(GDD[cum]))
 
 ```
 
