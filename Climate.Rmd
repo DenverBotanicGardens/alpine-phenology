@@ -1284,26 +1284,6 @@ rsts <- do.call(rbind,results)
 rsts[rsts$p.value<0.05,]
 nrow(rsts[rsts$p.value<0.05,])
 
-
-
-yr.npn <- JulBloomDate.subset("Year",npn.only) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
-yr.npn[yr.npn$p.value<0.05,]
-
-
-hi.npn <- JulBloomDate.subset("Avg_Hi", npn.only) #mostly positive slope
-hi.npn[hi.npn$p.value<0.05,]
-colMeans(hi.npn[hi.npn$p.value<0.05,-9])
-
-
-lo.npn <- JulBloomDate.subset("Avg_Lo", npn.only) #mostly positive slope
-lo.npn[lo.npn$p.value<0.05,]
-colMeans(lo.npn[lo.npn$p.value<0.05,-9])
-
-precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only) #mostly positive slope
-precip.npn[precip.npn$p.value<0.05,]
-colMeans(precip.npn[precip.npn$p.value<0.05,-9])
-
-
 ggplot(npn.only, aes(Year, HDD, group=Scientific.Name))+
   geom_point()+
   geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
