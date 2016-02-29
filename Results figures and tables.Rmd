@@ -17,6 +17,7 @@ require(rgdal)
 library(devtools)
 # devtools::install_github("ropensci/prism")
 library(prism)
+library(MASS)
 ```
 
 Bring csv in from the website
@@ -737,7 +738,7 @@ max(meltd$Day) #273 the day of the latest colleciton
 
 fit1 <- lapply(unique(meltd$Year), function(x){
   stepAIC(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year==x,]),
-          scope = lm(GDD~1, data=meltd),
+          scope = lm(GDD~1, data=meltd[meltd$Year==x,]),
           direction = "backward")
 })
 

@@ -108,6 +108,7 @@ names(long.avg.snow) <- c("Year","Month","Snow.Depth")
 
 ```
 
+
 ```{r}
 ggplot(long.avg.snow, aes(Year, Snow.Depth, colour = Month))+
   geom_line()+
@@ -138,7 +139,102 @@ avg.p.yr <- do.call(rbind,lapply(split(snow[,grep("_Snow Depth", names(snow))],
                                        snow$`Water Year_`), 
                                  function(x) colMeans(x, na.rm = TRUE)))
 
+avg.p.yr.cc <- avg.p.yr[complete.cases(avg.p.yr),]
+avg.p.yr.cc
+melt.snow <- melt(avg.p.yr.cc)
+head(melt.snow)
+melt.snow$Var2 <- factor(melt.snow$Var2)
+str(melt.snow)
+
+
+ggplot(melt.snow, aes(as.numeric(Var2),value))+
+#  geom_smooth(method="lm")+
+  geom_point()+
+  geom_smooth()+
+  facet_wrap(~Var1)
+```
+
+Is the peak moving later (when tangent is 0?, decond derivative - local maxima)   
+No, peak snow pack is consistantly 
+
+```{r}
+lapply(unique(melt.snow$Var1), function(x){
+  which(diff(sign(diff(melt.snow$value[melt.snow$Var1==x])))==-2)+1
+})
+
+slope.loess <-function(X, data){
+    # First your loess function:
+    my_loess <- loess(y~x, data=data, subset=data$Year==X, degree=2)
+    # Then the first difference
+    first_diff <- diff(my_loess$fitted)
+    # Then the corresponding x and y values for the minima and maxima
+    res <- cbind(my_loess$x[c(which.min(first_diff), which.max(first_diff))], 
+            my_loess$fitted[c(which.min(first_diff), which.max(first_diff))])
+    colnames(res) <- c("x", "y")
+    rownames(res) <- c("min", "max")
+    res
+    }
+
+snow.data <- melt.snow
+snow.data$Var2 <- as.numeric(snow.data$Var2)
+str(snow.data)
+names(snow.data) <- c("Year", "x", "y")
+
+#Then apply the function to each group
+slope.snow <- lapply(unique(melt.snow$Var1), FUN=slope.loess, data = snow.data)
+names(slope.snow) <- levels(factor(snow.data$Year))
+
+maxsnow <- do.call(rbind,lapply(slope.snow, function(x){
+  x[1,1]
+}))
+head(maxsnow)
+year<- as.numeric(as.character(rownames(maxsnow)))
+
+summary(lm(maxsnow~year))
+plot(year,maxsnow)
+levels(melt.snow$Var2)[8]
+levels(melt.snow$Var2)[12]
+```
+
+Find the secant (average rate) of snowmelt each year to see if it's speeding up/coorelated to secant (average rate) of accumulated GDD  
+Most common to have peak snow depth in May   
+calculate secant from May (8) to September (12)   
+use library(polynom)
+```{r}
+fit1.snow <- lapply(unique(snow.data$Year), function(x){
+  lm(y~x+I(x^2), data=snow.data[snow.data$Year == x,])
+})
+
+library(polynom)
+
+
+poly.s <- lapply(fit1.snow, function(fx){
+  polynomial(coef(fx))
+})
+smonth <- 8
+emonth <- 12
+
+
+as.function(poly.s[[1]])(emonth)
+
+secant.polysnow <- lapply(poly.s,function(x){
+  ((as.function(x)(emonth))-(as.function(x)(smonth)))/(emonth-smonth)
+})
+
+se.posno <- data.frame(Year=year,Secant=do.call(rbind,secant.polysnow))
+
+ggplot(se.posno, aes(Year,Secant))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  ylab("Average rate of change in snow pack (May to September)")
+
+summary(lm(Secant~Year,data=se.posno))
+```
+
+```{r}
 snow.total <- rowSums(avg.p.yr,na.rm = TRUE)
+
 
 head(snow)
 snow.total
@@ -155,6 +251,8 @@ ggplot(snow2, aes(year,depth))+
   ylab("Total snow depth (cm)")
 
 ```
+
+
 
 ```{r}
 hdd.snow <- merge(first.hdd,snow2,by.x="Year",by.y="year")
@@ -336,5 +434,21 @@ ggplot(uni.npn.first, aes(First_Yes_Year,First_Yes_DOY))+
   ylab("Degrees Celsius")
 
 summary(lm(Avg_Hi~Year, data=min.dates))
+```
+
+
+### All colections in alpine   
+```{r}
+allalpine <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/CO_SEINet_3200csv.csv"))
+
+names(allalpine)
+alltable <- data.frame(table(allalpine$startDayOfYear,allalpine$year))
+allalpine<-allalpine[allalpine$year!=4,]
+
+#Start here! see if collections are moving in startDayOfYear over the years
+ggplot(alltable,aes(x=Var1))+
+  geom_histogram(aes(y=..density..))+
+  facet_wrap(~Var2)
+
 ```
 
