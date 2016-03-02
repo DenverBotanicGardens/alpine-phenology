@@ -194,7 +194,7 @@ mapply(
 
 ggplot(bl50.gr, aes(x=startDayOfYear))+
   geom_histogram(position="identity",binwidth = 7)+
-  xlim(0,365)+
+#  xlim(0,365)+
   xlab("Julian Day")+
   labs(title="Alpine Collections")+
   facet_wrap(~Group)
@@ -220,6 +220,26 @@ ggplot(collJ, aes(Var2, Freq, group =1))+
 
 # collections getting 
 
+collJ.sp <- data.frame(table(bl50$Year,bl50$startDayOfYear))
+
+ggplot(collJ.sp, aes(Var2, Freq, group =Var1, colour = Var1))+
+  stat_smooth(level = 0)+
+  xlab("Julian date")+
+  ylab("Collections per species")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  labs(title="All collections per species")
+
+collJ.max <- lapply(split(collJ.sp, collJ.sp$Var1), function(x) x[which.max(x$Freq),])
+collmax <- do.call(rbind,collJ.max)
+collmax[,1:2]<-sapply(collmax[,1:2], function(x) as.numeric(as.character(x)))
+
+mean(collmax$Var2)
+max(collmax$Var2)
+min(collmax$Var2)
+collmax[which.min(collmax$Var2),]
+collmax[which.max(collmax$Var2),]
+summary(lm(Var2~Var1, data=collmax))
 ```
 
 
@@ -1384,4 +1404,31 @@ Snowmelt data from [Snotel NRCS](http://wcc.sc.egov.usda.gov/nwcc/rgrpt?report=s
 ```
 
 http://wcc.sc.egov.usda.gov/reportGenerator/view_csv/customGroupByMonthReport/monthly/05L05:CO:SNOW%7Cid=%22%22%7Cname/POR_BEGIN,POR_END:1,2,3,4,5,6/WTEQ::collectionDate,SNWD::value,WTEQ::value
+
+
+
+### Annual precip, temps for a subset of species with lat/long per species for trends.   
+Get annual average temperatures for all years over the US
+```{r}
+options(prism.path = "Q:/Research/Projects/alpine-phenology/Climate_files/Annual_subset_climate")
+
+get_prism_monthlys(type="tmin", year=1981:2011, mon = 1:12, keepZip=FALSE)
+get_prism_monthlys(type="tmax", year=1981:2011, mon = 1:12, keepZip=FALSE)
+
+ls_prism_data(name=TRUE)[1:10,]
+prism_image(ls_prism_data()[1,1])
+```
+
+Pull specific information per species location   
+from Results figures and tables:  
+```{r}
+# high temps
+highsigsp <- as.character(high.1950$Species[high.1950$p.value<0.05])
+lats <- bloom$decimalLatitude[bloom$Scientific.Name %in% unique(grep(paste(highsigsp,collapse="|"),
+                                            bloom$Scientific.Name, 
+                                            value=TRUE)) &
+                                which.min()]
+length(lats)
+nrow(bloom)
+```
 

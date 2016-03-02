@@ -175,6 +175,8 @@ Compare to all collections, not just earliest, for alpine in CO from SEINet
 ```{r}
 #allalpine <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/CO_SEINet_3200csv.csv"))
 allalpine <- bloom
+
+
 allcollections <- data.frame(colSums(table(allalpine$sppListID,allalpine$year)))
 allcol <- data.frame(Year = row.names(allcollections),
                      allcollections)
@@ -192,7 +194,8 @@ ggplot(allcol,  aes(x = Year, y = collections))+
   ylab("Total Collections")+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
-  scale_x_continuous(limits = c(1950,2015), breaks = seq(1950,2015, by=10))
+  scale_x_continuous(limits = c(1950,2015), breaks = seq(1950,2015, by=10))+
+  scale_y_continuous(limits = c(0,3680),breaks = seq(0,3700, by=200))
 ```
 ```{r}
 ggplot(allcol,  aes(x = Year, y = collections))+
