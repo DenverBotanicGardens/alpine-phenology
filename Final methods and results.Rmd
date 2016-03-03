@@ -5,12 +5,30 @@ date: "March 3, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
+load libraries   
 ```{r}
-summary(cars)
+
+library(RCurl)
+library(ggplot2)
+library(data.table)
+library(raster)
+require(rgdal)
+library(devtools)
+# devtools::install_github("ropensci/prism")
+library(prism)
+library(polynom)
+library(MASS)
+```
+
+
+From Q:\Reserach\Plant Lists\
+Data to subset
+```{r}
+#too big for getting from GitHub
+#colo <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/Complete COLO DB .csv")) 
+colo <- read.csv("P:/hackathon/alpine-phenology/Complete COLO DB .csv") 
+
+
 ```
 
 You can also embed plots, for example:
