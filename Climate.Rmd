@@ -1427,7 +1427,7 @@ highsigsp <- as.character(high.1950$Species[high.1950$p.value<0.05])
 lats <- bloom$decimalLatitude[bloom$Scientific.Name %in% unique(grep(paste(highsigsp,collapse="|"),
                                             bloom$Scientific.Name, 
                                             value=TRUE)) &
-                                which.min()]
+                                lapply(split(bloom,list( which.min()]
 length(lats)
 nrow(bloom)
 ```
