@@ -6,7 +6,7 @@ output: html_document
 ---
 
 load libraries   
-```{r}
+```{r,echo=FALSE}
 
 library(RCurl)
 library(ggplot2)
@@ -27,14 +27,68 @@ Data to subset
 #too big for getting from GitHub
 #colo <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/Complete COLO DB .csv")) 
 colo <- read.csv("P:/hackathon/alpine-phenology/Complete COLO DB .csv") 
+seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/CO_SEINet_3200csv.csv"))
+```
+
+Manipulate dates and names to be consistant before rbind databases
+```{r}
+colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,sep=" ")
+head(colo[,c(1,40,13,31,32,21,22,23,24)])
+table(colo$Reproductive.Status)
+
+# Select only reprodutive or post reproductive records
+repro <- c("Flr","Bulblets","Seed","Spores","Fr")
+colo.sm <- colo.sm[colo.sm$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
+                                                                colo.sm$Reproductive.Status,
+                                                                value=TRUE)),]
+
+
+colo.sm <- colo[,c(1,40,12,13,31,32,21,22,23,24)]
+#Year
+colo.sm$Year <- (sub('.*(\\d{4}).*', '\\1', as.character(colo.sm$Date..dd.month.yyyy.)))
+
+# Removing any with dates that aren't entered correctly or are missing year, not exact date
+colo.sm <- colo.sm[grep("[[:digit:]]", colo.sm$Year),]
+colo.sm <- colo.sm[colo.sm$Year>=1950,]
+
+# Only collections above or equal to 3200 meters, remove any without elevation
+# only collections above or equal to 10,498.69 ft, remove any without elevation
+# 15000 ft is 4572 m, remove anything over 4572 meters as a typo 
+#  - highest in CO is Mt. Elbert at 4401.2 m
+colo.sm$elevation <- (colo.sm$Elevation..feet.)/3.2808
+colo.sm$elevation[!is.na(colo.sm$Elevation..meters.)] <-
+  colo.sm$Elevation..meters.[!is.na(colo.sm$Elevation..meters.)]
+colo.sm <- colo.sm[colo.sm$elevation>=3200,]
+colo.sm <- colo.sm[!is.na(colo.sm$Elevation..meters.),]
+colo.sm <- colo.sm[colo.sm$elevation < 4572,]
+
+# add a julian day column as $startDayOfYear
+colo.sm$startDayOfYear<-as.numeric(format(
+    as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format="%d %B %Y")    ,"%j"))
+```
+
+SEInet   
+```{r}
 
 
 ```
 
-You can also embed plots, for example:
+After combining datasets, find species with at least 10 years of data
+```{r}
+# how many years collected per species
+sp.yr <- as.data.frame(table(colo.sm$Year,colo.sm$scientificName))
+sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
+  if(x>0) {1}
+  else 0
+  }, USE.NAMES = FALSE)
 
-```{r, echo=FALSE}
-plot(cars)
+sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
+bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
+spyears <- do.call(rbind,lapply(bysp, function(x){
+  sum(x$Freq)
+}))
+
+sp.10plus <- spyears[spyears>=10]
+length(sp.10plus)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
