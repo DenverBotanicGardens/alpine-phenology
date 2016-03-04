@@ -20,6 +20,29 @@ library(polynom)
 library(MASS)
 ```
 
+## load functions   
+```{r}
+
+JulBloomDate.subset <- function(variable,dataset){
+  namesID <- unique(dataset$sppListID)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$sppListID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    #Species = blnew$Species[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+```
+
 
 From Q:\Reserach\Plant Lists\
 Data to subset
@@ -27,7 +50,7 @@ Data to subset
 #too big for getting from GitHub
 #colo <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/Complete COLO DB .csv")) 
 colo <- read.csv("P:/hackathon/alpine-phenology/Complete COLO DB .csv") 
-seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/CO_SEINet_3200csv.csv"))
+seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/CO_SEINet_3200_20160304.csv"))
 ```
 
 Manipulate dates and names to be consistant before rbind databases
@@ -37,7 +60,7 @@ names(colo[,c(1,40,13,31,32,21,22,23,24)])
 colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
 # Select only reprodutive or post reproductive records
-repro <- c("Flr","Bulblets","Seed","Spores","Fr")
+repro <- c("Flr","Bulblets","Seed","Fr")
 colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
                                                                 colo$Reproductive.Status,
                                                                 value=TRUE)),]
@@ -76,24 +99,33 @@ colo.sm$startDayOfYear<-as.numeric(format(
     as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format="%d %B %Y")    ,"%j"))
 ```
 
-SEInet   
+SEInet  
+pull out names to match colo.sm and have data needed to subset   
+ [1] "Family.Name"          "scientificName"       "Country"              "State"                "Decimal.Latitude"      
+ [6] "Decimal.Longitude"    "Elevation..feet."     "Elevation..meters."   "Date..dd.month.yyyy." "Reproductive.Status"   
+[11] "Year"                 "elevation"            "startDayOfYear"   
 ```{r}
-head(seinet[,c(1,2,15,16,17,14,4,7)])
+head(seinet[seinet$scientificName=="",])
+seinet <- seinet[seinet$scientificName!="",]
+
+head(seinet[,c(12:13,56,63:64,31,73,34)])
 seinet$reproductiveCondition <- as.character(seinet$reproductiveCondition)
 
-repro <- c("Flo","frui","Fert")
+repro <- c("Fl","fr","Fert")
 seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
                                                              seinet$reproductiveCondition,
                                                              value=TRUE)),]
 
-seinet.sm <- seinet[,c(1,2,15,16,17,14,4,7)]
+seinet.sm <- seinet[,c(12:13,56,63:64,31,73,34)]
 
 # get to 1950-2011
 seinet.sm <- seinet.sm[seinet.sm$year >=1950,]
-seinet.sm <- seinet.sm[seinet.sm$year <= 2011,]
+#seinet.sm <- seinet.sm[seinet.sm$year <= 2011,]
 seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
 
 # Elevation over 3200 meters - was gathered from SEINet with that limitation. 
+nrow(seinet.sm[is.na(seinet.sm$minimumElevationInMeters),]) #498
+seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
 identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters >=3200,])
 ```
 
@@ -102,7 +134,7 @@ Combine datasets
 names <- names(colo.sm[,c(1:2,5:6,11:13)])
 #names(seinet.sm[,c(1:4,7,5,8)])
 colo.bind <- colo.sm[,c(1:2,5:6,11:13)]
-seinet.bind <- seinet.sm[,c(1:4,7,5,8)]
+seinet.bind <- seinet.sm[,c(1:2,4:8)]
 names(seinet.bind) <- names
 
 i<-sapply(colo.bind, is.factor)
@@ -116,7 +148,7 @@ seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
 bloom2 <- rbind(seinet.bind,colo.bind) 
 barplot(table(bloom2$Year))
 
-length(unique(bloom2$scientificName)) #563
+length(unique(bloom2$scientificName)) #2303
 ```
 
 
@@ -128,11 +160,21 @@ Before subset
 
 After combining datasets, find species with at least 10 years of data
 ```{r}
+bloom2[bloom2$scientificName=="",]
+
+bloom2[bloom2$Year=="",]
+
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
-nrow(sp.yr[sp.yr$Freq>0,])
-head(sp.yr[sp.yr$Freq>0,])
+nrow(sp.yr[sp.yr$Var2=="",])
+sp.yr <- sp.yr[sp.yr$Var2!="",]
+nrow(sp.yr[sp.yr$Freq>0,]) #16685
+max(sp.yr$Freq[sp.yr$Freq>0])
+head(sp.yr)
+sp.yr[100:130,]
 
+
+# change all values above 0 to 1 from number of collections for that species a year
 sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
   if(x>0) {1}
   else 0
@@ -147,15 +189,62 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 
 spyears$Species <- row.names(spyears)
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-nrow(sp.10plus)
+nrow(sp.10plus) #547
 
 nrow(spyears[spyears$DataYrs>=9,])
 ```
 
 compare to previous dataset
 ```{r}
-unique(bloom$Scientific.Name)
-unique(bloom2$scientificName)
+bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv")) 
 
+minJul.dates <- lapply(unique(bloom$sppListID), function(x){
+  this.species <- bloom[bloom$sppListID == x,c(4:5,11,19:26)]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
+  })
+
+mindate <- function(bl50){
+  lapply(unique(bl50$sppListID), function(x){
+  #almost, need to use grep with "Avg" or type them all out...
+  this.species <- bl50[bl50$sppListID == x,names(bl50) %in% c("Scientific.Name",
+                                             "sppListID",
+                                             "startDayOfYear",
+                                             "Year","Raw_Precip",
+                                             "Avg_Hi","Avg_Lo")]   #c(4:5,11,19:28)]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
+  })
+  names(minJul.dates) <- unique(bl50$sppListID)
+  min.dates <- do.call(rbind,minJul.dates)
+}
+
+bl50 <- subset(bloom, bloom$year_plant > 1949) 
+min1950 <- mindate(bl50)
+min1950 <- as.data.frame(sapply(min1950, gsub, 
+                                  pattern = "coerulea", 
+                                  replacement = "caerulea"))
+
+#Fix double space in Hierochola hirta
+min1950 <- as.data.frame(sapply(min1950, gsub,
+                                  pattern="Hierochlo  hirta",
+                                  replacement = "Hierochlo hirta"))
+
+tonumeric <- c(1:2,4:length(min1950))
+min1950[,tonumeric] <- sapply(min1950[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+
+i <- sapply(min1950,is.factor)
+min1950[i] <- lapply(min1950[i], as.character)
+
+min1950$SciName <- sub( "(^[^ ]+[ ][^ ]+)(.+$)", "\\1", min1950$Scientific.Name)
+
+unique(bloom2$scientificName[complete.cases(match(unique(bloom2$scientificName),unique(min1950$SciName)))])
 ```
 
+Pull only the species that have 10 or more years of data for analyses
+```{r}
+tenyearplus <- merge(bloom2,
+
+```

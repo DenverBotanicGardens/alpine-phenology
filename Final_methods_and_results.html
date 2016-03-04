@@ -92,16 +92,1577 @@ img {
 ## The following objects are masked from 'package:raster':
 ## 
 ##     area, select</code></pre>
+<div id="load-functions" class="section level2">
+<h2>load functions</h2>
+<pre class="r"><code>JulBloomDate.subset &lt;- function(variable,dataset){
+  namesID &lt;- unique(dataset$sppListID)
+  colnum &lt;- match(variable,names(dataset))
+  JYC &lt;- lapply(namesID, function(x){
+    blnew &lt;- dataset[dataset$sppListID == x,]
+    foo1 &lt;- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef &lt;- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    #Species = blnew$Species[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC &lt;- do.call(rbind, JYC)
+  colnames(JYC) &lt;- c(&quot;Slope&quot;, &quot;StErr&quot;, &quot;t.value&quot;, &quot;p.value&quot;, &quot;Intercept&quot;, 
+                   &quot;F Stat&quot;, &quot;numDF&quot;,&quot;denDF&quot;, &quot;Species&quot;, &quot;adj.r.squ&quot;)
+  JYC
+}</code></pre>
 <p>From Q:Lists<br />Data to subset</p>
 <pre class="r"><code>#too big for getting from GitHub
 #colo &lt;- read.csv(text = getURL(&quot;https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/Complete COLO DB .csv&quot;)) 
 colo &lt;- read.csv(&quot;P:/hackathon/alpine-phenology/Complete COLO DB .csv&quot;) 
-seinet &lt;- read.csv(text = getURL(&quot;https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/CO_SEINet_3200csv.csv&quot;))</code></pre>
+seinet &lt;- read.csv(text = getURL(&quot;https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/CO_SEINet_3200_20160304.csv&quot;))</code></pre>
 <p>Manipulate dates and names to be consistant before rbind databases</p>
-<pre class="r"><code>colo$scientificName &lt;- paste(colo$Genus,colo$Specific.Epithet,sep=&quot; &quot;)</code></pre>
-<p>You can also embed plots, for example:</p>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAAV1BMVEUAAAAAADoAAGYAOjoAOpAAZmYAZpAAZrY6AAA6OgA6kJA6kNtmAABmtv+QOgCQ29uQ2/+2ZgC2/7a2///bkDrbtmbb/7bb////tmb/25D//7b//9v///+ieQH1AAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3daWPaSpigUZLOdDKdpUOH6ZDE//93DmIVCGPrpSTVcs6XG3NtgizxREupWL0AELJa+gUAlEpAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYKmDuh6dfJ54r8JYGaTBnSzuqahQE0mDOifL6tbH39N99cBzGy6gP77cV3Mv992X3/6Peo5BgUGCEtduQkDuh3kskvq9zFPsfRvG6hL0sa9TBnQ9fCAfbcTOuo06AT/YADNKiigu93Nr4MHN+OO4QUUSKeggO72NoeH69txl5EEFEhHQAGCCgqoQ3ggLwUF1EUkIC8lBfT+MKbhXukDAgqkU1JA7w6kH3crkoAC6ZQU0EMxr334OeoZBBRIp6iA9qdiOhg7mYiAAukUFtCXJ6ezE1AgnfIC+hQBBdIRUIAgAQUIKiyg+ymVe4NB//1wKyfwwFTzzh2fPPkzpn7CnvXt5SMBBR6ZbubOw7Mnf8bUT3hxuQB/2gkVUOCBczinKWhJAe2O37v5mDaXggoo8LpeNpsP6Pp031F3T+ehoAIKvK7/jp/i3V9QQHexPJ/7XB8LKqDA6wT07GpC5WNBHwd0jo+AAvIloGfXM9Kv99fiBRR4nYCeXQf0MBWoQ3jgdQJ61j8H+nL8THgBBV4noBeb1dWnyv35svrw3wIKvMowpotuHGj/Azy2+5OaAgq8xkD6i83NLKBbAQUecivnRVfQ/j5ot08qoMDrTCZyMfhs+I2AAkspLKDPElAgHQEFCBJQgCABBQgSUIAgAQUIElCAoIIC+vfbvenpjAMFliKgAEEFBfTwofACCuSipIDu90G/vv1tDwgokE5RAe0KevxgziABBdIpK6DdUfzxE+FjBBRIp7CA3s5KP5aAAumUFtDdQfwzu6ACCqRTWkCf3AUVUCCd4gL6HAEF0hFQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUIAgAQUIElCAIAEFCBJQgCABBQgSUICg8gK6Xp18Hv/DAgqkU1hAN6trYxsqoEA6RQX0z5fVrY+/Rj2DgALplBTQfz+ui/n32+7rT7/HPIWAAumUFNDtIJddUr+PeQoBBdIpKaDr4QH7bid01GlQAQXSKSigu93Nr4MHN+OO4QUUSKeggO72NoeH69txl5EEFEhHQAGCCgqoQ3ggLwUF1EUkIC8lBfT+MKbhXukDAgqkU1JA7w6kH3crkoAC6ZQU0EMxr334OeoZBBRIp6iA9qdiMpkIsLTCAvpiOjsgG+UF9CkCCqQjoABB5QXUITyQicICakZ6IB9FBdSM9EBOSgqoGemBrJQUUDPSA1kpKaAmEwGyUlBATWcH5KWggI6fUHlwyWkloEA6AgoQVFBAHcIDeSkooC4iAXkpKaBmpAeyUlJAzUgPZKWkgJqRHshKUQE1Iz2Qk8IC+mI6OyAb5QX0KQIKpCOgAEECChAkoABBAgoQJKAAQQIKEFRQQO/chzT6Y+UEFEhHQAGCCgrovU81FlBgOSUFdL8POmr2ugEBBdIpKqBdQUdOv3RDQIF0ygpodxQ/6iM8bgkokE5hAX3ZrO58stz7CSiQTmkB3R3EP7MLKqBAOqUF9MldUAEF0ikuoM8RUCAdAQUIElCgZqdbbiZ68uTPmPoJUxJQaMvlpsVpnj35M6Z+wpQEFJpyDuc0BRVQoFq9bAro8wQUWtJ/x0/x7hdQoFq7d/z5FKiAPk1AoSXXc19O8fzJnzH1E6YkoNCSVf8ikoA+S0ChJVcXkQT0WQIKLXERKSkBhZbYA01KQKElzoEmJaDQElfhkxJQaIlxoEkJKLTERaSkBBRa4l74pAQUmmI2ppQEFNpiPtCEBBQaY0b6dAQUSEdAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAXrGfIiSgAJcjPoYTwEFOBv3QfICCnDSy6aADggo8EA/Ee/IhYBCucZc7+A9BPQRWxo1GXW9g/cQ0EdsaFRk3PUO3kNAH7GdUY+R1zt4DwF9xHZGPUa+13kPAX3EZkY9BHQChjE9YjOjHgI6BQPpH7CZUQ8BnYRbOV9nM6MeAjqNuicTWZ//ffg8/odtZtRDQJdXWEA3q2tjG2ozox6GMS2vqID++bK69fHXqGewnVERA+kXV1JA//24Lubfb7uvP/0e8xS2M2riVs6llRTQ7SCXXVK/j3kKGxpV0c+FlRTQ9fCAfbcTOuo0qC0NSKeggO52N78OHtyMO4YXUCCdggK629scHq5vx11GElAgHQEFCCoooA7hgbwUFFAXkUjLJWyeVVJA7w9jGu6VPuDNwplBlDytpIDeHUg/7lYk7xVO3MbD80oK6KGY1z78HPUM3iocuZGcBIoKaH8qJpOJ8BRTGZFAYQF9MZ0daQgoCZQX0BEGB/zOdnEioCQgoLRJQEmg2IBuQwfx3ikcCSgJFBbQzXHg0n5EU2fUZHbeKZwJKAkUFdBjNj/87F1JGldQ7xSODGMigaICesrmp/93vCdpYyA9UQbS87ySAnq8lXP/yUhfzw+ZkZ4YVxZ5WkkBXR9vhd8V9LzfuTaZCFH6ybMKCuh5OrvdH87VNJ0dsJiCAnqeULk/MagJlYHFCChAUEEBdQgP5KWggJ4vIm0vg5f6LX0PAQXSKSmgx2FM+5s4DWMCAwkWV1JAz/dvngfSbw2kp2WGsi6tpICeZqT/8POcUrdy0jA3Uy2uqIBeJhM5f7iHyURoltv5l1dYQC82prOjcSaUWl6xAY2xmVEPAV2egEKhBHR5AgqFEtDlCSgUSkCXJ6BQKAFdnoBCoQxjWp6AQqkMpF+cgEKx3Mq5NAGFcunnwgQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFKjZpFP+CShQsWknnRZQoF4Tf+yJgALVmvqD9wQUqNbUH/0soEC1BDQpAYWWCGhSAgotEdCkBBRaIqBJCSi0RECTElCaNuldOTkyjCmphrYcGJj2rpwsGUifUkMbDtyaOCZ5citnQg1tN3Bj6sPZTJlMJJ2Wthu4NvUFlRYJKDRCQNMTUGiEgKYnoNAIAU1PQKERApqegEIj8gxo2SNTBRQakeUwpsLH9gsotCLDgfQZvqRRBBSakd3uXpY7xWMIKLQjs35melp2BAEFliKgw2dM/YQpFbmOoFYCOnzGwSN/v3342ftyvfr0O/Vf+l5FriOolYAOn3HwyCCgH3+l/kvfq8h1BLUS0OEzDh65DujfbwIKdAR0+Iz9LzarexzCQxkmvmxvGNPwGftf7HY37/ia+u98tzJXEixk8oGjBtIPnvHqq21W/RRQGGGGvGU3tn+cBS4iLanQtQRLmOUAu+h+CijwiuIv8UzPQHrgPgF907wB/fNlyUvwL7YCGEFA3zRTQP9+67rZ9XO1WvJ43lYA7yagb5onoNtVN3j+34/D2eLlxtHbCuD9BPRNswS02/Pc7Xfu/rNr5+bJcUzr87CHz4EXZyuA9xLQN80S0M0hdsd0riPluzzTlbHPZCuAdyv+PqHpzRHQ3aF7dwZ095/96c9t+Bj+cA71ysinshnA+5V+n9D05hkHuvr+cplFJBzQ/TnU3s/u7xMdd1HfZgAjFH6f0PRmDOj2eMQdDuh2kMsuqd9HvTjbAYygn4/NGND1MXab6FDQOxOJ7p561GlQGwKQzkznQL9eToGObd7N09wYWWMBBdKZ5Sr8ukvn5nAA3l0IGnXUfXbckb028nyAgALpzDYOtPP9MIozeAQvoEBe5rkT6TB8swvnJn4jkkN4IC8z3Qu/XZ0vwceO3zsuIpGUK8w8q6Tp7O4PYxp1X6g3C2fGOPK0kgJ6dyD9uBMC3iucuMuG55UU0HsfUTdybjxvFY7c500C0wa0K973Yffi89mtb57JZCIEmWmIBAoL6Ivp7EhDQEmgvICOeSl3zPM3kz0BJYGizoGOJaC8SkBJoLCA/v123HvdBK4gvXincCagJFBWQNer05SiwZMB3ikcCSgJFBXQ9XGvc3s5IjeMiRjDmEigpIB2c5J0V967i1L7Xc9uZL2B9MScC+rMOGHTX4W/I3gV/jIj83kE09atnES5ssjTCgrobn/z8/G/lydYm42JKP3kWQUF9DQf6O6/l2huzAcKLGWec6Db89Wew9D6kF5AL/cgmVAZWMxcM9JfzlRuA8M3904TKp8O5Y/PJqDAQmb6TKTPr341wukH11eH8M6BAguZ8WONT574XPjDvutuh/b0fHc/5uPRixNQIJmSAtoN+9zvg16uHK1Hng8QUKoy+UACIxUem+lz4a8P4YMfy3n4dM/uh4/d7O5IGrUDKqBUZfKhrMbKvmGmc6C9XdBNaCLPg9PnI1+MfCrbARWZ/GYqd2u9ZbbPhT8edHd/DF6F37uZkn7siCibAfXoVW2aDXvyv6B8c34ufLR61y6D8wNnAmwG1GPyCaXMWPWmGT8X/uiZ/c+n2Qqoh4Aub7bZmI47jnN9mscrbAXUQ0CXV9J0dgnYCqiHgC5PQKFQAro8AYVCCejyBBTeKbcx5W0OY8prLQgovE9+d+W0OJA+s7UgoPAuGcakwVs5c1sLAgrvkeXhbHOTiWS3FgQU3sMFlRxktxYEFN4ju7duk7JbCwIK75HdW7dJ2a0FAYX3yO6t26Ts1oKAwntk99ZtUnZrQUDhPbJ7684ju6vw9/+8GAGF98huAM0schsHmt1aEFB4l9yGcM8hv2XO7RUJKLxPbntj08tuf+8lu7UgoPBOWb1z55DdGcdOXmtBQIH7sgxoXgQUuE9A3ySgwH0C+iYBBe4T0DcJKHCfgL5JQCEbeV1hznIYU2YEFHKR2RjH/Iat50dAIRMZ5iq7pOdGQCEPWR4w6+djAgp5cMmmQAIKeRDQAgko5EFACySgkAcBLZCAQh4EtEACCnnIMqCuwj8moJCHHIcxGQf6BgGFTOQ3kD6/V5QbAYVc5La/l+M+cWYEFLKRVz/zPCubFwEF7hPQNwkocJ+AvklAgfsE9E0CCtwnoG8SUOA+AX2TgFKLzC5hZ2nc78gwpjcJKJXIbRBljsb+jgykf4uAUgfv9beN/x35V+kNAkoVHG2+LfI70s/HBJQquN7xNr+j9ASUKojD2/yO0hNQqiAOb/M7Sk9AqYI4vM3vKD0BpQri8Da/o/QElCqIw9v8jtITUKpgGNPb/I7SE1DqYCD92/yOkhNQKuGmmbf5HaUmoNRCG97md5SYgAIECShAkIACBAkoQFB5AV2fLyR+Hv/DAgqkU1hAN6trYxsqoFTFVfWFFRXQP19Wtz7+GvUMtjRqYlzn0koK6L8f18X8+2339affY57ChkZF3Fm0uJICuh3kskvq9zFPYTujHu5tX15JAV0PD9h3O6GjToPazqiH2ZWWV1BAd7ubXwcPbsYdw9vMqIeALq+ggO72NoeH69txl5FsZtRDQJcnoFAoAV1eQQF1CA99Arq8ggLqIhKFGT1Ic9wPCOjySgro/WFMw73SB2xmzGf0MPeRP2AY0/JKCujdgfTjbkWynTGb0cPcp/8BUispoIdiXvvwc9Qz2M6Yy+j9w8AOpVs5l1ZUQPtTMZlMhLyNPkMZOaWpnwsrLKAvprOjELMElIWVF9ARBgf8/qlmNgLaAgGFSQhoC8oN6N9v40Yw7dkumYuAtkBAYRIC2gIBhUnMMYyJpRUU0DujQFdjR9LbMJmNcfENEFCYyOhLl651FqeggHb3wgsoBRmdQ/0sTUkB3e+DnqcTcQ4UWFhRAd3fhnS6+11AgYUVFtD9R8MfuimgwMJKC+h+Trv9YbyAAgsrLqDdp3jsPwxeQIGFFRjQ/WH8ZwHlWQ1e825wkadVYkD3h/Ef/0dAeUqDoy4bXOSJFRnQw2H8yI9D2rPhcNLgfT8NLvLUCg3o/jBeQIlr8M7zBhd5cqUGdD8kVEAJa3DuowYXeXLlBjTEZsNRgzVpcJEnJ6C0qcGaNLjIkxNQ2tRgTRpc5MkJKG1qsCYNLvLkBJQ2NViTBhd5cgJKSIYDsse9pAbH9DS4yJMTUCIyvKVl7EtqcFR5g4s8NQElIMN34viXlOE/AlNrcJEnJqCMl+GxYOQlNRiTBhd5WgLKeBlejcjwJdEAAWW8DGuV4UuiAQLKeBnWKsOXRAMElPEyrFWGL4kGCCjjZVirDF8SDRBQxsuwVhm+pMA17/wukuf3ivIioIxXyTCmqY0edZnfMM38XlFmBJSAKgbST230K6pgEZojoERkuGeS20savU+c3050fq8oOwJKSF6x2svsJY0+K5vfadz8XlF2BBQmIaAtEFCYhIC2QEBhEgLaAgGFSQhoCwQUJiGgLRBQmIRhTC0QUJiGgfQNEFCYiFs56yegMBWTiVRPQAGCBBQgSEABggQUIEhAAYIElHlUcEUabgkos6hgTCQMCChzqOCuHBgSUGZQwX3hcIeAMoMKZiaCOwSUGQgodRJQZiCg1ElAmYGAUicBZQYCSp0ElBkIKHUSUELGjXKfZRjT5Pc6GdnPLQElYux9QjMMpJ/8Xif3RjEgoATkmbdxL2nsD7g3iiEBZbwMD7AnP0ng3ijuEFDGy/ASz+SXqTJcZpYnoIyXYUwElCUIKONlGBMBZQkCyngZxkRAWYKAMl6GMRFQliCgjDdLTMZehb//52Q/IKDcIaCMN8eQnpHjQA1jYgkCSsD0g8qnv3XJQHqeJ6BETH1bY2B/z62czE9ACZm4JZEzjhPf6zT5MlMgASVHLtlQBAElRwJKEQSUHAkoRRBQciSgFKG8gK7P10I/j/9h78VCCChFKCygm9W1sQ0t9b3Y3PVfw9YpQlEB/fNldevjr1HPUOibscERiIatU4KSAvrvx3Ux/37bff3p95inKPPN2GRMGvxHg/KUFNDtIJddUr+PeYoi342NHs7qJ/krKaDr4QH7bid01GnQIt+OLqhApgoK6G538+vgwc24Y/gi+yOgkKmCArrb2xwerm/HXUYqsj8CCpkS0PwJKGSqoIA6hH8pdAGgVgUF1EWkl0IXICa/q/D5vSKWVlJA7w9jGu6VPlDkxt/mMKb8xoHm94pYXEkBvTuQftytSGVu+y0OpM9vmfN7RSyvpIAeinntw89Rz1Dopt/evk9+e935vSIyUFRA+1MxmUykavmd983vFZGBwgL6Yjq7NuSXq/xeERkoL6AjDA74W9qHK1t+ucrvFZEBASVH+eUqv1dEBqoO6JAtvxD55Sq/V0QGCgvofkrl3mDQfz8auJWzRfnlKr9XRAbKCujpAtL58pGALmXiUyL5DRrK7xWRgaICerkAf9oJFdCFTH5SOb9h6/m9IpZXUkC74/duPqbNpaACuowZYpLfdb/8XhGLKymg69N9R909nYeCCugiZjmcza9W+b0illZQQHexPJ/7XB8LKqCLcEEF9goK6NWEyseCCugiIgG1+0aFSg1oV9DPArqQQECdQKRGxQb0MBWogC5ifEBdwqZKBQW0fw705fiZ8AK6iNEBNYiSOhUU0G74Uv9T5f58WX34bwFdQiCgI38AilBSQLtxoP0P8NjuT6kJ6D3TnnAcvUMpoNSppIDuR9D3D+O3AvqKqS/ZjD2lKaDUqaiA7gva3wft9kkFdGj6SzYjCy2g1KmsgA4/G34joENzXLIZt4croNSpsIA+q403b365yu8VQQoCWqH8cmUYE3US0ArlF1AD6amTgFYow4C6lZMqCWiFcgyoyUSokYBWKMuAjqa45E9AK1TFJRvH/BRAQGtUwSWbChaBBgholYrffatiJ5r6CWidCu9nJadxqZ6AkiMBpQgCSo4ElCIIKDkSUIogoORIQCmCgJIjAaUIAkqODGOiCAJKlgykpwQCSp6KvxeAFggomdJP8iegAEECChAkoABBAgoQJKAAQQJ697vau/7b4jLDswT03je1V5MWlxmeJqB3vqe9e2BaXGZ4noAOv6W9u7BbXGZIQEAffUsrNWlxmSEBAX30La3EpMVlhgQE9NG3tBKTFpcZEhDQR9/SSkxaXGZIQEAffUsrMWlxmSEBAX30La3EpMVlhgQEdPgt7Q3paXGZIQEBvfM97Q0qb3GZ4XkCeu+b2rutscVlhqcJ6N3vaq8lLS4zPEtAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBLQIZuuEHAloCcwXD1kS0AL4xCLIk4Dmz2dmQqYENH8+tR0yJaD5E1DIlIDmT0AhUwKaPwGFTAlo/gQUMiWgd78rq0GXAgqZEtB735RXQQ1jgkwJ6J3vyW3Yen6vCOgI6PBb8tvfy22fGNgT0Effkk2w9BNyJKCPvkWxgAcE9NG3CCjwgIA++hYBBR4Q0EffIqDAA+UFdH2+Iv15/A8LKJBOYQHdrK6NbWihw5iALBUV0D9fVrc+/hr1DGUOpAfyVFJA//24Lubfb7uvP/0e8xRF3soJZKqkgG4HueyS+n3MUxQ5mQiQqZICuh4esO92QkedBhVFIJ2CArrb3fw6eHAz7hheQIF0Cgrobm9zeLi+fXQZaXDJyWE5kJCAAgQVFFCH8EBeCgqoi0hAXkoK6P1hTMO90gcEFEinpIDeHUg/7lYkAQXSKSmgh2Je+/Bz1DMIKJBOUQHtT8U02WQiAO9UWEBfpp/ODuCdygvoUwQUSEdAAYIEFCBIQAGCmgsoQDrJG5X6CVNa+pcN1CV5o1I/YRkaPDnQ4CJb5kYsuMwN/rY7DW5lDS6yZW6EgM6twa2swUW2zI0Q0Lk1uJU1uMiWuRECOrcGt7IGF9kyN0JA59bgVtbgIlvmRgjo3BrcyhpcZMvcCAGdW4NbWYOLbJkbIaBza3Ara3CRLXMjBHRuDW5lDS6yZW6EgM6twa2swUW2zI0Q0Lk1uJU1uMiWuRECOrcGt7IGF9kyN0JA59bgVtbgIlvmRgjo3BrcyhpcZMvcCAGdW4NbWYOLbJkbIaBza3Ara3CRLXMjBHRuDW5lDS6yZW6EgM6twa2swUW2zI0QUIDyCChAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBLUX0H8/Vmffl34xM/j77eOv/lfdcn9d7uXMor/MLazvP1+6pfvw8/JI/ev5dpkXWs/tBfSwadX9hurZbVe9gK6PC95/r9XnapnrX9+XJTwvdfXrebjMC63n9gK6XS3yi17Kuve2etmsbje7Kl0tc/Xru1+O42JXv57vLPNC67m9gG4qfR/dtT+uOb+JuqOeT78P29rnRV/XlK6Xuf71vTkdq69Pq7X+9Txc5qXWc3sBXdf6r/Idh/NE/QO7z6fHqz24u1nm6td3tzN2LMfmuNzVr+c7y7zUem4uoLv9k+4f5xbsj3P+80f/LNHpj5taLzDcLnP963t72cvs9r2/t7Ceh8u82HpuLqC7ravOo5qh7jjne++Cym5/5LTouz/WmZXbZa5/ffcbud7HpP71PFzmxdZzcwHd/eP1fb+bUuWxzZVNt0n1YtLb7K6vzVfkdplbWt9dTLqlbGE9XxyWebH13FxAN6sP//d4ra7Gf5sHrgP6/fJoxUHpZ6Ol9b0LSLeMzaznznGZF1vPzQX0NEKuiXfUy1VM1r3rlOua31j9gLa0vo+7ns2s586mdzl+ifXcWkC7c86HTWq7qvME+42rgF7eTFW/sXrL3NL6Pp3wbGY9v1yWebH13FpAd3v8py1q97uv/fzQy4OAVjw68t/VyINW1vd5+ZpZz71lXmw9txbQvso3roPG90D76l7f2/Pg12bWc2+Z+2Zdzy0HtNJBctcE9Kzq9d1rSTPr+X4/513PLQd0W/Mb6qT1q/A9Na/vde/SSSvref3K5aJZ17OAVq4Xk20r4wObC2h3CeUyjLyN9Xy9zH0COpPqp5noNHYn0t7rh/B1ru/u9v+vV1/Wv55vlrlv1vXcWkCv79Ko9/Dm7F9b98LvvXr3VZ3r+3bKkBbW8+0yL7aeWwtob4zDtta5vq7cDCqve5aeo+u97trXdzp150QAAAQ2SURBVG8Ez1H963mwzIut59YC2p05OfymN23cHt0PaP3zRB7cDKSve32fpiPqqX49D5d5sfXcWkCP00Ue1Hl0c+3qfGD1M5Uf3P6jUfX67s/EfpqMvfb1fGeZl1rPzQW095uu84rCjeY/E6ny9d3/LLXLQta9nu8u80Lrub2Anv79qvLYZujminT9n9b4Mljmqtd3/9OBevWoej2/ssyLrOcWAwqQhIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECSiN+Ptt9en30i+CyggojRBQ0hNQGiGgpCegNEJASU9AaYSAkp6A0ggBJT0BJWvbVefz4Ys/X3Z/2oXw/MDlO76//sDxBwSU9ASUjO2KefT1+OXn40Mfft58x8dfrzywOXz56X8FlOQElHzt9x2Puj3KXRz/88fx60NBL4U9BnPwwOb05f8RUJITUPK1OVbw366aXfz2dewe2R6P4rv/sS/pqw90De5+dH9cL6AkJqDka306lbnrYtfNLqCHCO7+1HVye47iLpR3H9j0fkJASU1AydfmpnnHbHbW+9Oi6/PXXTrvPLAr7+mB2yeD5wko+dpeTn/u7QJ6auD29sL66Qr94IHe1SUBJTEBJWPrq4vwhya+XP7Yv8i0P8V574FTNQ1jIj0BJWfna+j7hF4H9NPv3iX3Qy/vPSCgTEdAydt5p/LrcA90cFQ+eMAeKJMSUPK3j+iufnfOgZ7OcJ6/8dUHnAMlPQElW8fBS51DCHcNPD2wH+HUjfr8fvMTrz7gKjzpCSj5Wp+uHl0CejyGP6Z0c7lj8zCM6d4Dh2yeRtRDQgJKvk63E+3r9/l4J9LpvqLTfUaHPcz14Q6kuw+cxuALKKkJKBlbX66oHyv4H9dzhWx719y/Pn7gv1xEIjkBJWP/TlOHHO4n6i69b/v9HMzXdOeB4w+YjYkJCChZO45iOlwIOo1durpSdBgq+vn1B/YVNh8oUxBQytEbBwo5EFDKIaBkRkAph4CSGQGlHAJKZgSUcggomRFQyiGgZEZAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYIEFCBIQAGCBBQgSEABggQUIEhAAYL+P8F1rwA09okzAAAAAElFTkSuQmCC" title alt width="672" /></p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+<pre class="r"><code>colo$scientificName &lt;- paste(colo$Genus,colo$Specific.Epithet,sep=&quot; &quot;)
+names(colo[,c(1,40,13,31,32,21,22,23,24)])</code></pre>
+<pre><code>## [1] &quot;Family.Name&quot;          &quot;scientificName&quot;       &quot;State&quot;               
+## [4] &quot;Decimal.Latitude&quot;     &quot;Decimal.Longitude&quot;    &quot;Elevation..feet.&quot;    
+## [7] &quot;Elevation..meters.&quot;   &quot;Date..dd.month.yyyy.&quot; &quot;Reproductive.Status&quot;</code></pre>
+<pre class="r"><code>colo$Reproductive.Status &lt;- as.character(colo$Reproductive.Status)
+
+# Select only reprodutive or post reproductive records
+repro &lt;- c(&quot;Flr&quot;,&quot;Bulblets&quot;,&quot;Seed&quot;,&quot;Fr&quot;)
+colo.sm &lt;- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse=&quot;|&quot;),
+                                                                colo$Reproductive.Status,
+                                                                value=TRUE)),]
+
+colo.sm &lt;- colo[,c(1,40,12,13,31,32,21,22,23,24)]
+
+#Year
+colo.sm$Year &lt;- (sub('.*(\\d{4}).*', '\\1', as.character(colo.sm$Date..dd.month.yyyy.)))
+
+# Removing any with dates that aren't entered correctly or are missing year, not exact date
+colo.sm &lt;- colo.sm[grep(&quot;[[:digit:]]&quot;, colo.sm$Year),]
+colo.sm &lt;- colo.sm[colo.sm$Year&gt;=1950,]
+
+length(unique(colo.sm$scientificName)) #2999</code></pre>
+<pre><code>## [1] 2999</code></pre>
+<pre class="r"><code># Only collections above or equal to 3200 meters, remove any without elevation
+# only collections above or equal to 10,498.69 ft, remove any without elevation
+# 15000 ft is 4572 m, remove anything over 4572 meters as a typo 
+#  - highest in CO is Mt. Elbert at 4401.2 m
+colo.sm$elevation &lt;- (colo.sm$Elevation..feet.)/3.2808
+colo.sm$elevation[!is.na(colo.sm$Elevation..meters.)] &lt;-
+  colo.sm$Elevation..meters.[!is.na(colo.sm$Elevation..meters.)]
+colo.sm &lt;- colo.sm[colo.sm$elevation&gt;=3200,]
+colo.sm &lt;- colo.sm[!is.na(colo.sm$Elevation..meters.),]
+colo.sm &lt;- colo.sm[colo.sm$elevation &lt; 4572,]
+
+length(unique(colo.sm$scientificName)) #558</code></pre>
+<pre><code>## [1] 558</code></pre>
+<pre class="r"><code># add a julian day column as $startDayOfYear
+colo.sm$Date..dd.month.yyyy. &lt;- as.character(colo.sm$Date..dd.month.yyyy.)
+wrongdates &lt;- colo.sm$Date..dd.month.yyyy.[colo.sm$Date..dd.month.yyyy. %in% grep(&quot;-&quot;, colo.sm$Date..dd.month.yyyy., value=TRUE)]
+
+table(wrongdates)</code></pre>
+<pre><code>## wrongdates
+##     11-13 August 1968 13 July-1 August 1955 13 July -1August 1955 
+##                    12                     1                     1 
+##       4-5 August 1955       8-9 August 1981     July- August 1986 
+##                    10                     1                     2 
+##      July-August 1972      July-August 1980      July-August 1986 
+##                     1                     1                   140 
+##    July - August 1986     July -August 1986   June-September 1979 
+##                    10                    18                    23</code></pre>
+<pre class="r"><code>colo.sm$startDayOfYear&lt;-as.numeric(format(
+    as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format=&quot;%d %B %Y&quot;)    ,&quot;%j&quot;))</code></pre>
+<p>SEInet<br />pull out names to match colo.sm and have data needed to subset<br /> [1] “Family.Name” “scientificName” “Country” “State” “Decimal.Latitude”<br /> [6] “Decimal.Longitude” “Elevation..feet.” “Elevation..meters.” “Date..dd.month.yyyy.” “Reproductive.Status”<br />[11] “Year” “elevation” “startDayOfYear”</p>
+<pre class="r"><code>head(seinet[seinet$scientificName==&quot;&quot;,])</code></pre>
+<pre><code>##            id institutionCode collectionCode     basisOfRecord
+## 79    3245602            ARIZ                PreservedSpecimen
+## 8790  4692495              RM                PreservedSpecimen
+## 9167  4692497              RM                PreservedSpecimen
+## 9215  4692498              RM                PreservedSpecimen
+## 11717 4692511              RM                PreservedSpecimen
+## 11768 4692512              RM                PreservedSpecimen
+##       occurrenceID catalogNumber otherCatalogNumbers kingdom phylum class
+## 79                        411702                                         
+## 8790                                                                     
+## 9167                                                                     
+## 9215                                                                     
+## 11717                                                                    
+## 11768                                                                    
+##       order family scientificName scientificNameAuthorship genus
+## 79                                                              
+## 8790                                                            
+## 9167                                                            
+## 9215                                                            
+## 11717                                                           
+## 11768                                                           
+##       specificEpithet taxonRank infraspecificEpithet        identifiedBy
+## 79                                                   Robert Merrill King
+## 8790                                                                    
+## 9167                                                                    
+## 9215                                                                    
+## 11717                                                                   
+## 11768                                                                   
+##       dateIdentified identificationReferences identificationRemarks
+## 79          9/8/2005                                               
+## 8790                                                               
+## 9167                                                               
+## 9215                                                               
+## 11717                                                              
+## 11768                                                              
+##       taxonRemarks identificationQualifier typeStatus
+## 79                                                   
+## 8790                                                 
+## 9167                                                 
+## 9215                                                 
+## 11717                                                
+## 11768                                                
+##                         recordedBy recordedByID associatedCollectors
+## 79             Robert Merrill King           NA      Rober M. Garvey
+## 8790  B. E. Nelson, Jeanette Flaig           NA                     
+## 9167                Jeanette Flaig           NA                     
+## 9215                Jeanette Flaig           NA                     
+## 11717   Jeanette Flaig, Kurt Flaig           NA                     
+## 11768               Jeanette Flaig           NA                     
+##       recordNumber eventDate year month day startDayOfYear endDayOfYear
+## 79           14080  9/8/2005 2005     9   8            251           NA
+## 8790         58800  7/8/2003 2003     7   8            189           NA
+## 9167          1273 7/17/2003 2003     7  17            198           NA
+## 9215          1761 7/26/2003 2003     7  26            207           NA
+## 11717         7009 7/31/2004 2004     7  31            213           NA
+## 11768         7384  8/5/2004 2004     8   5            218           NA
+##       verbatimEventDate
+## 79     September,8,2005
+## 8790                   
+## 9167                   
+## 9215                   
+## 11717                  
+## 11768                  
+##                                                                               occurrenceRemarks
+## 79    Duplicate. Silica gel dried leaves preserved at the DNA bank, Missouri Botanical Gardens.
+## 8790                                                                                           
+## 9167                                                                                           
+## 9215                                                                                           
+## 11717                                                                                          
+## 11768                                                                                          
+##                                                                               habitat
+## 79                                                                                   
+## 8790            Volcanic summit with fellfields, turfy areas and rocky meadow slopes.
+## 9167                                                                   Spruce forest.
+## 9215          Along creek in open meadow with scattered spruce and bristle cone pine.
+## 11717 Alpine meadow down south-facing slope to mesic spruce forest with open meadows.
+## 11768                                                                    Open meadow.
+##       substrate verbatimAttributes fieldNumber informationWithheld
+## 79                                          NA                    
+## 8790                                        NA                    
+## 9167                                        NA                    
+## 9215                                        NA                    
+## 11717                                       NA                    
+## 11768                                       NA                    
+##       dataGeneralizations dynamicProperties associatedTaxa
+## 79                     NA                                 
+## 8790                   NA                                 
+## 9167                   NA                                 
+## 9215                   NA                                 
+## 11717                  NA                                 
+## 11768                  NA                                 
+##       reproductiveCondition establishmentMeans cultivationStatus lifeStage
+## 79               Vegetative                                   NA          
+## 8790                                                          NA          
+## 9167                                                          NA          
+## 9215                                                          NA          
+## 11717                                                         NA          
+## 11768                                                         NA          
+##       sex individualCount samplingProtocol samplingEffort preparations
+## 79     NA              NA               NA             NA             
+## 8790   NA              NA               NA             NA             
+## 9167   NA              NA               NA             NA             
+## 9215   NA              NA               NA             NA             
+## 11717  NA              NA               NA             NA             
+## 11768  NA              NA               NA             NA             
+##             country stateProvince             county municipality
+## 79    United States      Colorado Clear Creek County             
+## 8790         U.S.A.      Colorado         Rio Grande             
+## 9167         U.S.A.      Colorado           Hinsdale             
+## 9215         U.S.A.      Colorado         Rio Grande             
+## 11717        U.S.A.      Colorado           La Plata             
+## 11768        U.S.A.      Colorado           Saguache             
+##                                                                                                                                                                                              locality
+## 79                                                                             Clear Creek County. Along US Hwy 40, ca. 13 mi NW of Empire and ca. 0.5 mi S of Berthoud Pass. Arapaho National Forest
+## 8790                                                                                             Eastern San Juan Mountains: upper slopes and summit of Del Norte Peak, ca 13 air mi SW of Del Norte.
+## 9167                                                                       Eastern San Juan Mountains: Rio Grande National Forest: U.S. Hwy 160 W to Forest Road 520 SW to West Lost Creek Trailhead.
+## 9215             Eastern San Juan Mountains: Rio Grande National Forest: Viers Creek: U.S. Hwy 160 E to County Road 17 N to Forest Road 610 to Forest Road 630; ca 8.5 air mi N of South Fork. Center
+## 11717 Eastern San Juan Mountains: San Juan National Forest: Weminuche Wilderness: Eolus and North Eolus Peaks, Needles Creek Trail, N of Chicago Baisin, Twin Lakes, ca 15.5 air mi SSE of Silverton.
+## 11768                                            Eastern San Juan Mountains: Rio Grande National Forest: Forest Road 787, Salt House, Forest Boundary, W of Saguache Park, ca 23 air mi NE of Creede.
+##       locationRemarks localitySecurity localitySecurityReason
+## 79                                  NA                     NA
+## 8790                                NA                     NA
+## 9167                                NA                     NA
+## 9215                                NA                     NA
+## 11717                               NA                     NA
+## 11768                               NA                     NA
+##       decimalLatitude decimalLongitude geodeticDatum
+## 79           39.79528        -105.7858              
+## 8790         37.58350        -106.5602              
+## 9167         37.79380        -107.3672              
+## 9215         37.77650        -106.6597              
+## 11717        37.62130        -107.6083              
+## 11768        38.08010        -106.7049              
+##       coordinateUncertaintyInMeters
+## 79                               NA
+## 8790                             NA
+## 9167                             NA
+## 9215                             NA
+## 11717                            NA
+## 11768                            NA
+##                                                                                                       verbatimCoordinates
+## 79                                                                                                                       
+## 8790                                     37.5835° N, 106.5602° W to 37.5898° N, 106.5634° W; T39N R4E S32; also SW1/4 S29
+## 9167  37.7938° N, 107.3672° W; T41N R4W S31 NW1/4 of NW1/4; also W1/2 S30, SW1/4 S19, T41N R5W S24; also E center 1/4 S23
+## 9215                                                                       37.7765° N, 106.6597° W; T41N R3E S20; 1/4 S20
+## 11717                                  37.6213° N, 107.6083° W to 37.608° N, 107.6171° W; GPS Reading; T39N R7W S34 NE1/4
+## 11768                                   38.0801° N, 106.7049° W; GPS Reading; T44N R2E S12 SW1/4; also NW1/4 of NW1/4 S13
+##       georeferencedBy georeferenceProtocol georeferenceSources
+## 79                                                            
+## 8790                                                          
+## 9167                                                          
+## 9215                                                          
+## 11717                                              GPS Reading
+## 11768                                              GPS Reading
+##       georeferenceVerificationStatus georeferenceRemarks
+## 79                                                      
+## 8790                                                    
+## 9167                                                    
+## 9215                                                    
+## 11717                                                   
+## 11768                                                   
+##       minimumElevationInMeters maximumElevationInMeters
+## 79                        3421                       NA
+## 8790                      3476                     3780
+## 9167                      3843                       NA
+## 9215                      3293                       NA
+## 11717                     3390                     3838
+## 11768                     3269                       NA
+##       minimumDepthInMeters maximumDepthInMeters verbatimDepth
+## 79                      NA                   NA            NA
+## 8790                    NA                   NA            NA
+## 9167                    NA                   NA            NA
+## 9215                    NA                   NA            NA
+## 11717                   NA                   NA            NA
+## 11768                   NA                   NA            NA
+##       verbatimElevation disposition language recordEnteredBy
+## 79            11224 ft.                                Tammy
+## 8790    11400-12400 ft.                   En                
+## 9167          12604 ft.                   En                
+## 9215          10800 ft.                   En                
+## 11717   11120-12589 ft.                   En                
+## 11768         10721 ft.                   En                
+##              modified sourcePrimaryKey collId
+## 79    9/10/2013 12:20           308704      2
+## 8790   2/6/2013 11:08        RM-157465     50
+## 9167  3/19/2009 15:36        RM-158620     50
+## 9215  3/19/2009 15:36        RM-159162     50
+## 11717 3/19/2009 15:36        RM-166933     50
+## 11768 3/19/2009 15:36        RM-167309     50
+##                                            recordId
+## 79    urn:uuid:60b50704-c7bd-45a2-a3bb-6094c3d7d569
+## 8790  urn:uuid:1095ad51-b9f3-4162-a4c5-dfdad8730ffb
+## 9167  urn:uuid:b8f45405-e980-418e-98a4-4f088c58ee1e
+## 9215  urn:uuid:1a781ced-c04e-4fb6-9093-868c82240c23
+## 11717 urn:uuid:6de885e5-183a-4008-8df9-5a2bcbdaafc7
+## 11768 urn:uuid:37cc738d-768f-46fd-accc-bb302a45c1a9
+##                                                                            references
+## 79    http://swbiodiversity.org/seinet/collections/individual/index.php?occid=3245602
+## 8790  http://swbiodiversity.org/seinet/collections/individual/index.php?occid=4692495
+## 9167  http://swbiodiversity.org/seinet/collections/individual/index.php?occid=4692497
+## 9215  http://swbiodiversity.org/seinet/collections/individual/index.php?occid=4692498
+## 11717 http://swbiodiversity.org/seinet/collections/individual/index.php?occid=4692511
+## 11768 http://swbiodiversity.org/seinet/collections/individual/index.php?occid=4692512</code></pre>
+<pre class="r"><code>seinet &lt;- seinet[seinet$scientificName!=&quot;&quot;,]
+
+head(seinet[,c(12:13,56,63:64,31,73,34)])</code></pre>
+<pre><code>##          family           scientificName stateProvince decimalLatitude
+## 1 Polemoniaceae      Polemonium viscosum      Colorado        39.10993
+## 2 Polemoniaceae      Polemonium viscosum      Colorado        37.85079
+## 3 Polemoniaceae      Polemonium viscosum      Colorado        40.53191
+## 4 Polemoniaceae      Polemonium viscosum      Colorado        39.60219
+## 5 Polemoniaceae  Polemonium pulcherrimum      Colorado              NA
+## 6 Polemoniaceae Polemonium foliosissimum      Colorado        37.27667
+##   decimalLongitude year minimumElevationInMeters startDayOfYear
+## 1        -106.5657 1969                     3658            164
+## 2        -107.0173 1970                     3429            189
+## 3        -105.6443 1963                     3505            183
+## 4        -105.6421 1968                     3962            249
+## 5               NA 1963                     3505            182
+## 6        -106.6211 1976                     3200            185</code></pre>
+<pre class="r"><code>seinet$reproductiveCondition &lt;- as.character(seinet$reproductiveCondition)
+
+repro &lt;- c(&quot;Fl&quot;,&quot;fr&quot;,&quot;Fert&quot;)
+seinet.sm &lt;- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse=&quot;|&quot;),
+                                                             seinet$reproductiveCondition,
+                                                             value=TRUE)),]
+
+seinet.sm &lt;- seinet[,c(12:13,56,63:64,31,73,34)]
+
+# get to 1950-2011
+seinet.sm &lt;- seinet.sm[seinet.sm$year &gt;=1950,]
+#seinet.sm &lt;- seinet.sm[seinet.sm$year &lt;= 2011,]
+seinet.sm &lt;- seinet.sm[!is.na(seinet.sm$year),]
+
+# Elevation over 3200 meters - was gathered from SEINet with that limitation. 
+nrow(seinet.sm[is.na(seinet.sm$minimumElevationInMeters),]) #498</code></pre>
+<pre><code>## [1] 498</code></pre>
+<pre class="r"><code>seinet.sm &lt;- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
+identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters &gt;=3200,])</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Combine datasets</p>
+<pre class="r"><code>names &lt;- names(colo.sm[,c(1:2,5:6,11:13)])
+#names(seinet.sm[,c(1:4,7,5,8)])
+colo.bind &lt;- colo.sm[,c(1:2,5:6,11:13)]
+seinet.bind &lt;- seinet.sm[,c(1:2,4:8)]
+names(seinet.bind) &lt;- names
+
+i&lt;-sapply(colo.bind, is.factor)
+colo.bind[i]&lt;-lapply(colo.bind[i], as.character)
+colo.bind$Year &lt;- as.numeric(colo.bind$Year)
+i&lt;-sapply(seinet.bind, is.factor)
+seinet.bind[i]&lt;-lapply(seinet.bind[i],as.character)
+i&lt;-sapply(seinet.bind, is.integer)
+seinet.bind[i]&lt;-lapply(seinet.bind[i],as.numeric)
+
+bloom2 &lt;- rbind(seinet.bind,colo.bind) 
+barplot(table(bloom2$Year))</code></pre>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAAV1BMVEUAAAAAADoAAGYAOpAAZpAAZrY6AAA6OgA6kNtmAABmZjpmtv+QOgCQkDqQtpCQ29uQ2/+2ZgC2kDq2/7a2//++vr7bkDrb////tmb/25D//7b//9v///98OSdFAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3d4ULjxragUTqZziQ3mZkwk8shSb//cw4GDLZlJNX2LmlbWuvPSfvQKqlK+rCxUT/8ACDkYe0dALhXAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECChAkoABBAgoQJKAAQQIKECSgAEECCvvxcGbtvdkAcwh78fAgoMnMIezFw8N/nxDQBOYQ9kJA05lD2AsBTWcOYS8ENJ05hL0Q0HTmEPZCQNOZQ9gLAU1nDmEvBDSdOYS9ENB05hD2QkDTmUPYCwFNZw5hLwQ0nTmEvRDQdOYQ9kJA05lD2AsBTWcOYS8ENJ05hL0Q0HTmEPZCQNOZQ9gL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" title alt width="672" /></p>
+<pre class="r"><code>length(unique(bloom2$scientificName)) #2303</code></pre>
+<pre><code>## [1] 2303</code></pre>
+<p>Before subset</p>
+<p>After combining datasets, find species with at least 10 years of data</p>
+<pre class="r"><code>bloom2[bloom2$scientificName==&quot;&quot;,]</code></pre>
+<pre><code>## [1] Family.Name       scientificName    Decimal.Latitude  Decimal.Longitude
+## [5] Year              elevation         startDayOfYear   
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<pre class="r"><code>bloom2[bloom2$Year==&quot;&quot;,]</code></pre>
+<pre><code>## [1] Family.Name       scientificName    Decimal.Latitude  Decimal.Longitude
+## [5] Year              elevation         startDayOfYear   
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<pre class="r"><code># how many years collected per species
+sp.yr &lt;- as.data.frame(table(bloom2$Year,bloom2$scientificName))
+nrow(sp.yr[sp.yr$Var2==&quot;&quot;,])</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>sp.yr &lt;- sp.yr[sp.yr$Var2!=&quot;&quot;,]
+nrow(sp.yr[sp.yr$Freq&gt;0,]) #16685</code></pre>
+<pre><code>## [1] 16685</code></pre>
+<pre class="r"><code>max(sp.yr$Freq[sp.yr$Freq&gt;0])</code></pre>
+<pre><code>## [1] 80</code></pre>
+<pre class="r"><code>head(sp.yr)</code></pre>
+<pre><code>##   Var1            Var2 Freq
+## 1 1950 Abies arizonica    0
+## 2 1951 Abies arizonica    0
+## 3 1952 Abies arizonica    0
+## 4 1953 Abies arizonica    0
+## 5 1954 Abies arizonica    0
+## 6 1955 Abies arizonica    0</code></pre>
+<pre class="r"><code>sp.yr[100:130,]</code></pre>
+<pre><code>##     Var1           Var2 Freq
+## 100 1988  Abies bifolia    0
+## 101 1989  Abies bifolia    0
+## 102 1990  Abies bifolia    1
+## 103 1991  Abies bifolia    0
+## 104 1992  Abies bifolia    0
+## 105 1993  Abies bifolia    0
+## 106 1994  Abies bifolia    0
+## 107 1995  Abies bifolia    0
+## 108 1996  Abies bifolia    0
+## 109 1997  Abies bifolia    1
+## 110 1998  Abies bifolia    1
+## 111 1999  Abies bifolia    4
+## 112 2000  Abies bifolia    2
+## 113 2001  Abies bifolia    2
+## 114 2002  Abies bifolia    0
+## 115 2003  Abies bifolia    0
+## 116 2004  Abies bifolia    0
+## 117 2005  Abies bifolia    0
+## 118 2006  Abies bifolia    0
+## 119 2007  Abies bifolia    0
+## 120 2008  Abies bifolia    0
+## 121 2009  Abies bifolia    0
+## 122 2010  Abies bifolia    4
+## 123 1950 Abies concolor    0
+## 124 1951 Abies concolor    0
+## 125 1952 Abies concolor    0
+## 126 1953 Abies concolor    0
+## 127 1954 Abies concolor    0
+## 128 1955 Abies concolor    0
+## 129 1956 Abies concolor    0
+## 130 1957 Abies concolor    0</code></pre>
+<pre class="r"><code># change all values above 0 to 1 from number of collections for that species a year
+sp.yr$Freq &lt;- sapply(sp.yr$Freq,function(x){
+  if(x&gt;0) {1}
+  else 0
+  }, USE.NAMES = FALSE)
+
+sp.yr.sp &lt;- sp.yr[sp.yr$Freq&gt;0,]
+bysp &lt;- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
+
+spyears &lt;- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
+  sum(x$Freq)
+})))
+
+spyears$Species &lt;- row.names(spyears)
+sp.10plus &lt;- spyears[spyears$DataYrs&gt;=10,]
+nrow(sp.10plus) #547</code></pre>
+<pre><code>## [1] 547</code></pre>
+<pre class="r"><code>nrow(spyears[spyears$DataYrs&gt;=9,])</code></pre>
+<pre><code>## [1] 606</code></pre>
+<p>compare to previous dataset</p>
+<pre class="r"><code>bloom&lt;-read.csv(text = getURL(&quot;https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv&quot;)) 
+
+minJul.dates &lt;- lapply(unique(bloom$sppListID), function(x){
+  this.species &lt;- bloom[bloom$sppListID == x,c(4:5,11,19:26)]
+  these.rows &lt;- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c(&quot;startDayOfYear&quot;,&quot;Year&quot;)))
+  })
+
+mindate &lt;- function(bl50){
+  lapply(unique(bl50$sppListID), function(x){
+  #almost, need to use grep with &quot;Avg&quot; or type them all out...
+  this.species &lt;- bl50[bl50$sppListID == x,names(bl50) %in% c(&quot;Scientific.Name&quot;,
+                                             &quot;sppListID&quot;,
+                                             &quot;startDayOfYear&quot;,
+                                             &quot;Year&quot;,&quot;Raw_Precip&quot;,
+                                             &quot;Avg_Hi&quot;,&quot;Avg_Lo&quot;)]   #c(4:5,11,19:28)]
+  these.rows &lt;- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c(&quot;startDayOfYear&quot;,&quot;Year&quot;)))
+  })
+  names(minJul.dates) &lt;- unique(bl50$sppListID)
+  min.dates &lt;- do.call(rbind,minJul.dates)
+}
+
+bl50 &lt;- subset(bloom, bloom$year_plant &gt; 1949) 
+min1950 &lt;- mindate(bl50)
+min1950 &lt;- as.data.frame(sapply(min1950, gsub, 
+                                  pattern = &quot;coerulea&quot;, 
+                                  replacement = &quot;caerulea&quot;))
+
+#Fix double space in Hierochola hirta
+min1950 &lt;- as.data.frame(sapply(min1950, gsub,
+                                  pattern=&quot;Hierochlo  hirta&quot;,
+                                  replacement = &quot;Hierochlo hirta&quot;))
+
+tonumeric &lt;- c(1:2,4:length(min1950))
+min1950[,tonumeric] &lt;- sapply(min1950[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+
+i &lt;- sapply(min1950,is.factor)
+min1950[i] &lt;- lapply(min1950[i], as.character)
+
+min1950$SciName &lt;- sub( &quot;(^[^ ]+[ ][^ ]+)(.+$)&quot;, &quot;\\1&quot;, min1950$Scientific.Name)
+
+unique(bloom2$scientificName[complete.cases(match(unique(bloom2$scientificName),unique(min1950$SciName)))])</code></pre>
+<pre><code>##    [1] &quot;Polemonium viscosum&quot;                          
+##    [2] &quot;Geum aleppicum&quot;                               
+##    [3] &quot;Chamerion angustifolium&quot;                      
+##    [4] &quot;Achillea millefolium&quot;                         
+##    [5] &quot;Penstemon rydbergii&quot;                          
+##    [6] &quot;Penstemon whippleanus&quot;                        
+##    [7] &quot;Antennaria umbrinella&quot;                        
+##    [8] &quot;Rumex acetosella&quot;                             
+##    [9] &quot;Polygonum bistortoides&quot;                       
+##   [10] &quot;Draba lanceolata&quot;                             
+##   [11] &quot;Arnica mollis&quot;                                
+##   [12] &quot;Astragalus molybdenus&quot;                        
+##   [13] &quot;Carex elynoides&quot;                              
+##   [14] &quot;Festuca brachyphylla subsp. coloradensis&quot;     
+##   [15] &quot;Tolmachevia integrifolia&quot;                     
+##   [16] &quot;Deschampsia cespitosa var. cespitosa&quot;         
+##   [17] &quot;Poa rupicola&quot;                                 
+##   [18] &quot;Potentilla diversifolia var. diversifolia&quot;    
+##   [19] &quot;Physaria scrotiformis&quot;                        
+##   [20] &quot;Noccaea montana&quot;                              
+##   [21] &quot;Mertensia arizonica&quot;                          
+##   [22] &quot;Townsendia rothrockii&quot;                        
+##   [23] &quot;Carex egglestonii&quot;                            
+##   [24] &quot;Agrostis stolonifera&quot;                         
+##   [25] &quot;Carex haydeniana&quot;                             
+##   [26] &quot;Carex ebenea&quot;                                 
+##   [27] &quot;Carex limnophila&quot;                             
+##   [28] &quot;Carex microptera&quot;                             
+##   [29] &quot;Salix reticulata&quot;                             
+##   [30] &quot;Salix brachycarpa&quot;                            
+##   [31] &quot;Polemonium confertum&quot;                         
+##   [32] &quot;Trisetum spicatum&quot;                            
+##   [33] &quot;Phleum pratensis&quot;                             
+##   [34] &quot;Shepherdia canadensis&quot;                        
+##   [35] &quot;Carex chalciolepis&quot;                           
+##   [36] &quot;Campanula rotundifolia&quot;                       
+##   [37] &quot;Poa fendleriana var. longiligula&quot;             
+##   [38] &quot;Poa interior&quot;                                 
+##   [39] &quot;Luzula spicata&quot;                               
+##   [40] &quot;Taraxacum ceratophorum&quot;                       
+##   [41] &quot;Sibbaldia procumbens&quot;                         
+##   [42] &quot;Trifolium attenuatum&quot;                         
+##   [43] &quot;Trifolium nanum&quot;                              
+##   [44] &quot;Androsace septentrionalis&quot;                    
+##   [45] &quot;Noccaea fendleri&quot;                             
+##   [46] &quot;Artemisia scopulorum&quot;                         
+##   [47] &quot;Claytonia megarhiza&quot;                          
+##   [48] &quot;Oreoxis bakeri&quot;                               
+##   [49] &quot;Cerastium beeringianum&quot;                       
+##   [50] &quot;Senecio bigelovii&quot;                            
+##   [51] &quot;Sedum rhodanthum&quot;                             
+##   [52] &quot;Solidago parryi&quot;                              
+##   [53] &quot;Arabis&quot;                                       
+##   [54] &quot;Agrostis scabra&quot;                              
+##   [55] &quot;Agrostis variabilis&quot;                          
+##   [56] &quot;Antennaria corymbosa&quot;                         
+##   [57] &quot;Antennaria media&quot;                             
+##   [58] &quot;Arenaria fendleri var. fendleri&quot;              
+##   [59] &quot;Artemisia campestris subsp. borealis&quot;         
+##   [60] &quot;Artemisia dracunculus&quot;                        
+##   [61] &quot;Bromus ciliatus&quot;                              
+##   [62] &quot;Carex lenticularis&quot;                           
+##   [63] &quot;Carex bella x chalciolepis&quot;                   
+##   [64] &quot;Carex nigricans&quot;                              
+##   [65] &quot;Carex nova&quot;                                   
+##   [66] &quot;Carex phaeocephala&quot;                           
+##   [67] &quot;Carex pyrenaica&quot;                              
+##   [68] &quot;Carex vernacula&quot;                              
+##   [69] &quot;Chaenactis leucopsis&quot;                         
+##   [70] &quot;Erigeron elatior&quot;                             
+##   [71] &quot;Gentiana algida&quot;                              
+##   [72] &quot;Gentiana parryi&quot;                              
+##   [73] &quot;Gentiana prostrata&quot;                           
+##   [74] &quot;Juncus hallii&quot;                                
+##   [75] &quot;Juncus triglumis&quot;                             
+##   [76] &quot;Lloydia serotina&quot;                             
+##   [77] &quot;Luzula parviflora&quot;                            
+##   [78] &quot;Mimulus guttatus&quot;                             
+##   [79] &quot;Oreochrysum parryi&quot;                           
+##   [80] &quot;Phacelia bakeri&quot;                              
+##   [81] &quot;Polygonum viviparum&quot;                          
+##   [82] &quot;Rhodiola integrifolia&quot;                        
+##   [83] &quot;Rhodiola rhodantha&quot;                           
+##   [84] &quot;Ribes inerme&quot;                                 
+##   [85] &quot;Rorippa palustris subsp. hispida&quot;             
+##   [86] &quot;Saxifraga bronchialis&quot;                        
+##   [87] &quot;Saxifraga debilis&quot;                            
+##   [88] &quot;Senecio dimorphophyllus var. dimorphophyllus&quot; 
+##   [89] &quot;Swertia perennis&quot;                             
+##   [90] &quot;Trollius laxus subsp. albiflorus&quot;             
+##   [91] &quot;Ranunculus macauleyi&quot;                         
+##   [92] &quot;Epilobium hornemannii&quot;                        
+##   [93] &quot;Cirsium scariosum&quot;                            
+##   [94] &quot;Deschampsia caespitosa&quot;                       
+##   [95] &quot;Potentilla diversifolia&quot;                      
+##   [96] &quot;Potentilla uniflora&quot;                          
+##   [97] &quot;Smelowskia calycina&quot;                          
+##   [98] &quot;Arabis glabra&quot;                                
+##   [99] &quot;Gilia pinnatifida&quot;                            
+##  [100] &quot;Lewisia pygmaea&quot;                              
+##  [101] &quot;Calamagrostis canadensis&quot;                     
+##  [102] &quot;Calamagrostis purpurascens&quot;                   
+##  [103] &quot;Draba spectabilis&quot;                            
+##  [104] &quot;Festuca saximontana var. saximontana&quot;         
+##  [105] &quot;Poa arctica&quot;                                  
+##  [106] &quot;Poa reflexa&quot;                                  
+##  [107] &quot;Potentilla concinna&quot;                          
+##  [108] &quot;Arenaria lanuginosa subsp. saxosa&quot;            
+##  [109] &quot;Allium geyeri&quot;                                
+##  [110] &quot;Luzula subcapitata&quot;                           
+##  [111] &quot;Carex capitata&quot;                               
+##  [112] &quot;Potentilla subjuga&quot;                           
+##  [113] &quot;Mitella stauropetala var. stenopetala&quot;        
+##  [114] &quot;Besseya ritteriana&quot;                           
+##  [115] &quot;Festuca brachyphylla subsp. brachyphylla&quot;     
+##  [116] &quot;Carex aquatilis&quot;                              
+##  [117] &quot;Draba graminea&quot;                               
+##  [118] &quot;Carex perglobosa&quot;                             
+##  [119] &quot;Carex arapahoensis&quot;                           
+##  [120] &quot;Lomatium graveolens var. alpinum&quot;             
+##  [121] &quot;Poa compressa&quot;                                
+##  [122] &quot;Packera fendleri&quot;                             
+##  [123] &quot;Potentilla hippiana&quot;                          
+##  [124] &quot;Juncus castaneus&quot;                             
+##  [125] &quot;Potentilla pulcherrima&quot;                       
+##  [126] &quot;Epilobium saximontanum&quot;                       
+##  [127] &quot;Platanthera sparsiflora&quot;                      
+##  [128] &quot;Trifolium parryi&quot;                             
+##  [129] &quot;Salix petrophila&quot;                             
+##  [130] &quot;Pedicularis groenlandica&quot;                     
+##  [131] &quot;Viola labradorica&quot;                            
+##  [132] &quot;Phacelia sericea&quot;                             
+##  [133] &quot;Pedicularis parryi&quot;                           
+##  [134] &quot;Oxyria digyna&quot;                                
+##  [135] &quot;Salix nivalis&quot;                                
+##  [136] &quot;Castilleja rhexiifolia&quot;                       
+##  [137] &quot;Zigadenus elegans&quot;                            
+##  [138] &quot;Juncus drummondii&quot;                            
+##  [139] &quot;Primula parryi&quot;                               
+##  [140] &quot;Cymopterus bakeri&quot;                            
+##  [141] &quot;Erysimum capitatum&quot;                           
+##  [142] &quot;Mertensia lanceolata&quot;                         
+##  [143] &quot;Carex lachenalii&quot;                             
+##  [144] &quot;Carex obtusata&quot;                               
+##  [145] &quot;Poa alpina&quot;                                   
+##  [146] &quot;Poa fendleriana&quot;                              
+##  [147] &quot;Erigeron coulteri&quot;                            
+##  [148] &quot;Lupinus argenteus&quot;                            
+##  [149] &quot;Saxifraga oregana&quot;                            
+##  [150] &quot;Elymus lanceolatus&quot;                           
+##  [151] &quot;Anaphalis margaritacea&quot;                       
+##  [152] &quot;Erigeron&quot;                                     
+##  [153] &quot;Salix arctica&quot;                                
+##  [154] &quot;Antennaria&quot;                                   
+##  [155] &quot;Poa&quot;                                          
+##  [156] &quot;Saxifraga bronchialis subsp. austromontana&quot;   
+##  [157] &quot;Caltha leptosepala&quot;                           
+##  [158] &quot;Hymenoxys grandiflora&quot;                        
+##  [159] &quot;Tonestus pygmaeus&quot;                            
+##  [160] &quot;Senecio harbourii&quot;                            
+##  [161] &quot;Vaccinium scoparium&quot;                          
+##  [162] &quot;Minuartia obtusiloba&quot;                         
+##  [163] &quot;Geum rossii&quot;                                  
+##  [164] &quot;Phlox sibirica subsp. pulvinata&quot;              
+##  [165] &quot;Astragalus robbinsii var. minor&quot;              
+##  [166] &quot;Helianthella quinquenervis&quot;                   
+##  [167] &quot;Senecio porteri&quot;                              
+##  [168] &quot;Potentilla ovina&quot;                             
+##  [169] &quot;Arenaria congesta&quot;                            
+##  [170] &quot;Sedum integrifolium&quot;                          
+##  [171] &quot;Arenaria&quot;                                     
+##  [172] &quot;Senecio fremontii&quot;                            
+##  [173] &quot;Oxypolis fendleri&quot;                            
+##  [174] &quot;Poa nemoralis&quot;                                
+##  [175] &quot;Brickellia grandiflora&quot;                       
+##  [176] &quot;Oreoxis alpina&quot;                               
+##  [177] &quot;Carex raynoldsii&quot;                             
+##  [178] &quot;Solidago spathulata&quot;                          
+##  [179] &quot;Gentianodes algida&quot;                           
+##  [180] &quot;Deschampsia brevifolia&quot;                       
+##  [181] &quot;Pinus aristata&quot;                               
+##  [182] &quot;Dieteria bigelovii var. bigelovii&quot;            
+##  [183] &quot;Arnica cordifolia&quot;                            
+##  [184] &quot;Warnstorfia exannulata exannulata&quot;            
+##  [185] &quot;Aulacomnium palustre&quot;                         
+##  [186] &quot;Cymopterus alpinus&quot;                           
+##  [187] &quot;Salix glauca&quot;                                 
+##  [188] &quot;Comandra umbellata subsp. pallida&quot;            
+##  [189] &quot;Eriogonum lachnogynum&quot;                        
+##  [190] &quot;Phlox condensata&quot;                             
+##  [191] &quot;Poa glauca subsp. glauca&quot;                     
+##  [192] &quot;Arnica parryi&quot;                                
+##  [193] &quot;Artemisia arctica&quot;                            
+##  [194] &quot;Senecio integerrimus&quot;                         
+##  [195] &quot;Silene scouleri subsp. hallii&quot;                
+##  [196] &quot;Trifolium dasyphyllum&quot;                        
+##  [197] &quot;Senecio amplectens var. holmii&quot;               
+##  [198] &quot;Cerastium arvense&quot;                            
+##  [199] &quot;Erigeron pinnatisectus&quot;                       
+##  [200] &quot;Tetraneuris acaulis var. caespitosa&quot;          
+##  [201] &quot;Androsace chamaejasme var. carinata&quot;          
+##  [202] &quot;Saxifraga rhomboidea&quot;                         
+##  [203] &quot;Bromus ciliatus var. ciliatus&quot;                
+##  [204] &quot;Astragalus alpinus&quot;                           
+##  [205] &quot;Ranunculus inamoenus&quot;                         
+##  [206] &quot;Phleum alpinum&quot;                               
+##  [207] &quot;Castilleja puberula&quot;                          
+##  [208] &quot;Cystopteris montana&quot;                          
+##  [209] &quot;Mertensia alpina&quot;                             
+##  [210] &quot;Erysimum capitatum var. purshii&quot;              
+##  [211] &quot;Hymenoxys hoopesii&quot;                           
+##  [212] &quot;Vaccinium myrtillus var. oreophilum&quot;          
+##  [213] &quot;Stellaria longipes&quot;                           
+##  [214] &quot;Tetraneuris acaulis var. acaulis&quot;             
+##  [215] &quot;Bistorta bistortoides&quot;                        
+##  [216] &quot;Primula angustifolia&quot;                         
+##  [217] &quot;Anemone parviflora&quot;                           
+##  [218] &quot;Pulsatilla patens&quot;                            
+##  [219] &quot;Ranunculus adoneus&quot;                           
+##  [220] &quot;Dryas octopetala&quot;                             
+##  [221] &quot;Dasiphora floribunda&quot;                         
+##  [222] &quot;Populus tremuloides&quot;                          
+##  [223] &quot;Salix planifolia&quot;                             
+##  [224] &quot;Parnassia fimbriata&quot;                          
+##  [225] &quot;Saxifraga caespitosa&quot;                         
+##  [226] &quot;Besseya alpina&quot;                               
+##  [227] &quot;Castilleja occidentalis&quot;                      
+##  [228] &quot;Castilleja haydenii&quot;                          
+##  [229] &quot;Veronica wormskjoldii&quot;                        
+##  [230] &quot;Veronica serpyllifolia&quot;                       
+##  [231] &quot;Viola nephrophylla&quot;                           
+##  [232] &quot;Viola adunca&quot;                                 
+##  [233] &quot;Viola biflora&quot;                                
+##  [234] &quot;Potentilla glaucophylla var. glaucophylla&quot;    
+##  [235] &quot;Carex haydeniana var. decumbens&quot;              
+##  [236] &quot;Helictotrichon mortonianum&quot;                   
+##  [237] &quot;Agoseris glauca&quot;                              
+##  [238] &quot;Penstemon harbourii&quot;                          
+##  [239] &quot;Erigeron vagus&quot;                               
+##  [240] &quot;Erigeron compositus&quot;                          
+##  [241] &quot;Packera werneriifolia&quot;                        
+##  [242] &quot;Poa cusickii&quot;                                 
+##  [243] &quot;Graphephorum wolfii&quot;                          
+##  [244] &quot;Erigeron glacialis var. glacialis&quot;            
+##  [245] &quot;Eritrichum aretioides&quot;                        
+##  [246] &quot;Delphinium nuttallianum&quot;                      
+##  [247] &quot;Abies concolor&quot;                               
+##  [248] &quot;Eriophorum scheuchzeri&quot;                       
+##  [249] &quot;Solidago multiradiata&quot;                        
+##  [250] &quot;Deschampsia cespitosa&quot;                        
+##  [251] &quot;Galium trifidum&quot;                              
+##  [252] &quot;Osmorhiza depauperata&quot;                        
+##  [253] &quot;Allium geyeri var. tenerum&quot;                   
+##  [254] &quot;Botrychium pinnatum&quot;                          
+##  [255] &quot;Botrychium echo&quot;                              
+##  [256] &quot;Agrostis humilis&quot;                             
+##  [257] &quot;Phleum pratense&quot;                              
+##  [258] &quot;Agrostis idahoensis&quot;                          
+##  [259] &quot;Elymus trachycaulus&quot;                          
+##  [260] &quot;Poa glauca subsp. rupicola&quot;                   
+##  [261] &quot;Penstemon fruticosus (Pursh) Greene&quot;          
+##  [262] &quot;Penstemon whippleanus Gray&quot;                   
+##  [263] &quot;Potentilla jucunda A. Nels.&quot;                  
+##  [264] &quot;Ligusticum porteri Coult. &amp; Rose&quot;             
+##  [265] &quot;Veratrum californicum Dur.&quot;                   
+##  [266] &quot;Anaphalis margaritacea (L.) Benth.&quot;           
+##  [267] &quot;Salix boothii Dorn&quot;                           
+##  [268] &quot;Adoxa moschatellina&quot;                          
+##  [269] &quot;Angelica grayi&quot;                               
+##  [270] &quot;Conioselinum scopulorum&quot;                      
+##  [271] &quot;Oreoxis alpina subsp. alpina&quot;                 
+##  [272] &quot;Osmorhiza occidentalis&quot;                       
+##  [273] &quot;Podistera eastwoodiae&quot;                        
+##  [274] &quot;Achillea millefolium var. occidentalis&quot;       
+##  [275] &quot;Agoseris aurantiaca var. purpurea&quot;            
+##  [276] &quot;Agoseris aurantiaca var. aurantiaca&quot;          
+##  [277] &quot;Agoseris glauca var. dasycephala&quot;             
+##  [278] &quot;Antennaria anaphaloides&quot;                      
+##  [279] &quot;Antennaria parvifolia&quot;                        
+##  [280] &quot;Arnica parryi subsp. parryi&quot;                  
+##  [281] &quot;Arnica rydbergii&quot;                             
+##  [282] &quot;Artemisia campestris ssp borealis&quot;            
+##  [283] &quot;Eucephalus engelmannii&quot;                       
+##  [284] &quot;Symphyotrichum foliaceum var. apricum&quot;        
+##  [285] &quot;Chaenactis douglasii var. alpina&quot;             
+##  [286] &quot;Cirsium centaureae&quot;                           
+##  [287] &quot;Cirsium eatonii&quot;                              
+##  [288] &quot;Cirsium scopulorum&quot;                           
+##  [289] &quot;Cirsium undulatum var. tracyi&quot;                
+##  [290] &quot;Crepis nana&quot;                                  
+##  [291] &quot;Crepis runcinata&quot;                             
+##  [292] &quot;Erigeron flagellaris&quot;                         
+##  [293] &quot;Erigeron grandiflorus&quot;                        
+##  [294] &quot;Erigeron humilis&quot;                             
+##  [295] &quot;Erigeron lanatus&quot;                             
+##  [296] &quot;Erigeron leiomerus&quot;                           
+##  [297] &quot;Erigeron melanocephalus&quot;                      
+##  [298] &quot;Erigeron peregrinus subsp. callianthemus&quot;     
+##  [299] &quot;Erigeron simplex&quot;                             
+##  [300] &quot;Erigeron ursinus&quot;                             
+##  [301] &quot;Erigeron vetensis&quot;                            
+##  [302] &quot;Heterotheca foliosa&quot;                          
+##  [303] &quot;Hieracium gracile var. gracile&quot;               
+##  [304] &quot;Ericameria discoidea var. discoidea&quot;          
+##  [305] &quot;Pyrrocoma clementis var. clementis&quot;           
+##  [306] &quot;Senecio atratus&quot;                              
+##  [307] &quot;Senecio bigelovii var. hallii&quot;                
+##  [308] &quot;Packera porteri&quot;                              
+##  [309] &quot;Senecio soldanella&quot;                           
+##  [310] &quot;Senecio triangularis&quot;                         
+##  [311] &quot;Solidago simplex var. simplex&quot;                
+##  [312] &quot;Townsendia grandiflora&quot;                       
+##  [313] &quot;Eritrichium nanum var. elongatum&quot;             
+##  [314] &quot;Mertensia lanceolata var. nivalis&quot;            
+##  [315] &quot;Boechera lemmonii&quot;                            
+##  [316] &quot;Cardamine cordifolia var. incana&quot;             
+##  [317] &quot;Descurainia pinnata subsp. brachycarpa&quot;       
+##  [318] &quot;Draba crassifolia&quot;                            
+##  [319] &quot;Draba ventosa&quot;                                
+##  [320] &quot;Arenaria congesta var. congesta&quot;              
+##  [321] &quot;Minuartia rubella&quot;                            
+##  [322] &quot;Cerastium arvense subsp. strictum&quot;            
+##  [323] &quot;Carex rossii&quot;                                 
+##  [324] &quot;Carex foenea&quot;                                 
+##  [325] &quot;Carex misandra&quot;                               
+##  [326] &quot;Carex praeceptorum&quot;                           
+##  [327] &quot;Carex pyrenaica subsp. pyrenaica&quot;             
+##  [328] &quot;Carex rupestris var. drummondiana&quot;            
+##  [329] &quot;Carex scopulorum&quot;                             
+##  [330] &quot;Eriophorum angustifolium subsp. scabriusculum&quot;
+##  [331] &quot;Kobresia myosuroides&quot;                         
+##  [332] &quot;Kobresia sibirica&quot;                            
+##  [333] &quot;Orthilia secunda&quot;                             
+##  [334] &quot;Vaccinium caespitosum var. caespitosum&quot;       
+##  [335] &quot;Astragalus australis&quot;                         
+##  [336] &quot;Hedysarum occidentale&quot;                        
+##  [337] &quot;Geranium richardsonii&quot;                        
+##  [338] &quot;Ribes coloradense&quot;                            
+##  [339] &quot;Ribes wolfii&quot;                                 
+##  [340] &quot;Ribes montigenum&quot;                             
+##  [341] &quot;Phacelia heterophylla&quot;                        
+##  [342] &quot;Phacelia sericea subsp. sericea&quot;              
+##  [343] &quot;Isoetes echinospora&quot;                          
+##  [344] &quot;Juncus biglumis&quot;                              
+##  [345] &quot;Juncus mertensianus&quot;                          
+##  [346] &quot;Juncus parryi&quot;                                
+##  [347] &quot;Juncus saximontanus&quot;                          
+##  [348] &quot;Dracocephalum parviflorum&quot;                    
+##  [349] &quot;Calochortus gunnisonii var. gunnisonii&quot;       
+##  [350] &quot;Erythronium grandiflorum subsp. chrysandrum&quot;  
+##  [351] &quot;Zigadenus elegans subsp. elegans&quot;             
+##  [352] &quot;Linum lewisii var. lewisii&quot;                   
+##  [353] &quot;Lycopodium annotinum&quot;                         
+##  [354] &quot;Pterospora andromedea&quot;                        
+##  [355] &quot;Epilobium anagallidifolium&quot;                   
+##  [356] &quot;Chamerion angustifolium var. canescens&quot;       
+##  [357] &quot;Epilobium ciliatum subsp. ciliatum&quot;           
+##  [358] &quot;Epilobium hornemannii subsp. hornemannii&quot;     
+##  [359] &quot;Epilobium latifolium&quot;                         
+##  [360] &quot;Botrychium lunaria&quot;                           
+##  [361] &quot;Platanthera obtusata&quot;                         
+##  [362] &quot;Papaver radicatum subsp. kluanense&quot;           
+##  [363] &quot;Abies lasiocarpa&quot;                             
+##  [364] &quot;Pinus contorta var. latifolia&quot;                
+##  [365] &quot;Pinus flexilis&quot;                               
+##  [366] &quot;Plantago tweedyi&quot;                             
+##  [367] &quot;Elymus lanceolatus subsp. lanceolatus&quot;        
+##  [368] &quot;Elymus scribneri&quot;                             
+##  [369] &quot;Elymus trachycaulus subsp. trachycaulus&quot;      
+##  [370] &quot;Agrostis exarata&quot;                             
+##  [371] &quot;Agrostis humulis&quot;                             
+##  [372] &quot;Alopecurus alpinus&quot;                           
+##  [373] &quot;Dactylis glomerata&quot;                           
+##  [374] &quot;Danthonia intermedia&quot;                         
+##  [375] &quot;Festuca baffinensis&quot;                          
+##  [376] &quot;Festuca minutiflora&quot;                          
+##  [377] &quot;Festuca brachyphylla&quot;                         
+##  [378] &quot;Festuca ovina&quot;                                
+##  [379] &quot;Festuca rubra&quot;                                
+##  [380] &quot;Poa secunda&quot;                                  
+##  [381] &quot;Poa cusickii subsp. epilis&quot;                   
+##  [382] &quot;Poa leptocoma&quot;                                
+##  [383] &quot;Poa nemoralis subsp. interior&quot;                
+##  [384] &quot;Poa wheeleri&quot;                                 
+##  [385] &quot;Poa stenantha&quot;                                
+##  [386] &quot;Torreyochloa pallida var. pauciflora&quot;         
+##  [387] &quot;Collomia linearis&quot;                            
+##  [388] &quot;Ipomopsis aggregata subsp. aggregata&quot;         
+##  [389] &quot;Ipomopsis globularis&quot;                         
+##  [390] &quot;Polemonium pulcherrimum subsp. delicatum&quot;     
+##  [391] &quot;Eriogonum jamesii var. xanthum&quot;               
+##  [392] &quot;Koenigia islandica&quot;                           
+##  [393] &quot;Bistorta vivipara&quot;                            
+##  [394] &quot;Cryptogramma stelleri&quot;                        
+##  [395] &quot;Cystopteris fragilis&quot;                         
+##  [396] &quot;Pyrola asarifolia subsp. asarifolia&quot;          
+##  [397] &quot;Aconitum columbianum subsp. columbianum&quot;      
+##  [398] &quot;Anemone multifida var. multifida&quot;             
+##  [399] &quot;Aquilegia coerulea var. coerulea&quot;             
+##  [400] &quot;Delphinium barbeyi&quot;                           
+##  [401] &quot;Pulsatilla patens subsp. multifida&quot;           
+##  [402] &quot;Ranunculus alismifolius var. montanus&quot;        
+##  [403] &quot;Ranunculus eschscholtzii var. eschscholtzii&quot;  
+##  [404] &quot;Ranunculus pedatifidus var. affinis&quot;          
+##  [405] &quot;Thalictrum fendleri var. fendleri&quot;            
+##  [406] &quot;Dryas octopetala subsp. hookeriana&quot;           
+##  [407] &quot;Fragaria virginiana&quot;                          
+##  [408] &quot;Geum triflorum&quot;                               
+##  [409] &quot;Potentilla rubricaulis&quot;                       
+##  [410] &quot;Salix glauca subsp. glauca&quot;                   
+##  [411] &quot;Heuchera parvifolia&quot;                          
+##  [412] &quot;Mitella pentandra&quot;                            
+##  [413] &quot;Parnassia fimbriata var. fimbriata&quot;           
+##  [414] &quot;Mimulus tilingii&quot;                             
+##  [415] &quot;Mertensia ciliata var. ciliata&quot;               
+##  [416] &quot;Oreoxis humilis&quot;                              
+##  [417] &quot;Saxifraga odontoloma&quot;                         
+##  [418] &quot;Trautvetteria caroliniensis var. occidentalis&quot;
+##  [419] &quot;Epilobium lactiflorum&quot;                        
+##  [420] &quot;Potamogeton epihydrus&quot;                        
+##  [421] &quot;Carex nelsonii&quot;                               
+##  [422] &quot;Stellaria calycantha&quot;                         
+##  [423] &quot;Carex heteroneura var. chalciolepis&quot;          
+##  [424] &quot;Polygonum aviculare&quot;                          
+##  [425] &quot;Tetraneuris grandiflora&quot;                      
+##  [426] &quot;Trifolium parryi subsp. parryi&quot;               
+##  [427] &quot;Sambucus racemosa var. racemosa&quot;              
+##  [428] &quot;Sedum lanceolatum&quot;                            
+##  [429] &quot;Cystopteris tenuis&quot;                           
+##  [430] &quot;Castilleja rhexifolia&quot;                        
+##  [431] &quot;Taraxacum officinale&quot;                         
+##  [432] &quot;Gentianella amarella&quot;                         
+##  [433] &quot;Oxytropis lambertii&quot;                          
+##  [434] &quot;Senecio fremontii var. blitoides&quot;             
+##  [435] &quot;Packera dimorphophylla&quot;                       
+##  [436] &quot;Trisetum wolfii&quot;                              
+##  [437] &quot;Festuca brachyphylla var. coloradensis&quot;       
+##  [438] &quot;Eleocharis quinqueflora&quot;                      
+##  [439] &quot;Carex brunnescens subsp. sphaerostachya&quot;      
+##  [440] &quot;Carex canescens subsp. canescens&quot;             
+##  [441] &quot;Carex illota&quot;                                 
+##  [442] &quot;Solidago multiradiata var. scopulorum&quot;        
+##  [443] &quot;Silene acaulis var. subacaulescens&quot;           
+##  [444] &quot;Trifolium dasyphyllum subsp. dasyphyllum&quot;     
+##  [445] &quot;Pedicularis racemosa subsp. alba&quot;             
+##  [446] &quot;Betula glandulosa&quot;                            
+##  [447] &quot;Heliomeris multiflora var. multiflora&quot;        
+##  [448] &quot;Oxytropis deflexa var. deflexa&quot;               
+##  [449] &quot;Draba aurea&quot;                                  
+##  [450] &quot;Festuca thurberi&quot;                             
+##  [451] &quot;Poa arctica subsp. grayana&quot;                   
+##  [452] &quot;Potentilla gracilis var. pulcherrima&quot;         
+##  [453] &quot;Anemone narcissiflora var. zephyra&quot;           
+##  [454] &quot;Poa cusickii var. epilis&quot;                     
+##  [455] &quot;Pyrrocoma crocea var. crocea&quot;                 
+##  [456] &quot;Bromus carinatus&quot;                             
+##  [457] &quot;Carex microglochin&quot;                           
+##  [458] &quot;Carex saxatilis&quot;                              
+##  [459] &quot;Carex bella&quot;                                  
+##  [460] &quot;Eriophorum altaicum var. neogaeum&quot;            
+##  [461] &quot;Juncus longistylis&quot;                           
+##  [462] &quot;Tragopogon porrifolius&quot;                       
+##  [463] &quot;Senecio crassulus&quot;                            
+##  [464] &quot;Oxytropis sericea var. sericea&quot;               
+##  [465] &quot;Geum rossii var. turbinatum&quot;                  
+##  [466] &quot;Astragalus cicer&quot;                             
+##  [467] &quot;Sambucus racemosa&quot;                            
+##  [468] &quot;Artemisia arctica subsp. saxatilis&quot;           
+##  [469] &quot;Trifolium dasyphyllum var. dasyphyllum&quot;       
+##  [470] &quot;Senecio taraxacoides&quot;                         
+##  [471] &quot;Arenaria fendleri&quot;                            
+##  [472] &quot;Draba exunguiculata&quot;                          
+##  [473] &quot;Draba streptocarpa&quot;                           
+##  [474] &quot;Phlox multiflora&quot;                             
+##  [475] &quot;Astragalus alpinus var. alpinus&quot;              
+##  [476] &quot;Luzula comosa&quot;                                
+##  [477] &quot;Carex albonigra&quot;                              
+##  [478] &quot;Draba breweri var. cana&quot;                      
+##  [479] &quot;Mimulus gemmiparus&quot;                           
+##  [480] &quot;Arnica chamissonis subsp. foliosa&quot;            
+##  [481] &quot;Draba fladnizensis var. pattersonii&quot;          
+##  [482] &quot;Draba crassa&quot;                                 
+##  [483] &quot;Draba streptobrachia&quot;                         
+##  [484] &quot;Mertensia franciscana&quot;                        
+##  [485] &quot;Platanthera dilatata var. albiflora&quot;          
+##  [486] &quot;Poa pattersonii&quot;                              
+##  [487] &quot;Oxytropis splendens&quot;                          
+##  [488] &quot;Picea engelmannii&quot;                            
+##  [489] &quot;Saxifraga adscendens subsp. oregonensis&quot;      
+##  [490] &quot;Platanthera aquilonis&quot;                        
+##  [491] &quot;Gentianella amarella subsp. acuta&quot;            
+##  [492] &quot;Penstemon hallii&quot;                             
+##  [493] &quot;Jungermannia exsertifolia subsp. cordifolia&quot;  
+##  [494] &quot;Cardamine cordifolia var. cordifolia&quot;         
+##  [495] &quot;Salix glauca var. villosa&quot;                    
+##  [496] &quot;Rosa woodsii var. ultramontana&quot;               
+##  [497] &quot;Lonicera involucrata var. involucrata&quot;        
+##  [498] &quot;Equisetum arvense&quot;                            
+##  [499] &quot;Draba cana&quot;                                   
+##  [500] &quot;Mertensia oblongifolia&quot;                       
+##  [501] &quot;Antennaria rosea&quot;                             
+##  [502] &quot;Erysimum capitatum var. argillosum&quot;           
+##  [503] &quot;Pedicularis parryi var. mogollonica&quot;          
+##  [504] &quot;Ranunculus flammula var. ovalis&quot;              
+##  [505] &quot;Ranunculus hyperboreus&quot;                       
+##  [506] &quot;Alopecurus aequalis var. aequalis&quot;            
+##  [507] &quot;Rubus idaeus var. aculeatissimus&quot;             
+##  [508] &quot;Elymus elymoides var. brevifolius&quot;            
+##  [509] &quot;Blepharoneuron tricholepis&quot;                   
+##  [510] &quot;Descurainia sophia&quot;                           
+##  [511] &quot;Silene acaulis&quot;                               
+##  [512] &quot;Mertensia viridis&quot;                            
+##  [513] &quot;Packera tridenticulata&quot;                       
+##  [514] &quot;Draba crassifolia var. crassifolia&quot;           
+##  [515] &quot;Elymus trachycaulus var. trachycaulus&quot;        
+##  [516] &quot;Heterotheca pumila&quot;                           
+##  [517] &quot;Chamerion latifolium&quot;                         
+##  [518] &quot;Poa abbreviata subsp. pattersonii&quot;            
+##  [519] &quot;Gentianella amarella var. acuta&quot;              
+##  [520] &quot;Mimulus glabratus var. jamesii&quot;               
+##  [521] &quot;Rorippa alpina&quot;                               
+##  [522] &quot;Frasera speciosa&quot;                             
+##  [523] &quot;Potentilla gracilis var. fastigiata&quot;          
+##  [524] &quot;Cirsium eatonii var. eriocephalum&quot;            
+##  [525] &quot;Eremogone fendleri&quot;                           
+##  [526] &quot;Pedicularis bracteosa var. paysoniana&quot;        
+##  [527] &quot;Stellaria longipes var. longipes&quot;             
+##  [528] &quot;Calamagrostis canadensis var. canadensis&quot;     
+##  [529] &quot;Boechera stricta&quot;                             
+##  [530] &quot;Oxytropis deflexa var. sericea&quot;               
+##  [531] &quot;Phacelia glandulosa&quot;                          
+##  [532] &quot;Artemisia borealis subsp. borealis&quot;           
+##  [533] &quot;Veratrum californicum&quot;                        
+##  [534] &quot;Silene drummondii var. striata&quot;               
+##  [535] &quot;Castilleja miniata var. miniata&quot;              
+##  [536] &quot;Carex scopulorum var. bracteosa&quot;              
+##  [537] &quot;Poa glauca var. rupicola&quot;                     
+##  [538] &quot;Noccaea fendleri subsp. glauca&quot;               
+##  [539] &quot;Potentilla hookeriana&quot;                        
+##  [540] &quot;Elymus albicans&quot;                              
+##  [541] &quot;Xanthisma coloradoense&quot;                       
+##  [542] &quot;Erysimum capitatum var. capitatum&quot;            
+##  [543] &quot;Packera dimorphophylla var. dimorphophylla&quot;   
+##  [544] &quot;Geum macrophyllum var. perincisum&quot;            
+##  [545] &quot;Carex aquatilis var. aquatilis&quot;               
+##  [546] &quot;Poa pratensis&quot;                                
+##  [547] &quot;Alopecurus pratensis&quot;                         
+##  [548] &quot;Stellaria umbellata&quot;                          
+##  [549] &quot;Elymus glaucus var. glaucus&quot;                  
+##  [550] &quot;Salix arctica var. petraea&quot;                   
+##  [551] &quot;Trifolium repens&quot;                             
+##  [552] &quot;Symphyotrichum foliaceum var. parryi&quot;         
+##  [553] &quot;Trifolium parryi var. parryi&quot;                 
+##  [554] &quot;Phleum alpinum var. alpinum&quot;                  
+##  [555] &quot;Arenaria lanuginosa var. saxosa&quot;              
+##  [556] &quot;Trifolium brandegeei&quot;                         
+##  [557] &quot;Actaea rubra&quot;                                 
+##  [558] &quot;Vaccinium cespitosum&quot;                         
+##  [559] &quot;Potentilla concinna var. concinna&quot;            
+##  [560] &quot;Sambucus nigra subsp. cerulea&quot;                
+##  [561] &quot;Poa cusickii var. pallida&quot;                    
+##  [562] &quot;Phacelia sericea var. sericea&quot;                
+##  [563] &quot;Polemonium pulcherrimum var. delicatum&quot;       
+##  [564] &quot;Valeriana occidentalis&quot;                       
+##  [565] &quot;Trollius albiflorus&quot;                          
+##  [566] &quot;Chionophila jamesii&quot;                          
+##  [567] &quot;Packera streptanthifolia&quot;                     
+##  [568] &quot;Festuca arizonica&quot;                            
+##  [569] &quot;Arctostaphylos uva-ursi&quot;                      
+##  [570] &quot;Picea pungens&quot;                                
+##  [571] &quot;Potentilla hippiana var. hippiana&quot;            
+##  [572] &quot;Valeriana edulis var. edulis&quot;                 
+##  [573] &quot;Danthonia parryi&quot;                             
+##  [574] &quot;Polemonium occidentale var. occidentale&quot;      
+##  [575] &quot;Senecio eremophilus var. kingii&quot;              
+##  [576] &quot;Cryptogramma acrostichoides&quot;                  
+##  [577] &quot;Eritrichum nanum var. elongatum&quot;              
+##  [578] &quot;Dasiphora fruticosa&quot;                          
+##  [579] &quot;Lepidium ramosissimum var. bourgeauanum&quot;      
+##  [580] &quot;Hymenoxys richardsonii var. richardsonii&quot;     
+##  [581] &quot;Lupinus argenteus var. laxiflorus&quot;            
+##  [582] &quot;Pedicularis procera&quot;                          
+##  [583] &quot;Castilleja integra var. integra&quot;              
+##  [584] &quot;Geum triflorum var. ciliatum&quot;                 
+##  [585] &quot;Penstemon strictus&quot;                           
+##  [586] &quot;Oxytropis campestris var. spicata&quot;            
+##  [587] &quot;Astragalus bodinii&quot;                           
+##  [588] &quot;Erigeron formosissimus var. formosissimus&quot;    
+##  [589] &quot;Carex canescens var. canescens&quot;               
+##  [590] &quot;Potentilla anserina&quot;                          
+##  [591] &quot;Draba albertina&quot;                              
+##  [592] &quot;Veronica serpyllifolia var. humifusa&quot;         
+##  [593] &quot;Salix brachycarpa var. brachycarpa&quot;           
+##  [594] &quot;Cirsium scariosum var. coloradense&quot;           
+##  [595] &quot;Penstemon procerus var. procerus&quot;             
+##  [596] &quot;Gentianopsis detonsa var. elegans&quot;            
+##  [597] &quot;Rumex californicus&quot;                           
+##  [598] &quot;Senecio amplectens var. amplectens&quot;           
+##  [599] &quot;Salix reticulata var. nana&quot;                   
+##  [600] &quot;Rubus parviflorus var. parviflorus&quot;           
+##  [601] &quot;Trifolium longipes var. reflexum&quot;             
+##  [602] &quot;Ipomopsis aggregata subsp. formosissima&quot;      
+##  [603] &quot;Campanula uniflora&quot;                           
+##  [604] &quot;Carex atrosquama&quot;                             
+##  [605] &quot;Boechera spatifolia&quot;                          
+##  [606] &quot;Paronychia pulvinata&quot;                         
+##  [607] &quot;Valeriana acutiloba var. acutiloba&quot;           
+##  [608] &quot;Saxifraga flagellaris var. crandallii&quot;        
+##  [609] &quot;Pinaceae&quot;                                     
+##  [610] &quot;Epilobium clavatum&quot;                           
+##  [611] &quot;Ranunculus pygmaeus&quot;                          
+##  [612] &quot;Draba grayana&quot;                                
+##  [613] &quot;Picea engelmannii var. engelmannii&quot;           
+##  [614] &quot;Kalmia microphylla&quot;                           
+##  [615] &quot;Erigeron eximius&quot;                             
+##  [616] &quot;Erythronium grandiflorum var. grandiflorum&quot;   
+##  [617] &quot;Potamogeton alpinus&quot;                          
+##  [618] &quot;Lloydia serotina var. serotina&quot;               
+##  [619] &quot;Carex incurviformis&quot;                          
+##  [620] &quot;Vahlodea atropurpurea&quot;                        
+##  [621] &quot;Arnica latifolia&quot;                             
+##  [622] &quot;Ligusticum tenuifolium&quot;                       
+##  [623] &quot;Gaultheria humifusa&quot;                          
+##  [624] &quot;Silene menziesii&quot;                             
+##  [625] &quot;Rumex densiflorus&quot;                            
+##  [626] &quot;Astragalus agrestis&quot;                          
+##  [627] &quot;Taraxacum erythrospermum&quot;                     
+##  [628] &quot;Fragaria vesca&quot;                               
+##  [629] &quot;Melica spectabilis&quot;                           
+##  [630] &quot;Lathyrus lanszwertii var. leucanthus&quot;         
+##  [631] &quot;Melica bulbosa&quot;                               
+##  [632] &quot;Lupinus argenteus var. rubricaulis&quot;           
+##  [633] &quot;Salix wolfii var. wolfii&quot;                     
+##  [634] &quot;Primula pauciflora var. pauciflora&quot;           
+##  [635] &quot;Carex stevenii&quot;                               
+##  [636] &quot;Eremogone congesta var. congesta&quot;             
+##  [637] &quot;Dryas hookeriana&quot;                             
+##  [638] &quot;Smelowskia calycina var. americana&quot;           
+##  [639] &quot;Hieracium triste&quot;                             
+##  [640] &quot;Eriogonum umbellatum var. dichrocephalum&quot;     
+##  [641] &quot;Carex utriculata&quot;                             
+##  [642] &quot;Poa arctica subsp. arctica&quot;                   
+##  [643] &quot;Lupinus argenteus var. utahensis&quot;             
+##  [644] &quot;Epilobium halleanum&quot;                          
+##  [645] &quot;Anemone narcissiflora&quot;                        
+##  [646] &quot;Saxifraga cernua&quot;                             
+##  [647] &quot;Gentianella amarella var. heterosepala&quot;       
+##  [648] &quot;Carex vesicaria&quot;                              
+##  [649] &quot;Moneses uniflora&quot;                             
+##  [650] &quot;Claytonia lanceolata&quot;                         
+##  [651] &quot;Pedicularis sudetica subsp. scopulorum&quot;       
+##  [652] &quot;Comandra umbellata var. pallida&quot;              
+##  [653] &quot;Packera neomexicana var. mutabilis&quot;           
+##  [654] &quot;Carex geyeri&quot;                                 
+##  [655] &quot;Juniperus communis var. depressa&quot;             
+##  [656] &quot;Pedicularis parryi var. parryi&quot;               
+##  [657] &quot;Saxifraga bronchialis var. austromontana&quot;     
+##  [658] &quot;Carex nardina var. hepburnii&quot;                 
+##  [659] &quot;Pedicularis racemosa var. alba&quot;               
+##  [660] &quot;Descurainia incana&quot;                           
+##  [661] &quot;Silene drummondii var. drummondii&quot;            
+##  [662] &quot;Picea engelmannii × Picea pungens&quot;            
+##  [663] &quot;Stellaria irrigua&quot;                            
+##  [664] &quot;Ranunculus cardiophyllus&quot;                     
+##  [665] &quot;Gentianella tenella&quot;                          
+##  [666] &quot;Penstemon rydbergii var. rydbergii&quot;           
+##  [667] &quot;Astragalus tenellus&quot;                          
+##  [668] &quot;Selaginella densa&quot;                            
+##  [669] &quot;Agoseris parviflora&quot;                          
+##  [670] &quot;Agoseris aurantiaca&quot;                          
+##  [671] &quot;Festuca rubra subsp. rubra&quot;                   
+##  [672] &quot;Koeleria macrantha&quot;                           
+##  [673] &quot;Symphyotrichum ascendens&quot;                     
+##  [674] &quot;Carex macloviana&quot;                             
+##  [675] &quot;Sambucus racemosa var. microbotrys&quot;           
+##  [676] &quot;Papaver radicatum subsp. kluanensis&quot;          
+##  [677] &quot;Sedum integrifolium subsp. integrifolium&quot;     
+##  [678] &quot;Heterotheca fulcrata&quot;                         
+##  [679] &quot;Rorippa curvipes var. curvipes&quot;               
+##  [680] &quot;Vicia americana var. americana&quot;               
+##  [681] &quot;Crepis runcinata var. runcinata&quot;              
+##  [682] &quot;Lupinus argenteus var. argenteus&quot;             
+##  [683] &quot;Artemisia norvegica var. saxatilis&quot;           
+##  [684] &quot;Epilobium hornemannii var. hornemannii&quot;       
+##  [685] &quot;Eriogonum arcuatum var. xanthum&quot;              
+##  [686] &quot;Poa palustris&quot;                                
+##  [687] &quot;Saxifraga chrysantha&quot;                         
+##  [688] &quot;Silene hitchguirei&quot;                           
+##  [689] &quot;Heuchera bracteata&quot;                           
+##  [690] &quot;Gentianopsis barbellata&quot;                      
+##  [691] &quot;Penstemon procerus&quot;                           
+##  [692] &quot;Potentilla plattensis&quot;                        
+##  [693] &quot;Saxifraga rivularis&quot;                          
+##  [694] &quot;Viola palustris&quot;                              
+##  [695] &quot;Carex nova var. nova&quot;                         
+##  [696] &quot;Bromus porteri&quot;                               
+##  [697] &quot;Carex siccata&quot;                                
+##  [698] &quot;Anthoxanthum hirtum&quot;                          
+##  [699] &quot;Podagrostis humilis&quot;                          
+##  [700] &quot;Carex scopulorum var. scopulorum&quot;             
+##  [701] &quot;Stuckenia filiformis subsp. alpina&quot;           
+##  [702] &quot;Juncus triglumis var. albescens&quot;              
+##  [703] &quot;Avenula hookeri&quot;                              
+##  [704] &quot;Maianthemum stellatum&quot;                        
+##  [705] &quot;Festuca idahoensis&quot;                           
+##  [706] &quot;Allium geyeri var. geyeri&quot;                    
+##  [707] &quot;Achnatherum lettermanii&quot;                      
+##  [708] &quot;Abies bifolia&quot;                                
+##  [709] &quot;Streptopus amplexifolius&quot;                     
+##  [710] &quot;Bromus pumpellianus&quot;                          
+##  [711] &quot;Carex rupestris&quot;                              
+##  [712] &quot;Poa arida&quot;                                    
+##  [713] &quot;Festuca hallii&quot;                               
+##  [714] &quot;Carex microptera var. microptera&quot;             
+##  [715] &quot;Carex oederi var. recterostrata&quot;              
+##  [716] &quot;Kobresia simpliciuscula&quot;                      
+##  [717] &quot;Potentilla ovina var. ovina&quot;                  
+##  [718] &quot;Penstemon crandallii var. procumbens&quot;         
+##  [719] &quot;Ipomopsis spicata subsp. capitata&quot;            
+##  [720] &quot;Rumex triangulivalvis&quot;                        
+##  [721] &quot;Delphinium ramosum&quot;                           
+##  [722] &quot;Saxifraga cespitosa var. delicatula&quot;          
+##  [723] &quot;Parnassia kotzebuei&quot;                          
+##  [724] &quot;Polygonum douglasii&quot;                          
+##  [725] &quot;Potentilla nivea var. nivea&quot;                  
+##  [726] &quot;Geum triflorum var. triflorum&quot;                
+##  [727] &quot;Scrophularia lanceolata&quot;                      
+##  [728] &quot;Myriophyllum sibiricum&quot;                       
+##  [729] &quot;Salix monticola&quot;                              
+##  [730] &quot;Besseya plantaginea&quot;                          
+##  [731] &quot;Phacelia heterophylla var. heterophylla&quot;      
+##  [732] &quot;Ericameria parryi var. parryi&quot;                
+##  [733] &quot;Draba oligosperma var. oligosperma&quot;           
+##  [734] &quot;Draba lonchocarpa var. lonchocarpa&quot;           
+##  [735] &quot;Senecio integerrimus var. exaltatus&quot;          
+##  [736] &quot;Boechera lemmonii var. lemmonii&quot;              
+##  [737] &quot;Oxytropis borealis var. viscida&quot;              
+##  [738] &quot;Draba spectabilis var. oxyloba&quot;               
+##  [739] &quot;Oxytropis podocarpa&quot;                          
+##  [740] &quot;Helianthella parryi&quot;                          
+##  [741] &quot;Saussurea weberi&quot;                             
+##  [742] &quot;Physaria alpina&quot;                              
+##  [743] &quot;Ericameria discoidea&quot;                         
+##  [744] &quot;Artemisia parryi&quot;                             
+##  [745] &quot;Cymopterus humilis&quot;                           
+##  [746] &quot;Draba porsildii var. porsildii&quot;               
+##  [747] &quot;Lepidium ramosissimum&quot;                        
+##  [748] &quot;Braya humilis&quot;                                
+##  [749] &quot;Packera cana&quot;                                 
+##  [750] &quot;Antennaria pulcherrima&quot;                       
+##  [751] &quot;Astragalus australis var. glabriusculus&quot;      
+##  [752] &quot;Astragalus kentrophyta var. tegetarius&quot;       
+##  [753] &quot;Astragalus miser var. oblongifolius&quot;          
+##  [754] &quot;Symphoricarpos oreophilus var. oreophilus&quot;    
+##  [755] &quot;Erigeron subtrinervis&quot;                        
+##  [756] &quot;Astragalus hallii var. hallii&quot;                
+##  [757] &quot;Oxytropis parryi&quot;                             
+##  [758] &quot;Senecio wootonii&quot;                             
+##  [759] &quot;Cymopterus anisatus&quot;                          
+##  [760] &quot;Brassica rapa&quot;                                
+##  [761] &quot;Diplactis alpinus subsp. vierhapperi&quot;         
+##  [762] &quot;Artemisia pattersonii&quot;                        
+##  [763] &quot;Athyrium alpestre var. americanum&quot;            
+##  [764] &quot;Botrychium lanceolatum var. lanceolatum&quot;      
+##  [765] &quot;Valeriana acutiloba var. pubicarpa&quot;           
+##  [766] &quot;Ribes cereum&quot;                                 
+##  [767] &quot;Sparganium angustifolium&quot;                     
+##  [768] &quot;Cirsium&quot;                                      
+##  [769] &quot;Aquilegia elegantula&quot;                         
+##  [770] &quot;Cerastium fontanum subsp. vulgare&quot;            
+##  [771] &quot;Eriogonum flavum var. flavum&quot;                 
+##  [772] &quot;Poa alpina var. alpina&quot;                       
+##  [773] &quot;Antennaria microphylla&quot;                       
+##  [774] &quot;Poa fendleriana subsp. fendleriana&quot;           
+##  [775] &quot;Erigeron formosissimus var. viscidus&quot;         
+##  [776] &quot;Veratrum californicum var. californicum&quot;      
+##  [777] &quot;Hymenoxys brandegeei&quot;                         
+##  [778] &quot;Androsace chamaejasme subsp. lehmanniana&quot;     
+##  [779] &quot;Botrychium hesperium&quot;                         
+##  [780] &quot;Botrychium minganense&quot;                        
+##  [781] &quot;Botrychium hesperium × Botrychium minganense&quot; 
+##  [782] &quot;Festuca calligera&quot;                            
+##  [783] &quot;Antennaria rosea subsp. arida&quot;                
+##  [784] &quot;Botrychium&quot;                                   
+##  [785] &quot;Potamogeton foliosus var. foliosus&quot;           
+##  [786] &quot;Botrychium 'redbank'&quot;                         
+##  [787] &quot;Symphyotrichum spathulatum var. spathulatum&quot;  
+##  [788] &quot;Cirsium parryi&quot;                               
+##  [789] &quot;Botrychium lineare&quot;                           
+##  [790] &quot;Calamagrostis montanensis&quot;                    
+##  [791] &quot;Anthelia juratzkana&quot;                          
+##  [792] &quot;Bryum algovicum var. rutheanum&quot;               
+##  [793] &quot;Bryum argenteum&quot;                              
+##  [794] &quot;Sagina saginoides&quot;                            
+##  [795] &quot;Carex stenoptila&quot;                             
+##  [796] &quot;Draba helleriana&quot;                             
+##  [797] &quot;Thalictrum alpinum&quot;                           
+##  [798] &quot;Grimmia mollis&quot;                               
+##  [799] &quot;Artemisia michauxiana&quot;                        
+##  [800] &quot;Cardamine cordifolia&quot;                         
+##  [801] &quot;Draba rectifructa&quot;                            
+##  [802] &quot;Saxifraga rivularis var. debilis&quot;             
+##  [803] &quot;Carex fuliginosa&quot;                             
+##  [804] &quot;Platanthera dilatata var. dilatata&quot;           
+##  [805] &quot;Mimulus tilingii var. tilingii&quot;               
+##  [806] &quot;Solidago simplex&quot;                             
+##  [807] &quot;Artemisia ludoviciana var. ludoviciana&quot;       
+##  [808] &quot;Draba incerta&quot;                                
+##  [809] &quot;Poa lettermanii&quot;                              
+##  [810] &quot;Rorippa palustris var. hispida&quot;               
+##  [811] &quot;Pyrola asarifolia var. asarifolia&quot;            
+##  [812] &quot;Linnaea borealis var. longiflora&quot;             
+##  [813] &quot;Bromus richardsonii&quot;                          
+##  [814] &quot;Ranunculus inamoenus var. inamoenus&quot;          
+##  [815] &quot;Hordeum jubatum&quot;                              
+##  [816] &quot;Elymus hispidus var. hispidus&quot;                
+##  [817] &quot;Woodsia oregana var. cathcartiana&quot;            
+##  [818] &quot;Elymus&quot;                                       
+##  [819] &quot;Ivesia gordonii var. gordonii&quot;                
+##  [820] &quot;Minuartia macrantha&quot;                          
+##  [821] &quot;Anemone patens var. multifida&quot;                
+##  [822] &quot;Oenothera suffrutescens&quot;                      
+##  [823] &quot;Phacelia hastata var. hastata&quot;                
+##  [824] &quot;Cerastium arvense var. strictum&quot;              
+##  [825] &quot;Draba oligosperma&quot;                            
+##  [826] &quot;Asplenium trichomanes-ramosum&quot;                
+##  [827] &quot;Isoëtes bolanderi var. bolanderi&quot;             
+##  [828] &quot;Saxifraga cespitosa var. minima&quot;              
+##  [829] &quot;Carex nebrascensis&quot;                           
+##  [830] &quot;Carex atrata var. chalciolepis&quot;               
+##  [831] &quot;Aster foliaceus&quot;                              
+##  [832] &quot;Senecio werneriifolius&quot;                       
+##  [833] &quot;Hieracium gracile&quot;                            
+##  [834] &quot;Pedicularis racemosa&quot;                         
+##  [835] &quot;Veronica nutans&quot;                              
+##  [836] &quot;Castilleja miniata&quot;                           
+##  [837] &quot;Saxifraga hyperborea subsp. debilis&quot;          
+##  [838] &quot;Carex micropoda&quot;                              
+##  [839] &quot;Carex norvegica&quot;                              
+##  [840] &quot;Carex crandallii&quot;                             
+##  [841] &quot;Eleocharis acicularis&quot;                        
+##  [842] &quot;Eriophorum angustifolium&quot;                     
+##  [843] &quot;Kobresia bellardii&quot;                           
+##  [844] &quot;Kobresia myosurioides&quot;                        
+##  [845] &quot;Arenaria obtusiloba&quot;                          
+##  [846] &quot;Bromus anomalus&quot;                              
+##  [847] &quot;Persicaria amphibia&quot;                          
+##  [848] &quot;Phleum commutatum&quot;                            
+##  [849] &quot;Braya humilis subsp. humilis&quot;                 
+##  [850] &quot;Physaria acutifolia var. acutifolia&quot;          
+##  [851] &quot;Senecio canus&quot;                                
+##  [852] &quot;Haplopappus clementis&quot;                        
+##  [853] &quot;Senecio werneriifolius var. werneriifolius&quot;   
+##  [854] &quot;Cerastium strictum&quot;                           
+##  [855] &quot;Lidia obtusiloba&quot;                             
+##  [856] &quot;Tryphane rubella&quot;                             
+##  [857] &quot;Gastrolychnis drummondii&quot;                     
+##  [858] &quot;Silene acaulis subsp. subacaulescens&quot;         
+##  [859] &quot;Athyrium filix-femina subsp. angustum&quot;        
+##  [860] &quot;Acer glabrum&quot;                                 
+##  [861] &quot;Heracleum sphondylium subsp. montanum&quot;        
+##  [862] &quot;Lomatium dissectum&quot;                           
+##  [863] &quot;Achillea lanulosa var. alpicola&quot;              
+##  [864] &quot;Achillea lanulosa&quot;                            
+##  [865] &quot;Dugaldia hoopesii&quot;                            
+##  [866] &quot;Erigeron formosissimus&quot;                       
+##  [867] &quot;Erigeron speciosus&quot;                           
+##  [868] &quot;Heterotheca villosa&quot;                          
+##  [869] &quot;Ligularia amplectens&quot;                         
+##  [870] &quot;Senecio amplectens&quot;                           
+##  [871] &quot;Ligularia holmii&quot;                             
+##  [872] &quot;Ligularia pudica&quot;                             
+##  [873] &quot;Senecio werneriaefolius&quot;                      
+##  [874] &quot;Senecio streptanthifolius&quot;                    
+##  [875] &quot;Pyrrocoma clementis&quot;                          
+##  [876] &quot;Senecio carthamoides&quot;                         
+##  [877] &quot;Hymenoxys acaulis&quot;                            
+##  [878] &quot;Eritrichium elongatum var. argenteum&quot;         
+##  [879] &quot;Eritrichium elongatum&quot;                        
+##  [880] &quot;Mertensia bakeri&quot;                             
+##  [881] &quot;Boechera drummondii&quot;                          
+##  [882] &quot;Physaria acutifolia&quot;                          
+##  [883] &quot;Thlaspi alpestre&quot;                             
+##  [884] &quot;Campanula parryi&quot;                             
+##  [885] &quot;Carex stenophylla eleocharis&quot;                 
+##  [886] &quot;Arcostaphylos uva-ursi&quot;                       
+##  [887] &quot;Trifolium salictorum&quot;                         
+##  [888] &quot;Hydrophyllum capitatum&quot;                       
+##  [889] &quot;Agropyron scribneri&quot;                          
+##  [890] &quot;Eriogonum coloradense&quot;                        
+##  [891] &quot;Anemonastrum narcissiflorum subsp. zephyrum&quot;  
+##  [892] &quot;Anemone lithophila&quot;                           
+##  [893] &quot;Comandra pallida&quot;                             
+##  [894] &quot;Viola nuttallii&quot;                              
+##  [895] &quot;Ligularia porteri&quot;                            
+##  [896] &quot;Lecanora novomexicana&quot;                        
+##  [897] &quot;Achnatherum pinetorum&quot;                        
+##  [898] &quot;Calamagrostis stricta subsp. inexpansa&quot;       
+##  [899] &quot;Valeriana edulis&quot;                             
+##  [900] &quot;Eriogonum umbellatum var. porteri&quot;            
+##  [901] &quot;Oxytropis deflexa var. foliolosa&quot;             
+##  [902] &quot;Eriophorum altaicum&quot;                          
+##  [903] &quot;Polygonum cespitosum&quot;                         
+##  [904] &quot;Callitriche heterophylla&quot;                     
+##  [905] &quot;Sedum stenopetalum&quot;                           
+##  [906] &quot;Rhododendron albiflorum&quot;                      
+##  [907] &quot;Potentilla fruticosa&quot;                         
+##  [908] &quot;Salix planifolia var. monica&quot;                 
+##  [909] &quot;Salix scouleriana&quot;                            
+##  [910] &quot;Dieteria bigelovii&quot;                           
+##  [911] &quot;Tetraneuris acaulis&quot;                          
+##  [912] &quot;Ranunculus eschscholtzii&quot;                     
+##  [913] &quot;Oxytropis sericea&quot;                            
+##  [914] &quot;Potentilla nivea&quot;                             
+##  [915] &quot;Aliciella pinnatifida&quot;                        
+##  [916] &quot;Gentiana aquatica&quot;                            
+##  [917] &quot;Saxifraga hirsuta&quot;                            
+##  [918] &quot;Anemone patens&quot;                               
+##  [919] &quot;Agrostis mertensii&quot;                           
+##  [920] &quot;Eriogonum arcuatum&quot;                           
+##  [921] &quot;Arabis lemmonii&quot;                              
+##  [922] &quot;Valeriana acutiloba&quot;                          
+##  [923] &quot;Alopecurus magellanicus&quot;                      
+##  [924] &quot;Chaenactis alpina&quot;                            
+##  [925] &quot;Draba lonchocarpa&quot;                            
+##  [926] &quot;Hymenoxys brandegei&quot;                          
+##  [927] &quot;Taraxacum lyratum&quot;                            
+##  [928] &quot;Salix reticulata subsp. nivalis&quot;              
+##  [929] &quot;Oxytropis borealis&quot;                           
+##  [930] &quot;Anemone multifida&quot;                            
+##  [931] &quot;Chenopodium capitatum&quot;                        
+##  [932] &quot;Androsace chamaejasme&quot;                        
+##  [933] &quot;Poa glauca&quot;                                   
+##  [934] &quot;Gentiana tenella&quot;                             
+##  [935] &quot;Saxifraga adscendens&quot;                         
+##  [936] &quot;Eritrichium aretioides&quot;                       
+##  [937] &quot;Stuckenia filiformis&quot;                         
+##  [938] &quot;Botrychium lanceolatum&quot;                       
+##  [939] &quot;Agrostis thurberiana&quot;                         
+##  [940] &quot;Symphyotrichum foliaceum&quot;                     
+##  [941] &quot;Aquilegia saximontana&quot;                        
+##  [942] &quot;Oxytropis deflexa&quot;                            
+##  [943] &quot;Listera cordata&quot;                              
+##  [944] &quot;Papaver radicatum&quot;                            
+##  [945] &quot;Pedicularis sudetica&quot;                         
+##  [946] &quot;Carex scirpoidea&quot;                             
+##  [947] &quot;Elymus violaceus&quot;                             
+##  [948] &quot;Chondrophylla prostrata&quot;                      
+##  [949] &quot;Polemonium foliosissimum&quot;                     
+##  [950] &quot;Dodecatheon pulchellum&quot;                       
+##  [951] &quot;Thalictrum fendleri&quot;                          
+##  [952] &quot;Aquilegia caerulea&quot;                           
+##  [953] &quot;Potentilla quinquefolia&quot;                      
+##  [954] &quot;Ivesia gordonii&quot;                              
+##  [955] &quot;Rosa woodsii&quot;                                 
+##  [956] &quot;Saxifraga flagellaris&quot;                        
+##  [957] &quot;Orthocarpus luteus&quot;                           
+##  [958] &quot;Viola canadensis&quot;                             
+##  [959] &quot;Veronica serphyllifolia&quot;                      
+##  [960] &quot;Eriogonum umbellatum&quot;                         
+##  [961] &quot;Silene uralensis&quot;                             
+##  [962] &quot;Minuartia stricta&quot;                            
+##  [963] &quot;Carex&quot;                                        
+##  [964] &quot;Carex epapillosa&quot;                             
+##  [965] &quot;Gentiana calycosa&quot;                            
+##  [966] &quot;Senecio pudicus&quot;                              
+##  [967] &quot;Harbouria trachypleura&quot;                       
+##  [968] &quot;Silene kingii&quot;                                
+##  [969] &quot;Polemonium pulcherrimum&quot;                      
+##  [970] &quot;Ranunculus alismifolius&quot;                      
+##  [971] &quot;Ligularia bigelovii&quot;                          
+##  [972] &quot;Achillea millefolium var. lanulosa&quot;           
+##  [973] &quot;Erigeron philadelphicus var. philadelphicus&quot;  
+##  [974] &quot;Rorippa curvipes&quot;                             
+##  [975] &quot;Silene acoulis&quot;                               
+##  [976] &quot;Silene drummondii&quot;                            
+##  [977] &quot;Stellaria longipes ssp. longipes&quot;             
+##  [978] &quot;Carex chalciolepis var. chalciolepis&quot;         
+##  [979] &quot;Carex echinata&quot;                               
+##  [980] &quot;Carex scirpoidea ssp. pseudoscirpoidea&quot;       
+##  [981] &quot;Eleocharis&quot;                                   
+##  [982] &quot;Eleocharis pauciflora&quot;                        
+##  [983] &quot;Eriophorum chamissonis&quot;                       
+##  [984] &quot;Pyrola minor&quot;                                 
+##  [985] &quot;Trifolium&quot;                                    
+##  [986] &quot;Triglochin maritima&quot;                          
+##  [987] &quot;Sidalcea neomexicana var. neomexicana&quot;        
+##  [988] &quot;Anticlea elegans&quot;                             
+##  [989] &quot;Epilobium hornemannii ssp. hornemannii&quot;       
+##  [990] &quot;Platanthera dilatata&quot;                         
+##  [991] &quot;Castilleja septentrionalis&quot;                   
+##  [992] &quot;Pedicularis sudetica ssp. scopulorum&quot;         
+##  [993] &quot;Phlox pulvinata&quot;                              
+##  [994] &quot;Claytonia megarhiza var. megarhiza&quot;           
+##  [995] &quot;Poa glauca ssp. rupicola&quot;                     
+##  [996] &quot;Heterotheca villosa var. minor&quot;               
+##  [997] &quot;Asclepias brachystepha&quot;                       
+##  [998] &quot;Ecinocereus viridiflorus&quot;                     
+##  [999] &quot;Sophora sericea&quot;                              
+## [1000] &quot;Koeleria nitida&quot;                              
+## [1001] &quot;Juncus drummondi&quot;                             
+## [1002] &quot;Ranunculus trichophyllus&quot;                     
+## [1003] &quot;Potentilla gracilis&quot;                          
+## [1004] &quot;Phalaris alpina&quot;                              
+## [1005] &quot;Ambrosia linearis&quot;                            
+## [1006] &quot;Solidago simplex subsp. simplex&quot;              
+## [1007] &quot;Anemone multifida var. hudsoniana&quot;            
+## [1008] &quot;Anemone narcissiflora xparviflora&quot;            
+## [1009] &quot;Aconitum columbianum&quot;                         
+## [1010] &quot;Veratrum&quot;                                     
+## [1011] &quot;Polygonum bistorta&quot;                           
+## [1012] &quot;Salix&quot;                                        
+## [1013] &quot;Eritrichium nanum var. aretioides&quot;            
+## [1014] &quot;Eritrichium nanum&quot;                            
+## [1015] &quot;Rhodiola rosea&quot;                               
+## [1016] &quot;Potentilla anglica&quot;                           
+## [1017] &quot;Pedicularis&quot;                                  
+## [1018] &quot;Valeriana capitata&quot;                           
+## [1019] &quot;Lomatium&quot;                                     
+## [1020] &quot;Rhodiola integrifolia integrifolia&quot;           
+## [1021] &quot;Allium rubrum&quot;                                
+## [1022] &quot;Alsinanthe macrantha&quot;                         
+## [1023] &quot;Alsinanthe stricta&quot;                           
+## [1024] &quot;Eremogone congesta&quot;                           
+## [1025] &quot;Lidia biflora&quot;                                
+## [1026] &quot;Moehringia macrophylla&quot;                       
+## [1027] &quot;Sagina caespitosa&quot;                            
+## [1028] &quot;Spergulastrum lanuginosum&quot;                    
+## [1029] &quot;Bupleurum triradiatum&quot;                        
+## [1030] &quot;Heracleum sphondylium&quot;                        
+## [1031] &quot;Ligusticum porteri&quot;                           
+## [1032] &quot;Lomatium triternatum&quot;                         
+## [1033] &quot;Pseudocymopterus montanus&quot;                    
+## [1034] &quot;Antennaria pulvinata&quot;                         
+## [1035] &quot;Arnica longifolia&quot;                            
+## [1036] &quot;Askellia nana&quot;                                
+## [1037] &quot;Cirsium hesperium&quot;                            
+## [1038] &quot;Erigeron peregrinus&quot;                          
+## [1039] &quot;Ligularia soldanella&quot;                         
+## [1040] &quot;Ligularia taraxacoides&quot;                       
+## [1041] &quot;Rydbergia grandiflora&quot;                        
+## [1042] &quot;Cynoglossum officinale&quot;                       
+## [1043] &quot;Mertensia brevistyla&quot;                         
+## [1044] &quot;Mertensia ciliata&quot;                            
+## [1045] &quot;Draba fladnizensis&quot;                           
+## [1046] &quot;Draba globosa&quot;                                
+## [1047] &quot;Taraxacum scopulorum&quot;                         
+## [1048] &quot;Draba porsildii&quot;                              
+## [1049] &quot;Draba smithii&quot;                                
+## [1050] &quot;Eutrema edwardsii&quot;                            
+## [1051] &quot;Halimolobos virgata&quot;                          
+## [1052] &quot;Callitriche verna&quot;                            
+## [1053] &quot;Calochortus gunnisonii&quot;                       
+## [1054] &quot;Linnaea borealis&quot;                             
+## [1055] &quot;Sambucus microbotrys&quot;                         
+## [1056] &quot;Silene scouleri&quot;                              
+## [1057] &quot;Macronema discoideum&quot;                         
+## [1058] &quot;Aletes anisatus&quot;                              
+## [1059] &quot;Chlorocrepis tristis&quot;                         
+## [1060] &quot;Amerosedum lanceolatum&quot;                       
+## [1061] &quot;Clementsia rhodantha&quot;                         
+## [1062] &quot;Carex albo-nigra&quot;                             
+## [1063] &quot;Carex canescens&quot;                              
+## [1064] &quot;Carex capillaris&quot;                             
+## [1065] &quot;Carex dioica&quot;                                 
+## [1066] &quot;Carex lanuginosa&quot;                             
+## [1067] &quot;Astragalus aboriginum&quot;                        
+## [1068] &quot;Tetraneuris brevifolia&quot;                       
+## [1069] &quot;Rorippa teres&quot;                                
+## [1070] &quot;Astragalus hallii&quot;                            
+## [1071] &quot;Boechera crandallii&quot;                          
+## [1072] &quot;Veratrum tenuipetalum&quot;                        
+## [1073] &quot;Platanthera purpurascens&quot;                     
+## [1074] &quot;Papaver kluanense&quot;                            
+## [1075] &quot;Festuca saximontana&quot;                          
+## [1076] &quot;Oryzopsis exigua&quot;                             
+## [1077] &quot;Phippsia algida&quot;                              
+## [1078] &quot;Poa glaucifolia&quot;                              
+## [1079] &quot;Poa nervosa&quot;                                  
+## [1080] &quot;Linanthastrum nuttallii&quot;                      
+## [1081] &quot;Eriogonum flavum&quot;                             
+## [1082] &quot;Eriogonum subalpinum&quot;                         
+## [1083] &quot;Oreobroma pygmaea&quot;                            
+## [1084] &quot;Anemonastrum narcissiflorum&quot;                  
+## [1085] &quot;Ranunculus pedatifidus&quot;                       
+## [1086] &quot;Acomastylis rossii&quot;                           
+## [1087] &quot;Asplenium septentrionale&quot;                     
+## [1088] &quot;Botrychium pallidum&quot;                          
+## [1089] &quot;Botrychium simplex&quot;                           
+## [1090] &quot;Pentaphylloides floribunda&quot;                   
+## [1091] &quot;Potentilla prostrata&quot;                         
+## [1092] &quot;Salix calcicola&quot;                              
+## [1093] &quot;Salix drummondiana&quot;                           
+## [1094] &quot;Ciliaria austromontana&quot;                       
+## [1095] &quot;Hirculus platysepalus&quot;                        
+## [1096] &quot;Micranthes oregana&quot;                           
+## [1097] &quot;Micranthes rhomboidea&quot;                        
+## [1098] &quot;Muscaria monticola&quot;                           
+## [1099] &quot;Saxifraga hyperborea&quot;                         
+## [1100] &quot;Pinus contorta&quot;                               
+## [1101] &quot;Pneumonanthe parryi&quot;                          
+## [1102] &quot;Festuca campestris&quot;                           
+## [1103] &quot;Gentianella heterosepala&quot;</code></pre>
+<p>Pull only the species that have 10 or more years of data for analyses</p>
+</div>
 
 
 </div>
