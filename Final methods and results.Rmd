@@ -33,23 +33,25 @@ seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotani
 Manipulate dates and names to be consistant before rbind databases
 ```{r}
 colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,sep=" ")
-head(colo[,c(1,40,13,31,32,21,22,23,24)])
-table(colo$Reproductive.Status)
+names(colo[,c(1,40,13,31,32,21,22,23,24)])
+colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
 # Select only reprodutive or post reproductive records
 repro <- c("Flr","Bulblets","Seed","Spores","Fr")
-colo.sm <- colo.sm[colo.sm$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
-                                                                colo.sm$Reproductive.Status,
+colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
+                                                                colo$Reproductive.Status,
                                                                 value=TRUE)),]
 
-
 colo.sm <- colo[,c(1,40,12,13,31,32,21,22,23,24)]
+
 #Year
 colo.sm$Year <- (sub('.*(\\d{4}).*', '\\1', as.character(colo.sm$Date..dd.month.yyyy.)))
 
 # Removing any with dates that aren't entered correctly or are missing year, not exact date
 colo.sm <- colo.sm[grep("[[:digit:]]", colo.sm$Year),]
 colo.sm <- colo.sm[colo.sm$Year>=1950,]
+
+length(unique(colo.sm$scientificName)) #2999
 
 # Only collections above or equal to 3200 meters, remove any without elevation
 # only collections above or equal to 10,498.69 ft, remove any without elevation
@@ -62,12 +64,63 @@ colo.sm <- colo.sm[colo.sm$elevation>=3200,]
 colo.sm <- colo.sm[!is.na(colo.sm$Elevation..meters.),]
 colo.sm <- colo.sm[colo.sm$elevation < 4572,]
 
+length(unique(colo.sm$scientificName)) #558
+
 # add a julian day column as $startDayOfYear
+colo.sm$Date..dd.month.yyyy. <- as.character(colo.sm$Date..dd.month.yyyy.)
+wrongdates <- colo.sm$Date..dd.month.yyyy.[colo.sm$Date..dd.month.yyyy. %in% grep("-", colo.sm$Date..dd.month.yyyy., value=TRUE)]
+
+table(wrongdates)
+
 colo.sm$startDayOfYear<-as.numeric(format(
     as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format="%d %B %Y")    ,"%j"))
 ```
 
 SEInet   
+```{r}
+head(seinet[,c(1,2,15,16,17,14,4,7)])
+seinet$reproductiveCondition <- as.character(seinet$reproductiveCondition)
+
+repro <- c("Flo","frui","Fert")
+seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
+                                                             seinet$reproductiveCondition,
+                                                             value=TRUE)),]
+
+seinet.sm <- seinet[,c(1,2,15,16,17,14,4,7)]
+
+# get to 1950-2011
+seinet.sm <- seinet.sm[seinet.sm$year >=1950,]
+seinet.sm <- seinet.sm[seinet.sm$year <= 2011,]
+seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
+
+# Elevation over 3200 meters - was gathered from SEINet with that limitation. 
+identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters >=3200,])
+```
+
+Combine datasets
+```{r}
+names <- names(colo.sm[,c(1:2,5:6,11:13)])
+#names(seinet.sm[,c(1:4,7,5,8)])
+colo.bind <- colo.sm[,c(1:2,5:6,11:13)]
+seinet.bind <- seinet.sm[,c(1:4,7,5,8)]
+names(seinet.bind) <- names
+
+i<-sapply(colo.bind, is.factor)
+colo.bind[i]<-lapply(colo.bind[i], as.character)
+colo.bind$Year <- as.numeric(colo.bind$Year)
+i<-sapply(seinet.bind, is.factor)
+seinet.bind[i]<-lapply(seinet.bind[i],as.character)
+i<-sapply(seinet.bind, is.integer)
+seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
+
+bloom2 <- rbind(seinet.bind,colo.bind) 
+barplot(table(bloom2$Year))
+
+length(unique(bloom2$scientificName)) #563
+```
+
+
+Before subset 
 ```{r}
 
 
@@ -76,7 +129,10 @@ SEInet
 After combining datasets, find species with at least 10 years of data
 ```{r}
 # how many years collected per species
-sp.yr <- as.data.frame(table(colo.sm$Year,colo.sm$scientificName))
+sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
+nrow(sp.yr[sp.yr$Freq>0,])
+head(sp.yr[sp.yr$Freq>0,])
+
 sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
   if(x>0) {1}
   else 0
@@ -84,11 +140,22 @@ sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
 
 sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
 bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
-spyears <- do.call(rbind,lapply(bysp, function(x){
-  sum(x$Freq)
-}))
 
-sp.10plus <- spyears[spyears>=10]
-length(sp.10plus)
+spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
+  sum(x$Freq)
+})))
+
+spyears$Species <- row.names(spyears)
+sp.10plus <- spyears[spyears$DataYrs>=10,]
+nrow(sp.10plus)
+
+nrow(spyears[spyears$DataYrs>=9,])
+```
+
+compare to previous dataset
+```{r}
+unique(bloom$Scientific.Name)
+unique(bloom2$scientificName)
+
 ```
 
