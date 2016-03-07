@@ -164,6 +164,10 @@ bloom2[bloom2$scientificName=="",]
 
 bloom2[bloom2$Year=="",]
 
+
+str(bloom2)
+bloom2$scientificName <- as.character(bloom2$scientificName)
+
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
 nrow(sp.yr[sp.yr$Var2=="",])
@@ -190,8 +194,6 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 spyears$Species <- row.names(spyears)
 sp.10plus <- spyears[spyears$DataYrs>=10,]
 nrow(sp.10plus) #547
-
-nrow(spyears[spyears$DataYrs>=9,])
 ```
 
 compare to previous dataset
@@ -245,6 +247,327 @@ unique(bloom2$scientificName[complete.cases(match(unique(bloom2$scientificName),
 
 Pull only the species that have 10 or more years of data for analyses
 ```{r}
-tenyearplus <- merge(bloom2,
+tenyearplus <- merge(bloom2,sp.10plus,by.x="scientificName",by.y="Species")
+length(unique(tenyearplus$scientificName))
 
 ```
+
+Pull out earliest collection
+```{r}
+
+minJul.dates.2 <- lapply(unique(tenyearplus$scientificName), function(x){
+  this.species <- tenyearplus[tenyearplus$scientificName == x,]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species[,c(1,5,7,6,8)], these.rows, by = c("startDayOfYear","Year")))
+  })
+
+min1950_2 <- do.call(rbind,minJul.dates.2)
+head(min1950_2)
+
+```
+
+
+Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 524 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
+```{r}
+earliestcollection <- data.frame(colSums(table(min1950_2$scientificName,
+                                                min1950_2$Year)))
+earcol <- data.frame(Year = row.names(earliestcollection),
+                     Collections = earliestcollection)
+colnames(earcol)[2] <- "Collections"
+earcol[,1] <- as.numeric(levels(earcol[,1]))
+earcol[which.max(earcol$Collections),]
+mean(earcol$Collections)
+
+```
+
+#Figure 1A
+```{r}
+ggplot(earcol, aes(Year, Collections))+
+  geom_bar(stat="identity")+
+  xlab("Year")+
+  ylab("Number of Study Species")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))+
+  scale_y_continuous(limits = c(0,530), breaks = seq(0,530, by=100))
+
+```
+#Figure 1B   
+```{r}
+
+allcollections <- data.frame(colSums(table(bloom2$scientificName,bloom2$Year)))
+allcol <- data.frame(Year = row.names(allcollections),
+                     allcollections)
+colnames(allcol)[2] <- "collections"
+
+as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
+allcol[,1] <- as.numeric.factor(allcol[,1])
+```
+```{r}
+ggplot(allcol,  aes(x = Year, y = collections))+
+  geom_bar(stat="identity")+
+  xlab("Year")+
+  ylab("Total Collections")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1950,2015), breaks = seq(1950,2015, by=10))+
+  scale_y_continuous(limits = c(0,4800),breaks = seq(0,4800, by=500))
+```
+
+The day each year with the most collections has on average been Julian day 207 and the day with the most collections has not moved significantly over time from 1950 to 2011. The earliest peak collection day was Julian day 175 (June 30th) in 2007 and the latest peak collection day was Julian day 238 in 1957 (August 29th)   
+```{r}
+collJ.sp <- data.frame(table(bloom2$Year,bloom2$startDayOfYear))
+
+collJ.max <- lapply(split(collJ.sp, collJ.sp$Var1), function(x) x[which.max(x$Freq),])
+collmax <- do.call(rbind,collJ.max)
+collmax[,1:2]<-sapply(collmax[,1:2], function(x) as.numeric(as.character(x)))
+
+mean(collmax$Var2)
+collmax[which.min(collmax$Var2),]
+collmax[which.max(collmax$Var2),]
+summary(lm(Var2~Var1, data=collmax))
+
+```
+
+
+Average high, low, and precip per year  
+```{r}
+head(bloom)
+head(bloom[,c(19,20,21,23)])
+head(min1950_2)
+min1950_2 <- merge(min1950_2,unique(bloom[,c(19,20,21,23)]), by="Year")
+
+unbloom <- unique(bloom[,c(19,20,21,23)])
+```
+
+#Figure 2A  
+Using just the average temp per year, not repeated for everytime we have specimen data in a year
+```{r}
+ggplot(unbloom, aes(Year,Avg_Hi))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+#  stat_smooth(geom = "smooth")+
+  theme_bw()+
+  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+summary(lm(Avg_Hi~Year, data=unbloom))
+
+```
+
+
+#Figure 2B
+```{r}
+ggplot(unbloom, aes(Year,Avg_Lo))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Low Temperature by Year")+
+  xlab("Year")+
+  ylab(~degree~C)+
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+summary(lm(Avg_Lo~Year, data = unbloom))
+
+```
+
+#Figure 2C   
+```{r}
+ggplot(unbloom, aes(Year,Raw_Precip))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Precipitation by Year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")+
+  scale_x_continuous(breaks = seq(1950,2011,10))
+
+
+summary(lm(Raw_Precip~Year, data = unbloom))
+
+```
+
+#Figure 3A  
+```{r}
+ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=min1950_2))
+
+```
+
+#Figure 3B
+```{r}
+ggplot(min1950_2, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Low Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Avg_Lo, data = min1950_2))
+```
+
+#Figure 3C
+```{r}
+ggplot(min1950_2, aes(Raw_Precip, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Raw_Precip, data = min1950_2))
+
+```
+
+Growing Degree Days   
+```{r, eval=FALSE}
+options(prism.path = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Climate_MEDL")
+
+latlongs <- read.delim(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Sampling Points/LatLongabove3200m.txt"), sep=",")
+
+maxs <- grep("tmax", ls_prism_data(absPath=TRUE)[,2])
+mins <- grep("tmin", ls_prism_data(absPath = TRUE)[,2])
+# mins <- grep("_[1-2][09][0-9][0-9][0][1-9]", mins)
+
+# Takes an hour to run
+avgTemps.max <- lapply(maxs, function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rastertemps, latlongs[,c(4,3)]), date = ls_prism_data()[x,])
+})
+
+avgTemps.min <- lapply(mins, function(x){
+  rastertemps <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rastertemps, latlongs[,c(4,3)]), date = ls_prism_data()[x,])
+})
+
+
+mins.avg <- do.call(rbind, avgTemps.min)
+meanmins <- aggregate(data~date, data = mins.avg, mean)
+maxs.avg <- do.call(rbind, avgTemps.max)
+meanmaxs <- aggregate(data~date, data = maxs.avg, mean)
+# Make a day column
+meanmins$day <- as.Date(substr(meanmins$date, 25, 32), "%Y%m%d")
+meanmaxs$day <- as.Date(substr(meanmaxs$date, 25, 32), "%Y%m%d")
+
+# make a julian day column
+meanmins$Julian <- yday(meanmins$day)
+meanmaxs$Julian <- yday(meanmaxs$day)
+
+# merge min and max per day
+temps <- merge(meanmins, meanmaxs, by = "day")  #.x min, .y max
+tmps <- temps[,c(1,3:4,6)]
+names(tmps) <- c("day","tmin","Julian","tmax")
+
+
+#make a year column
+tmps$Year <- as.numeric(format(temps$day, "%Y"))
+
+```
+
+
+Calculate Growing Degree Days
+```{r}
+tbase <- 0
+
+HDD <- sapply(unique(tmps$Year), function(year){
+  sapply(grep(year, tmps$Year), function(x){
+    if( (((tmps$tmax[x] + tmps$tmin[x])/2)-tbase) < tbase){
+      0
+      } else {
+        ((tmps$tmax[x] + tmps$tmin[x])/2)-tbase
+        }
+    })
+  })
+
+HDD.yrs <- lapply(HDD, function(x){
+  cumsum(x)
+})
+
+HDD.all <- do.call(c,HDD.yrs)
+tmps$HDD <- HDD.all
+
+nrow(min1950_2[min1950_2$Year > 1980,]) # 8391
+
+#min.dates <- merge(min.dates, tmps, 
+#                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
+
+min1950GDD_2 <- mergeMinGDD(min1950_2,tmps)
+
+length(unique(min1950GDD_2$day)) #1152
+
+```
+
+#Figure 4A
+```{r}
+ggplot(min1950GDD_2, aes(Year,HDD))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab("cummulative GDD at collection date")
+
+summary(lm(HDD~Year, data=min1950GDD_2))
+```
+
+#Figure 4B
+```{r}
+totalGDD <- lapply(HDD.yrs, function(x){
+  max(x)
+})
+totalGDDyr <- data.frame(Year=1981:2011,MaxGDD = do.call(rbind,totalGDD))
+head(totalGDDyr)
+
+ggplot(totalGDDyr, aes(Year,MaxGDD))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Maximum cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab("cummulative GDD at end of year")
+summary(lm(MaxGDD~Year,data=totalGDDyr))
+
+```
+
+#Figure 4C   
+```{r}
+ggplot(min1950GDD_2, aes(HDD,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("GDD")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~HDD, data=min1950GDD_2))
+
+```
+
+Phenology summary tables   
+```{r}
+yr.1950_2 <- JulBloomDate.subset("Year",min1950_2)
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
+
+```
+
+
+
+
+
+
+
+
+
+
+

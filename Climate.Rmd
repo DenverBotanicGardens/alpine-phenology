@@ -1414,6 +1414,9 @@ options(prism.path = "Q:/Research/Projects/alpine-phenology/Climate_files/Annual
 
 get_prism_monthlys(type="tmin", year=1981:2011, mon = 1:12, keepZip=FALSE)
 get_prism_monthlys(type="tmax", year=1981:2011, mon = 1:12, keepZip=FALSE)
+get_prism_monthlys(type="ppt", year=1981:2011, mon = 1:12, keepZip=FALSE)
+
+#get_prism_monthlys(type = "ppt", year=1982, mon=8, keepZip=FALSE)
 
 ls_prism_data(name=TRUE)[1:10,]
 prism_image(ls_prism_data()[1,1])
