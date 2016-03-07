@@ -542,8 +542,55 @@ summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 ```
 
-#Figure 4C   
+
+#Figure 4C
 ```{r}
+fit1 <- lapply(unique(meltd$Year), function(x){
+  stepAIC(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year==x,]),
+          scope = lm(GDD~1, data=meltd[meltd$Year==x,]),
+          direction = "backward")
+})
+
+poly.p <- lapply(fit1, function(fx){
+  polynomial(coef(fx))
+})
+sday <- 1
+eday <- 273
+
+secant.poly <- lapply(poly.p,function(x){
+  ((as.function(x)(eday)+1000) - (as.function(x)(sday)+1000))/(eday-sday)
+})
+secant.poly.all <- data.frame(Year=1981:2011, 
+                              Secant= do.call(rbind,secant.poly))
+
+ggplot(secant.poly.all, aes(Year,Secant))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  ylab("Average rate of change in GDD (day 1 to 273)")
+
+summary(lm(Secant~Year, data=secant.poly.all))
+
+```
+
+#Figure 4D 
+```{r}
+min1950GDDsecant2 <- merge(min1950GDD_2, secant.poly.all,by="Year")
+head(min1950GDDsecant2)
+
+ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
+  xlab("Average rate of GDD accumulation")+
+  ylab("Julian Date")
+
+summary(lm(startDayOfYear~Secant, data=min1950GDDsecant2))
+
+```
+
+```{r, eval=FALSE}
 ggplot(min1950GDD_2, aes(HDD,startDayOfYear))+
   geom_point()+
   stat_smooth(method = "lm")+
@@ -555,6 +602,24 @@ ggplot(min1950GDD_2, aes(HDD,startDayOfYear))+
 summary(lm(startDayOfYear~HDD, data=min1950GDD_2))
 
 ```
+
+
+NPN species   
+(from Climate)
+```{r}
+npn.all <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/NPN data/2015_species_list_complete.csv"))
+
+npn.big <- intersect(npn.all$SciName, min1950_2$scientificName)
+length(npn.big) #27
+
+npn.min1950 <- min1950_2[min1950_2$scientificName %in% npn.big,]
+
+### Start here!! check that min date is only selecting one record for earliest collection date!!!
+### AAAHHH, there shouldn't be 2 anywhere! Why are there two in a year!??!?!?
+table(npn.min1950$scientificName,npn.min1950$Year)
+```
+
+
 
 Clunky but need to change the function
 ```{r}
@@ -724,14 +789,20 @@ rst[rst$p.value<0.05,]
 nrow(rst[rst$p.value<0.05,])
 
 #earlier
-nrow(rst[rst$p.value<0.05 & rst$Slope <= 0,]) 
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #8
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) 
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) 
+
+#later
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #23
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
 
 nrow(rst1[rst1$p.value>=0.05,])#272
 nrow(rst1[rst1$p.value<0.05 & rst1$Slope >0,])#7
 rst1[rst1$p.value<0.05 & rst1$Slope >0,]
-write.table(rst1[rst1$p.value<0.05 & rst1$Slope >0,],
-            file="Q:/Research/Projects/alpine-phenology/table5a.csv", sep=",")
-nrow(rst1[rst1$p.value<0.05 & rst1$Slope <=0,])#9
+
+write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 
 ```
 
