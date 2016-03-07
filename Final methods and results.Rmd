@@ -292,7 +292,7 @@ ggplot(earcol, aes(Year, Collections))+
   scale_y_continuous(limits = c(0,530), breaks = seq(0,530, by=100))
 
 ```
-#Figure 1B   
+ 
 ```{r}
 
 allcollections <- data.frame(colSums(table(bloom2$scientificName,bloom2$Year)))
@@ -303,6 +303,8 @@ colnames(allcol)[2] <- "collections"
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 allcol[,1] <- as.numeric.factor(allcol[,1])
 ```
+
+#Figure 1B  
 ```{r}
 ggplot(allcol,  aes(x = Year, y = collections))+
   geom_bar(stat="identity")+
@@ -477,7 +479,7 @@ tmps$Year <- as.numeric(format(temps$day, "%Y"))
 
 
 Calculate Growing Degree Days
-```{r}
+```{r, eval=FALSE}
 tbase <- 0
 
 HDD <- sapply(unique(tmps$Year), function(year){
@@ -554,14 +556,184 @@ summary(lm(startDayOfYear~HDD, data=min1950GDD_2))
 
 ```
 
-Phenology summary tables   
+Clunky but need to change the function
 ```{r}
-yr.1950_2 <- JulBloomDate.subset("Year",min1950_2)
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
+JulBloomDate.min1950 <- function(variable,dataset){
+  namesID <- unique(dataset$scientificName)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$scientificName == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$scientificName[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
 
 ```
 
 
+Phenology summary tables   
+Families merged   
+Some are all caps, some not. fix that   
+7 with family errors seen in date by year:   
+    1. x Castilleja miniata with Orobanchaceae and Scrophulariaceae
+    2. Pedicularis bracteosa var. paysoniana with Orobanchaceae and Scrophulariaceae
+    3. x Penstemon hallii with plantaginaceae and Scrophulariaceae
+    4. x Penstemon harbourii  plantaginaceae and Scrophulariaceae
+    5. x Castilleja occidentalis  Orobanchaceae and Scrophulariaceae
+    6. x Castilleja rhexiifolia Orobanchaceae and Scrophulariaceae
+    7. x Aquilegia coerulea Ranunculaceae and Helleboraceae
+
+```{r}
+bloom2$Family.Name <- tolower(bloom2$Family.Name)
+fams <- unique(bloom2[,1:2])
+
+fams <- fams[-c(intersect(grep("orobanchaceae", fams$Family.Name), 
+                       grep( "Castilleja", fams$scientificName))),]
+fams <- fams[-c(intersect(grep("Penstemon",fams$scientificName),
+                          grep("plantaginaceae",fams$Family.Name))),]
+fams <- fams[-c(intersect(grep("Aquilegia coerulea", fams$scientificName),
+                          grep("helleboraceae", fams$Family.Name))),]
+fams <- fams[-c(intersect(grep("Pedicularis bracteosa", fams$scientificName),
+                          grep("orobanchaceae", fams$Family.Name))),]
+
+```
+
+
+
+```{r}
+yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
+
+nrow(yr.1950_2) #547
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #465
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #82
+
+#earlier
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #73
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) 
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])
+
+#later
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,])
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
+
+#sig.yr.1950_2 <- yr.1950_2[yr.1950_2$p.value<0.05,]
+#nrow(sig.yr.1950_2)
+#foo12 <- merge(fams,sig.yr.1950_2, by.x = "scientificName", by.y = "Species")
+#nrow(foo12)
+#write.table(foo12, file = "Q:/Research/Projects/alpine-phenology/phen_sumYearsig.csv", sep=",")
+
+```
+
+```{r}
+high.1950_2 <- JulBloomDate.min1950("Avg_Hi", min1950_2)
+write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
+
+nrow(high.1950_2[high.1950_2$p.value<0.05,])
+
+#earlier
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,]) #101
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) 
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0])
+
+#later
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) #5
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0])
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0])
+
+#foo2 <- merge(fams, high.1950_2[high.1950_2$p.value<0.05,])
+#nrow(foo2)
+#write.table(foo2, file = "Q:/Research/Projects/alpine-phenology/phen_sumhighsig_2.csv", sep=",")
+nrow(high.1950_2[high.1950_2$p.value<0.05,])
+nrow(high.1950_2[high.1950_2$p.value>=0.05,])
+
+```
+
+```{r}
+low.1950_2 <- JulBloomDate.min1950("Avg_Lo", min1950_2)
+write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
+nrow(low.1950_2)
+
+nrow(low.1950_2[low.1950_2$p.value<0.05,]) #103
+
+#earlier
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #97
+mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) 
+mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0])
+
+#later
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #6
+mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0])
+mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0])
+
+
+#foo3 <- merge(fams[,c(2,4)], low.1950_2[low.1950_2$p.value<0.05,])
+#nrow(foo3)
+#write.table(foo3, file = "Q:/Research/Projects/alpine-phenology/phen_sumlowsig_2.csv", sep=",")
+
+nrow(low.1950_2[low.1950_2$p.value<0.05,])
+nrow(low.1950_2[low.1950_2$p.value>=0.05,])
+
+```
+
+#Figure 4C
+```{r}
+ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
+  theme_bw()+
+  ylab(expression(GDD[cum]))
+
+
+```
+
+Growing Degree Days
+```{r}
+results <- lapply(unique(min1950GDD_2$scientificName), function(x){
+  if(nrow(min1950GDD_2[min1950GDD_2$scientificName==x,])>=10){
+  foo1 <- summary(lm(HDD~Year,data=min1950GDD_2[min1950GDD_2$scientificName==x,]))
+  JYC <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                          foo1$coefficients[1,1],
+                          t(foo1$fstatistic),
+                          Species = x,
+                          foo1$adj.r.squared,
+                          N = nrow(min1950GDD_2[min1950GDD_2$scientificName==x,])))
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ","N")
+  JYC
+  }
+  })
+
+
+results[[1]]
+rst <- do.call(rbind,results)
+head(rst)
+
+
+nrow(rst) #426
+rst[rst$p.value<0.05,]
+nrow(rst[rst$p.value<0.05,])
+
+#earlier
+nrow(rst[rst$p.value<0.05 & rst$Slope <= 0,]) 
+
+nrow(rst1[rst1$p.value>=0.05,])#272
+nrow(rst1[rst1$p.value<0.05 & rst1$Slope >0,])#7
+rst1[rst1$p.value<0.05 & rst1$Slope >0,]
+write.table(rst1[rst1$p.value<0.05 & rst1$Slope >0,],
+            file="Q:/Research/Projects/alpine-phenology/table5a.csv", sep=",")
+nrow(rst1[rst1$p.value<0.05 & rst1$Slope <=0,])#9
+
+```
 
 
 
