@@ -6,7 +6,7 @@ output: html_document
 ---
 
 load libraries   
-```{r,echo=FALSE}
+```{r}
 
 library(RCurl)
 library(ggplot2)
@@ -258,11 +258,13 @@ Pull out earliest collection
 minJul.dates.2 <- lapply(unique(tenyearplus$scientificName), function(x){
   this.species <- tenyearplus[tenyearplus$scientificName == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  unique(merge(this.species[,c(1,5,7,6,8)], these.rows, by = c("startDayOfYear","Year")))
+  unique(merge(this.species[,c(1,5,7,8)], these.rows, by = c("startDayOfYear","Year")))
   })
 
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
+singlefoo <- data.frame(table(min1950_2$Year,min1950_2$scientificName))
+nrow(singlefoo[singlefoo$Freq> 1,])
 
 ```
 
@@ -288,8 +290,7 @@ ggplot(earcol, aes(Year, Collections))+
   ylab("Number of Study Species")+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
-  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))+
-  scale_y_continuous(limits = c(0,530), breaks = seq(0,530, by=100))
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
 
 ```
  
@@ -313,7 +314,7 @@ ggplot(allcol,  aes(x = Year, y = collections))+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
   scale_x_continuous(limits = c(1950,2015), breaks = seq(1950,2015, by=10))+
-  scale_y_continuous(limits = c(0,4800),breaks = seq(0,4800, by=500))
+  scale_y_continuous(limits = c(0,4700),breaks = seq(0,4700, by=500))
 ```
 
 The day each year with the most collections has on average been Julian day 207 and the day with the most collections has not moved significantly over time from 1950 to 2011. The earliest peak collection day was Julian day 175 (June 30th) in 2007 and the latest peak collection day was Julian day 238 in 1957 (August 29th)   
@@ -499,7 +500,7 @@ HDD.yrs <- lapply(HDD, function(x){
 HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
 
-nrow(min1950_2[min1950_2$Year > 1980,]) # 8391
+nrow(min1950_2[min1950_2$Year > 1980,]) # 7737
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
@@ -512,7 +513,7 @@ length(unique(min1950GDD_2$day)) #1152
 
 #Figure 4A
 ```{r}
-ggplot(min1950GDD_2, aes(Year,HDD))+
+Iggplot(min1950GDD_2, aes(Year,HDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
@@ -608,15 +609,13 @@ NPN species
 (from Climate)
 ```{r}
 npn.all <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/NPN data/2015_species_list_complete.csv"))
+npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
+                         function(x) paste(x[1],x[2], collapse=" "))
 
 npn.big <- intersect(npn.all$SciName, min1950_2$scientificName)
 length(npn.big) #27
 
 npn.min1950 <- min1950_2[min1950_2$scientificName %in% npn.big,]
-
-### Start here!! check that min date is only selecting one record for earliest collection date!!!
-### AAAHHH, there shouldn't be 2 anywhere! Why are there two in a year!??!?!?
-table(npn.min1950$scientificName,npn.min1950$Year)
 ```
 
 
@@ -678,16 +677,16 @@ yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
 nrow(yr.1950_2) #547
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #465
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #82
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #477
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #70
 
 #earlier
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #73
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #65
 mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) 
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])
 
 #later
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,])
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #5
 mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 
@@ -706,12 +705,12 @@ write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summ
 nrow(high.1950_2[high.1950_2$p.value<0.05,])
 
 #earlier
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,]) #101
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,]) 
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) 
 mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0])
 
 #later
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) #5
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) 
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0])
 mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0])
 
@@ -750,7 +749,7 @@ nrow(low.1950_2[low.1950_2$p.value>=0.05,])
 
 ```
 
-#Figure 4C
+Figure 4C ??? 
 ```{r}
 ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
   geom_point()+
@@ -789,18 +788,14 @@ rst[rst$p.value<0.05,]
 nrow(rst[rst$p.value<0.05,])
 
 #earlier
-nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #8
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,])
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) 
 
 #later
-nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #23
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) 
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
-
-nrow(rst1[rst1$p.value>=0.05,])#272
-nrow(rst1[rst1$p.value<0.05 & rst1$Slope >0,])#7
-rst1[rst1$p.value<0.05 & rst1$Slope >0,]
 
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 
