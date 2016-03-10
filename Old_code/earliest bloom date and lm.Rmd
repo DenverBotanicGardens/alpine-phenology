@@ -1,0 +1,109 @@
+---
+title: "Earliest Bloom and LM"
+author: "Michelle DePrenger-Levin"
+date: "February 10, 2016"
+output: html_document
+---
+
+Pull out the earliest bloom date per year per species
+## Break up the function into gathering the earliest bloom day per year seperate from regression per species
+
+```{r}
+# turn into a function
+# minJul.dates 
+
+mindate <- function(bl50){
+  lapply(unique(bl50$sppListID), function(x){
+  #almost, need to use grep with "Avg" or type them all out...
+  this.species <- bl50[bl50$sppListID == x,names(bl50) %in% c("Scientific.Name",
+                                             "sppListID",
+                                             "startDayOfYear",
+                                             "Year","Raw_Precip",
+                                             "Avg_Hi","Avg_Lo")]   #c(4:5,11,19:28)]
+  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
+  })
+  names(minJul.dates) <- unique(bl50$sppListID)
+  min.dates <- do.call(rbind,minJul.dates)
+}
+```
+
+
+merge the min dates and Growing Degree days
+```{r}
+
+mergeMinGDD <- function(mindates,GDD){
+  merge(mindates, GDD, by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
+}
+
+
+```
+
+```{r}
+#example
+
+test.mingdd <- mergeMinGDD(min1950,tmps)
+nrow(test.mingdd)
+
+
+```
+
+1950:2010 min dates
+```{r}
+min1950 <- mindate(bl50)
+head(min1950)
+```
+
+  JYC <- lapply(namesID, function(x){
+    blnew <- min.dates[min.dates$sppListID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    foo1$adj.r.squared))
+    })
+  
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+
+variable <- "Year"
+dataset <- min1950
+
+```{r}
+JulBloomDate.subset <- function(variable,dataset){
+  namesID <- unique(dataset$sppListID)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$sppListID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    Species = blnew$Scientific.Name[1],
+                                    #Species = blnew$Species[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+
+# these need Species = blnew$Species[1]
+records.yr <- colSums(table(npn.only.1950$Year,npn.only.1950$Species))
+length(records.yr[records.yr>0])#17
+str(npn.only.1950)
+
+yr.npn <- JulBloomDate.subset("Year",npn.only.1950) # all negative except Carex aquatilis and Eriphorum - the two Cyperaceae, the grass was even positive
+
+precip.npn <- JulBloomDate.subset("Raw_Precip", npn.only.1950) #mostly positive slope
+
+# need to use the commented out Species=blnew$Scientific.Name
+HDD.npn <- JulBloomDate.subset("HDD", npn.only) #all positive slope
+
+```
+

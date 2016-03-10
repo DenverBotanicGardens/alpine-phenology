@@ -567,6 +567,11 @@ length(unique(min1950GDD_2$day)) #1152
 
 correlations with GDD and climate factors
 ```{r}
+unbloomGDD <- merge(unbloom,hddyrs,by="Year")
+cor(unbloomGDD[,-1])
+cor.test(unbloomGDD$avgHDD,unbloomGDD$Raw_Precip)
+cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Hi)
+cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 
 ```
 
@@ -702,34 +707,6 @@ JulBloomDate.min1950 <- function(variable,dataset){
 
 
 Phenology summary tables   
-Families merged   
-Some are all caps, some not. fix that   
-7 with family errors seen in date by year:   
-    1. x Castilleja miniata with Orobanchaceae and Scrophulariaceae
-    2. Pedicularis bracteosa var. paysoniana with Orobanchaceae and Scrophulariaceae
-    3. x Penstemon hallii with plantaginaceae and Scrophulariaceae
-    4. x Penstemon harbourii  plantaginaceae and Scrophulariaceae
-    5. x Castilleja occidentalis  Orobanchaceae and Scrophulariaceae
-    6. x Castilleja rhexiifolia Orobanchaceae and Scrophulariaceae
-    7. x Aquilegia coerulea Ranunculaceae and Helleboraceae
-
-```{r}
-bloom2$Family.Name <- tolower(bloom2$Family.Name)
-fams <- unique(bloom2[,1:2])
-
-fams <- fams[-c(intersect(grep("orobanchaceae", fams$Family.Name), 
-                       grep( "Castilleja", fams$scientificName))),]
-fams <- fams[-c(intersect(grep("Penstemon",fams$scientificName),
-                          grep("plantaginaceae",fams$Family.Name))),]
-fams <- fams[-c(intersect(grep("Aquilegia coerulea", fams$scientificName),
-                          grep("helleboraceae", fams$Family.Name))),]
-fams <- fams[-c(intersect(grep("Pedicularis bracteosa", fams$scientificName),
-                          grep("orobanchaceae", fams$Family.Name))),]
-
-```
-
-
-
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
