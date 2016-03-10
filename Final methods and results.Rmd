@@ -390,6 +390,13 @@ min1950_2 <- merge(min1950_2,unique(bloom[,c(19,20,21,23)]), by="Year")
 unbloom <- unique(bloom[,c(19,20,21,23)])
 ```
 
+Correlations of climate
+```{r}
+cor(unbloom[,-1])
+cor.test(unbloom[,2],unbloom[,3])
+
+```
+
 #Figure 2A  
 Using just the average temp per year, not repeated for everytime we have specimen data in a year
 ```{r}
@@ -558,9 +565,14 @@ length(unique(min1950GDD_2$day)) #1152
 
 ```
 
+correlations with GDD and climate factors
+```{r}
+
+```
+
 #Figure 4A
 ```{r}
-Iggplot(min1950GDD_2, aes(Year,HDD))+
+ggplot(min1950GDD_2, aes(Year,HDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
