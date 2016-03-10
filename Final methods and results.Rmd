@@ -18,6 +18,8 @@ library(devtools)
 library(prism)
 library(polynom)
 library(MASS)
+# install.packages("segmented")
+library(segmented)
 ```
 
 ## load functions   
@@ -164,6 +166,9 @@ bloom2[bloom2$Year=="",]
 str(bloom2)
 bloom2$scientificName <- as.character(bloom2$scientificName)
 
+#how many species in dataset
+length(unique(bloom2$scientificName)) #2303
+
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
 nrow(sp.yr[sp.yr$Var2=="",])
@@ -172,6 +177,7 @@ nrow(sp.yr[sp.yr$Freq>0,]) #16685
 max(sp.yr$Freq[sp.yr$Freq>0])
 head(sp.yr)
 sp.yr[100:130,]
+
 
 
 # change all values above 0 to 1 from number of collections for that species a year
@@ -239,6 +245,51 @@ min1950[i] <- lapply(min1950[i], as.character)
 min1950$SciName <- sub( "(^[^ ]+[ ][^ ]+)(.+$)", "\\1", min1950$Scientific.Name)
 
 unique(bloom2$scientificName[complete.cases(match(unique(bloom2$scientificName),unique(min1950$SciName)))])
+```
+
+#Family names for each genus    
+```{r}
+genera <- gsub(" .*$", "", bloom2[,2])
+head(genera)
+
+write.table(unique(genera), file =  "Q:/Research/Projects/alpine-phenology/speciesbloom2.csv", sep=",")
+
+#In SEINet loaded genera, updated with ASU Taxonomic Thesaurus
+# 121 Families, 457 Genera
+asuFams <- read.csv("Q:/Research/Projects/alpine-phenology/colo_seinet_alpine_2016_genus.csv")
+head(asuFams)
+asuFams$genus <- gsub(" .*$", "", asuFams[,2])
+
+#### Errors from upload
+bloom2[grep("Potentilla", bloom2$scientificName),]
+   colSums(table(bloom2$Year[grep("Potentilla", bloom2$scientificName)],
+         bloom2$scientificName[grep("Potentilla", bloom2$scientificName)]))
+asuFams[grep("Potent", asuFams$genus),]   
+   
+# listed as only Asteraceae - not 10 years of data anyway
+bloom2[grep("Asteraceae", bloom2$scientificName),]
+  table(bloom2$Year[grep("Asteraceae", bloom2$scientificName)])
+  
+bloom2[grep("Poaceae", bloom2$scientificName),] #only one record
+  
+bloom2[grep("Pinaceae", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Pinaceae", bloom2$scientificName)]) # not enough years
+  
+bloom2[grep("Iso", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Iso", bloom2$scientificName)]) # not enough years
+  
+bloom2[grep("Brassicaceae", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Brassicaceae", bloom2$scientificName)]) # not enough years
+  
+bloom2[grep("Caryoph", bloom2$scientificName),] # not enough years
+
+bloom2[grep("Apia", bloom2$scientificName),] # not enough years
+  
+bloom2[grep("Hiero", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Hiero", bloom2$scientificName)]) # only 7 years
+
+  
+asuFams <- rbind(asuFams, c("ROSACEAE","Potentilla sp.","","","Potentilla"))
 ```
 
 Pull only the species that have 10 or more years of data for analyses
@@ -744,6 +795,35 @@ nrow(low.1950_2[low.1950_2$p.value>=0.05,])
 
 ```
 
+
+```{r}
+precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", min1950_2)
+write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.csv", sep=",")
+nrow(precip.1950_2)
+
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #51
+
+#earlier
+nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0,]) #2
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) 
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0])
+
+#later
+nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #49
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0])
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0])
+
+
+#foo3 <- merge(fams[,c(2,4)], precip.1950_2[precip.1950_2$p.value<0.05,])
+#nrow(foo3)
+#write.table(foo3, file = "Q:/Research/Projects/alpine-phenology/phen_sumlowsig_2.csv", sep=",")
+
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,])
+nrow(precip.1950_2[precip.1950_2$p.value>=0.05,])
+
+```
+
+
 Figure 4C ??? 
 ```{r}
 ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
@@ -810,6 +890,20 @@ mean(low.NPN_2$adj.r.squ[low.NPN_2$p.value<0.05 & low.NPN_2$Slope<0])
 nrow(low.NPN_2[low.NPN_2$p.value<0.05 & low.NPN_2$Slope>=0,]) #6
 mean(low.NPN_2$Slope[low.NPN_2$p.value<0.05 & low.NPN_2$Slope>=0])
 mean(low.NPN_2$adj.r.squ[low.NPN_2$p.value<0.05 & low.NPN_2$Slope>=0])
+
+```
+###NPN precip
+```{r}
+precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
+write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
+nrow(precip.NPN_2)
+
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #1
+
+#later
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #6
+mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
+mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 
 ```
 
