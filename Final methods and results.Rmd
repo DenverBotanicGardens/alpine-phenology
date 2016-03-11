@@ -156,6 +156,17 @@ barplot(table(bloom2$Year))
 length(unique(bloom2$scientificName)) #2303
 ```
 
+Fix spelling errors
+```{r}
+bloom2 <- as.data.frame(sapply(bloom2, gsub, 
+                               pattern = "caerulea",
+                               replacement = "coerulea"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Eritrichum",
+                               replacement = "Eritrichium"))
+```
+
 After combining datasets, find species with at least 10 years of data
 ```{r}
 bloom2[bloom2$scientificName=="",]
@@ -257,39 +268,21 @@ write.table(unique(genera), file =  "Q:/Research/Projects/alpine-phenology/speci
 #In SEINet loaded genera, updated with ASU Taxonomic Thesaurus
 # 121 Families, 457 Genera
 asuFams <- read.csv("Q:/Research/Projects/alpine-phenology/colo_seinet_alpine_2016_genus.csv")
-head(asuFams)
+
 asuFams$genus <- gsub(" .*$", "", asuFams[,2])
 
-#### Errors from upload
-bloom2[grep("Potentilla", bloom2$scientificName),]
-   colSums(table(bloom2$Year[grep("Potentilla", bloom2$scientificName)],
-         bloom2$scientificName[grep("Potentilla", bloom2$scientificName)]))
-asuFams[grep("Potent", asuFams$genus),]   
-   
-# listed as only Asteraceae - not 10 years of data anyway
-bloom2[grep("Asteraceae", bloom2$scientificName),]
-  table(bloom2$Year[grep("Asteraceae", bloom2$scientificName)])
-  
-bloom2[grep("Poaceae", bloom2$scientificName),] #only one record
-  
-bloom2[grep("Pinaceae", bloom2$scientificName),] 
-  table(bloom2$Year[grep("Pinaceae", bloom2$scientificName)]) # not enough years
-  
-bloom2[grep("Iso", bloom2$scientificName),] 
-  table(bloom2$Year[grep("Iso", bloom2$scientificName)]) # not enough years
-  
-bloom2[grep("Brassicaceae", bloom2$scientificName),] 
-  table(bloom2$Year[grep("Brassicaceae", bloom2$scientificName)]) # not enough years
-  
-bloom2[grep("Caryoph", bloom2$scientificName),] # not enough years
+tochar <- c(1:3)
+asuFams[,tochar] <- sapply(asuFams[,tochar], function(ch){
+  as.character(ch)
+}) 
 
-bloom2[grep("Apia", bloom2$scientificName),] # not enough years
-  
-bloom2[grep("Hiero", bloom2$scientificName),] 
-  table(bloom2$Year[grep("Hiero", bloom2$scientificName)]) # only 7 years
+#missing Polemonium
+asuFams <- rbind(asuFams,data.frame(Family = "Polemoniaceae",
+                                    ScientificName = "Polemonium sp.",
+                                    ScientificNameAuthorship = "L.",
+                                    TaxonId = max(asuFams$TaxonId)+1,
+                                    genus = "Polemonium"))
 
-  
-asuFams <- rbind(asuFams, c("ROSACEAE","Potentilla sp.","","","Potentilla"))
 ```
 
 Pull only the species that have 10 or more years of data for analyses
@@ -705,7 +698,7 @@ JulBloomDate.min1950 <- function(variable,dataset){
 
 ```
 
-
+START HERE
 Phenology summary tables   
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
@@ -714,6 +707,18 @@ write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.
 nrow(yr.1950_2) #547
 nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #477
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #70
+
+yr.1950_2$genus <- gsub(" .*$", "", yr.1950_2$Species)
+m1 <- merge(yr.1950_2,asuFams,by="genus")
+nrow(m1) #545 
+
+#which ones were left out after the merge?
+subset(yr.1950_2, !(yr.1950_2$genus %in% m1$genus))
+# Eritrichum and Polemonium
+# still Eritrichum aretoidides and Eritrichum nanum var. elongatum
+
+spe_fam <- data.frame(table(asuFams$Family,asuFams$genus))
+spe_fam[spe_fam$Freq>1,]
 
 #earlier
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #65

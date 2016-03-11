@@ -452,3 +452,38 @@ ggplot(alltable,aes(x=Var1))+
 
 ```
 
+# Check family errors from SEINet download
+```{r}
+head(asuFams)
+asuFams$genus <- gsub(" .*$", "", asuFams[,2])
+
+#### Errors from upload
+bloom2[grep("Potentilla", bloom2$scientificName),]
+   colSums(table(bloom2$Year[grep("Potentilla", bloom2$scientificName)],
+         bloom2$scientificName[grep("Potentilla", bloom2$scientificName)]))
+asuFams[grep("Potent", asuFams$genus),]   
+   
+# listed as only Asteraceae - not 10 years of data anyway
+bloom2[grep("Asteraceae", bloom2$scientificName),]
+  table(bloom2$Year[grep("Asteraceae", bloom2$scientificName)])
+  
+bloom2[grep("Poaceae", bloom2$scientificName),] #only one record
+  
+bloom2[grep("Pinaceae", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Pinaceae", bloom2$scientificName)]) # not enough years
+  
+bloom2[grep("Iso", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Iso", bloom2$scientificName)]) # not enough years
+  
+bloom2[grep("Brassicaceae", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Brassicaceae", bloom2$scientificName)]) # not enough years
+  
+bloom2[grep("Caryoph", bloom2$scientificName),] # not enough years
+
+bloom2[grep("Apia", bloom2$scientificName),] # not enough years
+  
+bloom2[grep("Hiero", bloom2$scientificName),] 
+  table(bloom2$Year[grep("Hiero", bloom2$scientificName)]) # only 7 years
+
+
+```
