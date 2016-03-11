@@ -54,7 +54,7 @@ mergeMinGDD <- function(mindates,GDD){
 From Q:\Reserach\Plant Lists\
 Data to subset
 ```{r}
-colo <- read.csv("P:/hackathon/alpine-phenology/Complete COLO DB .csv") 
+colo <- read.csv("P:/hackathon/alpine-phenology/datasets/Complete COLO DB .csv") 
 seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/CO_SEINet_3200_20160304.csv"))
 ```
 
@@ -165,31 +165,36 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
 bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Eritrichum",
                                replacement = "Eritrichium"))
+
+tochar <- c(1:2)
+bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
+  as.character(ch)
+})
+rm(tochar)
+
+tonum <- c(3:length(bloom2))
+bloom2[,tonum] <- sapply(bloom2[,tonum], function(num){
+  as.numeric(as.character(num))
+})
+rm(tonum)
 ```
 
 After combining datasets, find species with at least 10 years of data
 ```{r}
 bloom2[bloom2$scientificName=="",]
-
 bloom2[bloom2$Year=="",]
 
-
-str(bloom2)
-bloom2$scientificName <- as.character(bloom2$scientificName)
-
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2303
+length(unique(bloom2$scientificName)) #2299
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
 nrow(sp.yr[sp.yr$Var2=="",])
 sp.yr <- sp.yr[sp.yr$Var2!="",]
-nrow(sp.yr[sp.yr$Freq>0,]) #16685
+nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666
 max(sp.yr$Freq[sp.yr$Freq>0])
 head(sp.yr)
 sp.yr[100:130,]
-
-
 
 # change all values above 0 to 1 from number of collections for that species a year
 sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
@@ -206,7 +211,7 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 
 spyears$Species <- row.names(spyears)
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-nrow(sp.10plus) #547
+nrow(sp.10plus) #547 -> 545, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium
 ```
 
 compare to previous dataset
@@ -288,7 +293,7 @@ asuFams <- rbind(asuFams,data.frame(Family = "Polemoniaceae",
 Pull only the species that have 10 or more years of data for analyses
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by.x="scientificName",by.y="Species")
-length(unique(tenyearplus$scientificName))
+length(unique(tenyearplus$scientificName)) #545
 
 ```
 
@@ -353,7 +358,7 @@ ggplot(allcol,  aes(x = Year, y = collections))+
   ylab("Total Collections")+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
-  scale_x_continuous(limits = c(1950,2015), breaks = seq(1950,2015, by=10))+
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2011, by=10))+
   scale_y_continuous(limits = c(0,4700),breaks = seq(0,4700, by=500))
 ```
 
@@ -374,6 +379,7 @@ summary(lm(Var2~Var1, data=collmax))
 
 
 Average high, low, and precip per year  
+Take annual climate data from previous dataset
 ```{r}
 head(bloom)
 head(bloom[,c(19,20,21,23)])
@@ -547,7 +553,7 @@ HDD.yrs <- lapply(HDD, function(x){
 HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
 
-nrow(min1950_2[min1950_2$Year > 1980,]) # 7737
+nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7732
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
@@ -698,19 +704,22 @@ JulBloomDate.min1950 <- function(variable,dataset){
 
 ```
 
-START HERE
 Phenology summary tables   
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
-
-nrow(yr.1950_2) #547
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #477
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #70
 
 yr.1950_2$genus <- gsub(" .*$", "", yr.1950_2$Species)
 m1 <- merge(yr.1950_2,asuFams,by="genus")
 nrow(m1) #545 
+
+write.table(m1, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
+
+nrow(yr.1950_2) #545
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #475
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #70
+
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2)
+
 
 #which ones were left out after the merge?
 subset(yr.1950_2, !(yr.1950_2$genus %in% m1$genus))
@@ -730,19 +739,19 @@ nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #5
 mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 
-#sig.yr.1950_2 <- yr.1950_2[yr.1950_2$p.value<0.05,]
-#nrow(sig.yr.1950_2)
-#foo12 <- merge(fams,sig.yr.1950_2, by.x = "scientificName", by.y = "Species")
-#nrow(foo12)
-#write.table(foo12, file = "Q:/Research/Projects/alpine-phenology/phen_sumYearsig.csv", sep=",")
-
 ```
 
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", min1950_2)
-write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
+
+high.1950_2$genus <- gsub(" .*$", "", high.1950_2$Species)
+m2 <- merge(high.1950_2,asuFams,by="genus")
+nrow(m2) #545 
+
+write.table(m2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
 
 nrow(high.1950_2[high.1950_2$p.value<0.05,])
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2)
 
 #earlier
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,]) 
@@ -754,35 +763,32 @@ nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,])
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0])
 mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0])
 
-#foo2 <- merge(fams, high.1950_2[high.1950_2$p.value<0.05,])
-#nrow(foo2)
-#write.table(foo2, file = "Q:/Research/Projects/alpine-phenology/phen_sumhighsig_2.csv", sep=",")
-nrow(high.1950_2[high.1950_2$p.value<0.05,])
-nrow(high.1950_2[high.1950_2$p.value>=0.05,])
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2)
+nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2)
 
 ```
 
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", min1950_2)
-write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
-nrow(low.1950_2)
 
-nrow(low.1950_2[low.1950_2$p.value<0.05,]) #103
+low.1950_2$genus <- gsub(" .*$", "", low.1950_2$Species)
+m3 <- merge(low.1950_2,asuFams,by="genus")
+nrow(m3) #545 
+
+write.table(m3, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
+
+nrow(low.1950_2[low.1950_2$p.value<0.05,]) #79
+nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2)
 
 #earlier
-nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #97
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #75
 mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) 
 mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0])
 
 #later
-nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #6
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #4
 mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0])
 mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0])
-
-
-#foo3 <- merge(fams[,c(2,4)], low.1950_2[low.1950_2$p.value<0.05,])
-#nrow(foo3)
-#write.table(foo3, file = "Q:/Research/Projects/alpine-phenology/phen_sumlowsig_2.csv", sep=",")
 
 nrow(low.1950_2[low.1950_2$p.value<0.05,])
 nrow(low.1950_2[low.1950_2$p.value>=0.05,])
@@ -792,10 +798,16 @@ nrow(low.1950_2[low.1950_2$p.value>=0.05,])
 
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", min1950_2)
-write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.csv", sep=",")
+
+precip.1950_2$genus <- gsub(" .*$", "", precip.1950_2$Species)
+m4 <- merge(precip.1950_2,asuFams,by="genus")
+nrow(m4) #545 
+
+write.table(m4, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.csv", sep=",")
 nrow(precip.1950_2)
 
 nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #51
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2)
 
 #earlier
 nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0,]) #2
@@ -806,11 +818,6 @@ mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]
 nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #49
 mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0])
 mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0])
-
-
-#foo3 <- merge(fams[,c(2,4)], precip.1950_2[precip.1950_2$p.value<0.05,])
-#nrow(foo3)
-#write.table(foo3, file = "Q:/Research/Projects/alpine-phenology/phen_sumlowsig_2.csv", sep=",")
 
 nrow(precip.1950_2[precip.1950_2$p.value<0.05,])
 nrow(precip.1950_2[precip.1950_2$p.value>=0.05,])
@@ -833,6 +840,9 @@ ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
 ###NPN year
 ```{r}
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
+
+
+
 write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
 
 nrow(yr.npn_2) 

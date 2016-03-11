@@ -484,6 +484,10 @@ bloom2[grep("Apia", bloom2$scientificName),] # not enough years
   
 bloom2[grep("Hiero", bloom2$scientificName),] 
   table(bloom2$Year[grep("Hiero", bloom2$scientificName)]) # only 7 years
+  
+bloom2[grep("Eritri", bloom2$scientificName),]
 
+asuFams[grep("Polem", asuFams$genus),]
+asuFams <- rbind(asuFams, c("Boraginaceae","Eritrichium",))
 
 ```
