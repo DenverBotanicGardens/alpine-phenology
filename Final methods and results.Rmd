@@ -841,13 +841,16 @@ ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
 ```{r}
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
+yr.npn_2$genus <- gsub(" .*$", "", yr.npn_2$Species)
+m5 <- merge(yr.npn_2,asuFams,by="genus")
+nrow(m5) #27 
 
-
-write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
+write.table(m5, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
 
 nrow(yr.npn_2) 
 nrow(yr.npn_2[yr.npn_2$p.value>=0.05,]) 
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,])
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2)
 
 #earlier
 nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) 
@@ -863,7 +866,12 @@ mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
 ###NPN high
 ```{r}
 high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
-write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
+
+high.npn_2$genus <- gsub(" .*$", "", high.npn_2$Species)
+m6 <- merge(high.npn_2,asuFams,by="genus")
+nrow(m6) #27 
+
+write.table(m6, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
 
 nrow(high.npn_2[high.npn_2$p.value<0.05,])
 
@@ -879,33 +887,45 @@ mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0])
 ```
 ###NPN low
 ```{r}
-low.NPN_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
-write.table(low.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2.csv", sep=",")
-nrow(low.NPN_2)
+low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
 
-nrow(low.NPN_2[low.NPN_2$p.value<0.05,]) #103
+low.npn_2$genus <- gsub(" .*$", "", low.npn_2$Species)
+m7 <- merge(low.npn_2,asuFams,by="genus")
+nrow(m7) #27 
+
+write.table(m7, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2.csv", sep=",")
+nrow(low.npn_2)
+
+nrow(low.npn_2[low.npn_2$p.value<0.05,])
+nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2)
 
 #earlier
-nrow(low.NPN_2[low.NPN_2$p.value<0.05 & low.NPN_2$Slope<0,]) #97
-mean(low.NPN_2$Slope[low.NPN_2$p.value<0.05 & low.NPN_2$Slope<0]) 
-mean(low.NPN_2$adj.r.squ[low.NPN_2$p.value<0.05 & low.NPN_2$Slope<0])
+nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope<0,]) 
+mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) 
+mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope<0])
 
 #later
-nrow(low.NPN_2[low.NPN_2$p.value<0.05 & low.NPN_2$Slope>=0,]) #6
-mean(low.NPN_2$Slope[low.NPN_2$p.value<0.05 & low.NPN_2$Slope>=0])
-mean(low.NPN_2$adj.r.squ[low.NPN_2$p.value<0.05 & low.NPN_2$Slope>=0])
+nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0,])
+mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0])
+mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0])
 
 ```
 ###NPN precip
 ```{r}
 precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
-write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
+
+precip.NPN_2$genus <- gsub(" .*$", "", precip.NPN_2$Species)
+m8 <- merge(precip.NPN_2,asuFams,by="genus")
+nrow(m8) #27 
+
+write.table(m8, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
 nrow(precip.NPN_2)
 
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #1
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2)
 
 #later
-nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #6
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) 
 mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 
@@ -935,7 +955,7 @@ rst <- do.call(rbind,results)
 head(rst)
 
 
-nrow(rst) #426
+nrow(rst) #406
 rst[rst$p.value<0.05,]
 nrow(rst[rst$p.value<0.05,])
 
