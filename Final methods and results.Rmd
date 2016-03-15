@@ -196,6 +196,11 @@ max(sp.yr$Freq[sp.yr$Freq>0])
 head(sp.yr)
 sp.yr[100:130,]
 
+# How many vouchers per species per year
+colpyear <- data.frame(table(bloom2$scientificName,bloom2$Year))
+colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)), function(x) x[which.max(x$Freq),]))
+colpyear.2[with(colpyear.2, order(colpyear.2$Freq)),]
+
 # change all values above 0 to 1 from number of collections for that species a year
 sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
   if(x>0) {1}
@@ -208,6 +213,11 @@ bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
 spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
   sum(x$Freq)
 })))
+
+spyears[with(spyears, order(spyears$DataYrs)),]
+spyears[which.max(spyears$DataYrs),]
+nrow(spyears[spyears$DataYrs>=10,])
+mean(spyears$DataYrs[spyears$DataYrs>=10])
 
 spyears$Species <- row.names(spyears)
 sp.10plus <- spyears[spyears$DataYrs>=10,]
@@ -393,6 +403,8 @@ Correlations of climate
 ```{r}
 cor(unbloom[,-1])
 cor.test(unbloom[,2],unbloom[,3])
+cor.test(unbloom[,2],unbloom[,4])
+cor.test(unbloom[,3],unbloom[,4])
 
 ```
 
@@ -410,7 +422,6 @@ ggplot(unbloom, aes(Year,Avg_Hi))+
   scale_x_continuous(breaks = seq(1950,2011,10))
 
 summary(lm(Avg_Hi~Year, data=unbloom))
-
 ```
 
 
@@ -536,6 +547,7 @@ Calculate Growing Degree Days
 ```{r, eval=FALSE}
 tbase <- 0
 
+#method 1 from McMaster and Wilhelm 1997
 HDD <- sapply(unique(tmps$Year), function(year){
   sapply(grep(year, tmps$Year), function(x){
     if( (((tmps$tmax[x] + tmps$tmin[x])/2)-tbase) < tbase){
@@ -561,6 +573,8 @@ nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7732
 min1950GDD_2 <- mergeMinGDD(min1950_2,tmps)
 
 length(unique(min1950GDD_2$day)) #1152
+length(unique(min1950GDD_2$scientificName)) #545
+
 
 ```
 
@@ -574,8 +588,10 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 
 ```
 
-#Figure 4A
+#Figure 4A   
+Average GDD for the ealiest collection date did not change significantly over the study years 
 ```{r}
+
 ggplot(min1950GDD_2, aes(Year,HDD))+
   geom_point()+
   stat_smooth(method = "lm")+
@@ -586,6 +602,21 @@ ggplot(min1950GDD_2, aes(Year,HDD))+
 
 summary(lm(HDD~Year, data=min1950GDD_2))
 ```
+
+Growing Degree Days over time
+```{r}
+
+ggplot(unbloomGDD, aes(Year,avgHDD))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab("cummulative GDD at collection date")
+
+summary(lm(avgHDD~Year, data=unbloomGDD))
+```
+
 
 #Figure 4B
 ```{r}
@@ -681,7 +712,6 @@ length(npn.big) #27
 npn.min1950 <- min1950_2[min1950_2$scientificName %in% npn.big,]
 ```
 
-
 Clunky but need to change the function
 ```{r}
 JulBloomDate.min1950 <- function(variable,dataset){
@@ -703,6 +733,7 @@ JulBloomDate.min1950 <- function(variable,dataset){
 }
 
 ```
+
 
 Phenology summary tables   
 ```{r}
@@ -835,6 +866,9 @@ ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
 
 
 ```
+
+###START HERE
+# Zigadenus elegans is in twice and both don’t have numbers for precip, or high, one for low, both for year
 
 # NPN only precip, high, low
 ###NPN year
@@ -969,7 +1003,11 @@ nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,])
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
 
-write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
+rst$genus <- gsub(" .*$", "", rst$Species)
+m10 <- merge(rst,asuFams,by="genus")
+nrow(m10)
+
+write.table(m10,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 
 ```
 
@@ -1012,6 +1050,10 @@ nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,])
 mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
 mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
 
+rst.npn$genus <- gsub(" .*$", "", rst.npn$Species)
+m9 <- merge(rst.npn,asuFams,by="genus")
+nrow(m9)  
+
 write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a.csv", sep=",")
 
 ```
@@ -1026,6 +1068,34 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=scientificName))+
 ```
 
 
+Write to clipboard
+```{r}
+nrow(m1)
+write.table(m1[1:100,], "clipboard", sep="\t", row.names=FALSE)
+write.table(m1[101:250,], "clipboard", sep="\t", row.names=FALSE)
+write.table(m1[251:400,], "clipboard", sep="\t", row.names=FALSE)
+write.table(m1[401:545,], "clipboard", sep="\t", row.names=FALSE)
+
+m1$stat <- 
+head(  substitute(
+  byquote(F[(ndf*","*ddf)]==f*","~p-value=*p*","~r^2==r)
+  , 
+                                 list(ndf = m1$numDF,
+                                      ddf = m1$denDF,
+                                      f = m1$`F Stat`,
+                                      p=m1$p.value,
+                                      r=m1$adj.r.squ)))
+
+#NPN
+write.table(m5, "clipboard", sep="\t", row.names=FALSE)
+write.table(m6, "clipboard", sep="\t", row.names=FALSE)
+write.table(m7, "clipboard", sep="\t", row.names=FALSE)
+write.table(m8, "clipboard", sep="\t", row.names=FALSE)
+
+write.table(rst.npn, "clipboard", sep="\t", row.names=FALSE)
+
+
+```
 
 
 

@@ -915,6 +915,14 @@ mean(hdd.bl$adj.r.squ[hdd.bl$p.value < 0.05 & hdd.bl$Slope > 0]) #0.7130227
 
 ```
 
+GDD accumulation over a year
+```{r}
+ggplot(data.frame(Day = 1:length(HDD.yrs[[1]]),GDD = HDD.yrs[[1]]),
+       aes(Day,GDD))+
+         geom_point()
+
+```
+
 First day of some GDD acumulation
 ```{r}
 hdd.first <- lapply(HDD.yrs, function(x){
