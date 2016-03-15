@@ -250,6 +250,9 @@ ggplot(snow2, aes(year,depth))+
   xlab("Year")+
   ylab("Total snow depth (cm)")
 
+summary(lm(depth~year, data = snow2))
+#snow depth signficnatly decreasing over this time
+
 ```
 
 

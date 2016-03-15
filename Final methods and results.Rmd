@@ -464,7 +464,7 @@ ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
   theme_bw()+
   labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression(~degree~C))+
-  ylab("Julian Date")
+  ylab("Ordinal Date")
 
 summary(lm(startDayOfYear~Avg_Hi, data=min1950_2))
 
@@ -478,7 +478,7 @@ ggplot(min1950_2, aes(Avg_Lo, startDayOfYear))+
   theme_bw()+
   labs(title="Earliest Bloom Date by Average Low Temperature") +
   xlab(expression(~degree~C))+
-  ylab("Julian Date")
+  ylab("Ordinal Date")
 
 summary(lm(startDayOfYear~Avg_Lo, data = min1950_2))
 ```
@@ -491,7 +491,7 @@ ggplot(min1950_2, aes(Raw_Precip, startDayOfYear))+
   theme_bw()+
   labs(title="Earliest Bloom Date by Average Precipitation") +
   xlab("Precipitation (mm)")+
-  ylab("Julian Date")
+  ylab("Ordinal Date")
 
 summary(lm(startDayOfYear~Raw_Precip, data = min1950_2))
 
@@ -575,6 +575,16 @@ min1950GDD_2 <- mergeMinGDD(min1950_2,tmps)
 length(unique(min1950GDD_2$day)) #1152
 length(unique(min1950GDD_2$scientificName)) #545
 
+#Years of data for GDD years per species
+gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$scientificName))
+yrspsp <- aggregate(gdddatayrs[,3], by = list(gdddatayrs$Var2), FUN=sum)
+nrow(yrspsp[yrspsp$x>=10,]) #406
+
+
+### Reduce min1950GDD_2 to only species where 10 or more years of data
+min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
+                         by.x="scientificName",by.y="Group.1")
+length(unique(min1950GDD_2_10$scientificName)) #545
 
 ```
 
@@ -592,7 +602,7 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 Average GDD for the ealiest collection date did not change significantly over the study years 
 ```{r}
 
-ggplot(min1950GDD_2, aes(Year,HDD))+
+ggplot(min1950GDD_2_10, aes(Year,HDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
@@ -600,7 +610,7 @@ ggplot(min1950GDD_2, aes(Year,HDD))+
   xlab("Year")+
   ylab("cummulative GDD at collection date")
 
-summary(lm(HDD~Year, data=min1950GDD_2))
+summary(lm(HDD~Year, data=min1950GDD_2_10))
 ```
 
 Growing Degree Days over time
@@ -640,6 +650,7 @@ summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 #Figure 4C
 ```{r}
+#meltd is from Results figures and tables.Rmd
 fit1 <- lapply(unique(meltd$Year), function(x){
   stepAIC(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year==x,]),
           scope = lm(GDD~1, data=meltd[meltd$Year==x,]),
@@ -670,7 +681,7 @@ summary(lm(Secant~Year, data=secant.poly.all))
 
 #Figure 4D 
 ```{r}
-min1950GDDsecant2 <- merge(min1950GDD_2, secant.poly.all,by="Year")
+min1950GDDsecant2 <- merge(min1950GDD_2_10, secant.poly.all,by="Year")
 head(min1950GDDsecant2)
 
 ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear))+
@@ -679,22 +690,22 @@ ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear))+
   theme_bw()+
   labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
   xlab("Average rate of GDD accumulation")+
-  ylab("Julian Date")
+  ylab("Ordinal Date")
 
 summary(lm(startDayOfYear~Secant, data=min1950GDDsecant2))
 
 ```
 
 ```{r, eval=FALSE}
-ggplot(min1950GDD_2, aes(HDD,startDayOfYear))+
+ggplot(min1950GDD_2_10, aes(HDD,startDayOfYear))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
   labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("GDD")+
-  ylab("Julian Date")
+  ylab("Ordinal Date")
 
-summary(lm(startDayOfYear~HDD, data=min1950GDD_2))
+summary(lm(startDayOfYear~HDD, data=min1950GDD_2_10))
 
 ```
 
@@ -710,6 +721,7 @@ npn.big <- intersect(npn.all$SciName, min1950_2$scientificName)
 length(npn.big) #27
 
 npn.min1950 <- min1950_2[min1950_2$scientificName %in% npn.big,]
+length(unique(npn.min1950$scientificName))
 ```
 
 Clunky but need to change the function
@@ -858,7 +870,7 @@ nrow(precip.1950_2[precip.1950_2$p.value>=0.05,])
 
 Figure 4C ??? 
 ```{r}
-ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
+ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
   geom_point()+
   geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
   theme_bw()+
@@ -866,9 +878,6 @@ ggplot(min1950GDD_2, aes(Year, HDD, group=scientificName))+
 
 
 ```
-
-###START HERE
-# Zigadenus elegans is in twice and both don’t have numbers for precip, or high, one for low, both for year
 
 # NPN only precip, high, low
 ###NPN year
@@ -968,15 +977,15 @@ mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 
 Growing Degree Days
 ```{r}
-results <- lapply(unique(min1950GDD_2$scientificName), function(x){
-  if(nrow(min1950GDD_2[min1950GDD_2$scientificName==x,])>=10){
-  foo1 <- summary(lm(HDD~Year,data=min1950GDD_2[min1950GDD_2$scientificName==x,]))
+results <- lapply(unique(min1950GDD_2_10$scientificName), function(x){
+  if(nrow(min1950GDD_2_10[min1950GDD_2_10$scientificName==x,])>=10){
+  foo1 <- summary(lm(HDD~Year,data=min1950GDD_2_10[min1950GDD_2_10$scientificName==x,]))
   JYC <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                           foo1$coefficients[1,1],
                           t(foo1$fstatistic),
                           Species = x,
                           foo1$adj.r.squared,
-                          N = nrow(min1950GDD_2[min1950GDD_2$scientificName==x,])))
+                          N = nrow(min1950GDD_2_10[min1950GDD_2_10$scientificName==x,])))
   colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
                    "F Stat", "numDF","denDF", "Species", "adj.r.squ","N")
   JYC
@@ -1075,18 +1084,21 @@ write.table(m1[1:100,], "clipboard", sep="\t", row.names=FALSE)
 write.table(m1[101:250,], "clipboard", sep="\t", row.names=FALSE)
 write.table(m1[251:400,], "clipboard", sep="\t", row.names=FALSE)
 write.table(m1[401:545,], "clipboard", sep="\t", row.names=FALSE)
+```
 
+```{r, eval=FALSE}
 m1$stat <- 
 head(  substitute(
-  byquote(F[(ndf*","*ddf)]==f*","~p-value=*p*","~r^2==r)
-  , 
+  byquote(F[(ndf*","*ddf)]==f*","~p-value=*p*","~r^2==r), 
                                  list(ndf = m1$numDF,
                                       ddf = m1$denDF,
                                       f = m1$`F Stat`,
                                       p=m1$p.value,
                                       r=m1$adj.r.squ)))
+```
 
 #NPN
+```{r}
 write.table(m5, "clipboard", sep="\t", row.names=FALSE)
 write.table(m6, "clipboard", sep="\t", row.names=FALSE)
 write.table(m7, "clipboard", sep="\t", row.names=FALSE)
