@@ -1430,9 +1430,129 @@ ls_prism_data(name=TRUE)[1:10,]
 prism_image(ls_prism_data()[1,1])
 ```
 
+
+Errors in downloading
+```{r, eval=FALSE}
+get_prism_monthlys(type="ppt", year=1983, mon=7, keepZip = FALSE)
+
+get_prism_monthlys(type="ppt", year=1988, mon=8, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=1989, mon=6, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=1992, mon=8, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=1993, mon=7, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=1993, mon=11, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=1996, mon=11, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=1997, mon=8, keepZip = FALSE)
+get_prism_monthlys(type="ppt", year=2011, mon=7, keepZip = FALSE)
+
+```
+
+
+# Get monthly precip 
+```{r}
+options(prism.path = "Q:/Research/Projects/alpine-phenology/Climate_files/Annual_subset_climate")
+ppt <- grep("ppt", ls_prism_data(absPath=TRUE)[,2])
+
+avgPrecip <- lapply(ppt, function(x){
+  rasterppt <- raster(ls_prism_data(absPath=TRUE)[x,2])
+  data.frame(data = extract(rasterppt, latlongs[,c(4,3)]), data = ls_prism_data()[x,])
+})
+
+nrow(avgPrecip[[1]]) #1271 lat long points
+length(avgPrecip) #12 months for 30 years
+```
+
+Average per month over all points 
+```{r}
+ppt.avg <- do.call(rbind, avgPrecip)
+meanppt <- aggregate(data~data.1, data=ppt.avg, mean)
+
+str(meanppt)
+meanppt$data.1 <- as.character(meanppt$data.1)
+
+#need to add 1st of the month to each date
+meanppt$date <- as.Date(paste(substr(meanppt$data.1, 24,29), "01", sep=""), format = "%Y%m%d") 
+meanppt$Year <- as.numeric(format(meanppt$date, "%Y"))
+
+# average per year of July-June (07:06)
+meanppt$Prev12 <- meanppt$Year
+meanppt$month <- as.numeric(substr(meanppt$data.1, 28,29))
+# Give july:december the next year so a Prev12 has months 7:12 of previous year and 1:6 of current
+meanppt$Prev12[meanppt$month > 6] <- meanppt$Year[meanppt$month > 6]+1
+
+# now calculate ANNual PreciPiTation as July-June
+annppt <- aggregate(data~Prev12, data = meanppt, mean)
+head(annppt)
+
+# Minimum collection date, 10 years of data from 1981:2011 as set for GDD
+min.precip <- merge(min1950GDD_2_10, annppt, by.x = "Year", by.y = "Prev12")
+
+precip.1983 <- JulBloomDate.min1950("data", min.precip)
+```
+
+#Figure 2c
+Precip over the years
+```{r}
+ggplot(annppt, aes(Prev12, data))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Average Precipitation by July-June year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")
+
+summary(lm(data~Prev12, data=annppt))
+```
+
+#Figure 3c if we have years July:June
+```{r}
+ggplot(min.precip, aes(data, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~data, data = min.precip))
+
+```
+
+#How does snowmelt and precip relate?    
+From Results_medl.Rmd   
+May I think is the peak, September is the end of first collection times
+```{r}
+ggplot(se.posno, aes(Year,Secant))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  ylab("Average rate of change in snow pack (May to September)")
+
+summary(lm(Secant~Year,data=se.posno))
+```
+```{r}
+ggplot(snow2, aes(year,depth))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Snow depth")+
+  xlab("Year")+
+  ylab("Total snow depth (cm)")
+
+summary(lm(depth~year,data=snow2))
+
+```
+##Start here! get a yearly snow depth correlated to precip either annual Jan-Dec or Jul-Jun
+```{r}
+
+
+```
+
+
+
+
 Pull specific information per species location   
 from Results figures and tables:  
-```{r}
+```{r, eval=FALSE}
 # high temps
 highsigsp <- as.character(high.1950$Species[high.1950$p.value<0.05])
 lats <- bloom$decimalLatitude[bloom$Scientific.Name %in% unique(grep(paste(highsigsp,collapse="|"),
@@ -1442,4 +1562,6 @@ lats <- bloom$decimalLatitude[bloom$Scientific.Name %in% unique(grep(paste(highs
 length(lats)
 nrow(bloom)
 ```
+
+
 

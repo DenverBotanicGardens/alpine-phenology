@@ -416,7 +416,7 @@ ggplot(unbloom, aes(Year,Avg_Hi))+
   stat_smooth(method="lm")+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
-  labs(title="Average High Temperature by Year")+
+#  labs(title="Average High Temperature by Year")+
   xlab("Year")+
   ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
   scale_x_continuous(breaks = seq(1950,2011,10))
@@ -431,7 +431,7 @@ ggplot(unbloom, aes(Year,Avg_Lo))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Average Low Temperature by Year")+
+#  labs(title="Average Low Temperature by Year")+
   xlab("Year")+
   ylab(~degree~C)+
   scale_x_continuous(breaks = seq(1950,2011,10))
@@ -446,7 +446,7 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Average Precipitation by Year")+
+#  labs(title="Average Precipitation by Year")+
   xlab("Year")+
   ylab("Precipitation (mm)")+
   scale_x_continuous(breaks = seq(1950,2011,10))
@@ -462,7 +462,7 @@ ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Earliest Bloom Date by Average High Temperature") +
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression(~degree~C))+
   ylab("Ordinal Date")
 
@@ -476,7 +476,7 @@ ggplot(min1950_2, aes(Avg_Lo, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Earliest Bloom Date by Average Low Temperature") +
+#  labs(title="Earliest Bloom Date by Average Low Temperature") +
   xlab(expression(~degree~C))+
   ylab("Ordinal Date")
 
@@ -489,7 +489,7 @@ ggplot(min1950_2, aes(Raw_Precip, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Earliest Bloom Date by Average Precipitation") +
+#  labs(title="Earliest Bloom Date by Average Precipitation") +
   xlab("Precipitation (mm)")+
   ylab("Ordinal Date")
 
@@ -606,9 +606,9 @@ ggplot(min1950GDD_2_10, aes(Year,HDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
-  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
-  ylab("cummulative GDD at collection date")
+  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))
 
 summary(lm(HDD~Year, data=min1950GDD_2_10))
 ```
@@ -640,9 +640,9 @@ ggplot(totalGDDyr, aes(Year,MaxGDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
-  labs(title= expression("Maximum cumulative GDD (Tbase = 0"~degree*C~")"))+
+#  labs(title= expression("Maximum cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
-  ylab("cummulative GDD at end of year")
+  ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))
 summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 ```
@@ -874,7 +874,7 @@ ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
   geom_point()+
   geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
   theme_bw()+
-  ylab(expression(GDD[cum]))
+  ylab(expression(GDD))
 
 
 ```
@@ -1073,7 +1073,7 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=scientificName))+
   geom_point()+
   geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
   theme_bw()+
-  ylab(expression(GDD[cum]))
+  ylab(expression(GDD))
 ```
 
 
