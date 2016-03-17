@@ -1520,15 +1520,7 @@ summary(lm(startDayOfYear~data, data = min.precip))
 #How does snowmelt and precip relate?    
 From Results_medl.Rmd   
 May I think is the peak, September is the end of first collection times
-```{r}
-ggplot(se.posno, aes(Year,Secant))+
-  geom_point()+
-  stat_smooth(method="lm")+
-  theme_bw()+
-  ylab("Average rate of change in snow pack (May to September)")
 
-summary(lm(Secant~Year,data=se.posno))
-```
 ```{r}
 ggplot(snow2, aes(year,depth))+
   geom_point()+
@@ -1543,11 +1535,56 @@ summary(lm(depth~year,data=snow2))
 ```
 ##Start here! get a yearly snow depth correlated to precip either annual Jan-Dec or Jul-Jun
 ```{r}
+snow.foo <- merge(min1950GDD_2_10,snow2, by.x="Year",by.y="year")
+head(snow.foo)
+sort(unique(snow.foo$Year))
+```
 
+```{r}
+snow.1950 <-
+
+```
+
+```{r}
+ggplot(unique(snow.foo[,c(5,length(snow.foo))]), aes(Raw_Precip,depth ))+
+  stat_smooth(method="lm")+
+  geom_point()
+
+
+snow.precip <- merge(meanppt, snow2, by.x="Year",by.y="year") 
+
+ggplot(snow.precip, aes(data,depth))+
+  stat_smooth(method="lm")+
+  geom_point()
+
+cor(snow.precip$depth,snow.precip$data) #0.13 not well correlated
+cor.test(snow.precip$depth,snow.precip$data) # not significantly correlated!
 
 ```
 
 
+Snow correlated to Raw_Precip
+```{r}
+raw.precip.snow <- merge(unbloom, snow2, by.x = "Year", by.y="year")
+
+cor(raw.precip.snow[,-1])
+cor.test(raw.precip.snow$Raw_Precip,raw.precip.snow$depth)
+cor.test(raw.precip.snow$Avg_Lo,raw.precip.snow$depth)
+cor.test(raw.precip.snow$Avg_Hi,raw.precip.snow$depth)
+
+pairs(raw.precip.snow[,-1])
+
+
+# But outlier might be messing it up!
+dat <- data.frame(X = raw.precip.snow$Raw_Precip, Y = raw.precip.snow$depth)
+dat <- dat[dat$X != 55443,]
+pairs(dat)
+cor.test(dat$X,dat$Y)
+
+ggplot(raw.precip.snow, aes(Raw_Precip, depth))+
+  stat_smooth(method="lm")+
+  geom_point()
+```
 
 
 Pull specific information per species location   

@@ -110,13 +110,28 @@ names(long.avg.snow) <- c("Year","Month","Snow.Depth")
 
 
 ```{r}
-ggplot(long.avg.snow, aes(Year, Snow.Depth, colour = Month))+
+long.avg.snow$Snow.Depthcm <- 2.54*long.avg.snow$Snow.Depth
+long.avg.snow$Month <- gsub("in", "cm", long.avg.snow$Month)
+
+long.avg.snow$Month <- factor(long.avg.snow$Month, levels=unique(long.avg.snow$Month))
+```
+```{r}
+ggplot(long.avg.snow, aes(Year, Snow.Depthcm))+ 
   geom_line()+
 #  geom_hline(yintercept="mean")+
   facet_wrap(~Month)+
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm", colour="black", alpha = 0.5)+
+  theme_bw() +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.background = element_blank(),
+        panel.border = element_rect(colour = "black"))+
+  ylab("Snow Depth")+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0.5))+
+  scale_x_continuous(breaks = seq(1940,2015, by=10))
 
 
+summary(lm(Snow.Depth~Year*Month, data=long.avg.snow))
 ```
 
 Snow report generator http://wcc.sc.egov.usda.gov/reportGenerator/
@@ -130,6 +145,26 @@ header2 <- scan("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS 
 names(snow)<-paste(header,header2,sep="_")
 
 head(snow)
+```
+
+Check how much data for snow water equivalent
+```{r}
+avg.swe <- do.call(rbind, lapply(split(snow[,grep("_Snow Water", names(snow))],
+                                       snow$'Water Year_'),
+                                 function(x) colMeans(x, na.rm = TRUE)))
+melt.avg.swe <- melt(avg.swe)
+
+ggplot(melt.avg.swe, aes(as.numeric(Var2),value))+
+  geom_point()+
+  geom_smooth()+
+  facet_wrap(~Var1)
+
+
+Maxpyr <- aggregate(melt.avg.swe$value, by=list(melt.avg.swe$Var1), which.max)
+sort(Maxpyr$Group.1)
+mean(Maxpyr$x)
+unique(melt.avg.swe$Var2)[7] #April is average peak 
+summary(lm(x~Group.1, data=Maxpyr)) # peak is getting slightly earlier
 ```
 
 sum of snow? 
