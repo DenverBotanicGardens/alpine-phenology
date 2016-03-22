@@ -348,6 +348,7 @@ ggplot(earcol, aes(Year, Collections))+
   scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
 
 ```
+
  
 ```{r}
 
@@ -469,6 +470,33 @@ ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
 summary(lm(startDayOfYear~Avg_Hi, data=min1950_2))
 
 ```
+
+ 
+Park and Schwartz 2015, differing responses for early, mid, and late blooming species   
+```{r}
+# This doesn't break it down by species, might take away by species assessments
+eml <- min1950_2
+head(eml)
+hist(eml$startDayOfYear)
+# arbitrarily split <175, middle, >225
+eml$season <- "middle"
+eml$season[eml$startDayOfYear < 175] <- "early"
+eml$season[eml$startDayOfYear > 225] <- "late"
+
+ggplot(eml, aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  facet_grid(~season)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Ordinal Date")+ 
+  theme(legend.position="none")
+
+summary(lm(startDayOfYear~Avg_Hi*season, data=eml))
+```
+ 
+
 
 #Figure 3B
 ```{r}

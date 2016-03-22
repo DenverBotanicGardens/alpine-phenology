@@ -27,6 +27,9 @@ library(devtools)
 # devtools::install_github("ropensci/prism")
 library(prism)
 library(polynom)
+library(lme4)
+library(lmerTest)
+library(multcomp)
 ```
 
 Bring csv in from the website
@@ -1540,8 +1543,73 @@ head(snow.foo)
 sort(unique(snow.foo$Year))
 ```
 
+# From Results_medl, line 163
 ```{r}
-snow.1950 <-
+
+sp.yr <- as.data.frame(table(bloom2$Year[bloom2$Year >= 1979],
+                             bloom2$scientificName[bloom2$Year >= 1979]))
+sp.yr <- sp.yr[sp.yr$Var2!="",]
+sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
+  if(x>0) {1}
+  else 0
+  }, USE.NAMES = FALSE)
+
+sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
+bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
+spyears.snow <- do.call(rbind,lapply(bysp, function(x){
+  out <- data.frame(DataYrs = sum(x$Freq), Species = unique(x$Var2))
+  out
+}))
+sp.10plussnow <- spyears.snow[spyears.snow$DataYrs >=10,]
+nrow(sp.10plussnow) #421
+
+max.swe <- aggregate(melt.avg.swe$value, by=list(melt.avg.swe$Var1), max)
+names(max.swe) <- c("Year","SWE(mm)")
+snow.1950 <- merge(min1950_2,max.swe, by="Year")
+#Merge with only species that have 10+ years from 1978:2011
+snow.1950 <- merge(sp.10plussnow, snow.1950, by.y = "scientificName", by.x = "Species")
+
+JulBloomDate.min1950 <- function(variable,dataset){
+  namesID <- unique(dataset$Species)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$Species == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    #Species = blnew$Scientific.Name[1],
+                                    Species = blnew$Species[1],
+                                    foo1$adj.r.squared))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ")
+  JYC
+}
+
+snow.table <- JulBloomDate.min1950("SWE(mm)",snow.1950)
+
+snow.table$genus <- gsub(" .*$", "", snow.table$Species)
+m15 <- merge(snow.table,asuFams,by="genus")
+nrow(m15) #545 
+
+snow.table[!complete.cases(snow.table),] #Kobresia schoenoides
+spyears[grep("Erysimum", spyears$Species),]
+spyears[grep("Kobresia", spyears$Species),]
+
+write.table(m15, file = "Q:/Research/Projects/alpine-phenology/phensum_MaxSnowWaterEqu.csv", sep=",")
+
+#earlier
+nrow(snow.table[snow.table$p.value<0.05 & snow.table$Slope<0,]) #
+mean(snow.table$Slope[snow.table$p.value<0.05 & snow.table$Slope<0]) 
+mean(snow.table$adj.r.squ[snow.table$p.value<0.05 & snow.table$Slope<0])
+
+#later
+nrow(snow.table[snow.table$p.value<0.05 & snow.table$Slope>=0,]) #5
+mean(snow.table$Slope[snow.table$p.value<0.05 & snow.table$Slope>=0])
+mean(snow.table$adj.r.squ[snow.table$p.value<0.05 & snow.table$Slope>=0])
+
 
 ```
 
@@ -1600,5 +1668,19 @@ length(lats)
 nrow(bloom)
 ```
 
+```{r}
+
+test1 <- lmer(startDayOfYear ~ Raw_Precip + Avg_Hi + Avg_Lo +
+               Raw_Precip:Avg_Hi + Raw_Precip:Avg_Lo + Avg_Hi:Avg_Lo +
+                Raw_Precip:Avg_Hi:Avg_Lo +
+                (1|scientificName), data = min1950_2, REML=FALSE)
+
+summary(test1)
+
+anova(test1, ddf="Satterthwaite", type=3)
+
+test.status <- glht(test1, linfct=mcp(status="Tukey"))
+
+```
 
 
