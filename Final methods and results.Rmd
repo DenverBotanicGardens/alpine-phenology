@@ -156,7 +156,8 @@ barplot(table(bloom2$Year))
 length(unique(bloom2$scientificName)) #2303
 ```
 
-Fix spelling errors
+Fix spelling errors   
+<http://cumuseum-archive.colorado.edu/Research/Botany/Databases/vascular_plants.pdf>
 ```{r}
 bloom2 <- as.data.frame(sapply(bloom2, gsub, 
                                pattern = "caerulea",
@@ -166,12 +167,21 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Eritrichum",
                                replacement = "Eritrichium"))
 
-#found Boechera drummondii and Arabis drummondii
-bloom2[grep("Boechera",bloom2$scientificName),]
-bloom2[grep("Arabis",bloom2$scientificName),]
+# accepted names http://cumuseum-archive.colorado.edu/Research/Botany/Databases/vascular_plants.pdf
+#found Boechera drummondii and Arabis drummondii   
+# Boechera laevigata isn't a species
+unique(bloom2$scientificName[grep("Boechera",bloom2$scientificName)])
+unique(bloom2$scientificName[grep("Arabis",bloom2$scientificName)])
+
+unique(bloom2$scientificName[grep("Turritis",bloom2$scientificName)])
+
 
 bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Arabis oxylobula",
+                               replacement = "Boechera oxylobula"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis demissa var. demissa",
                                replacement = "Boechera oxylobula"))
 
 bloom2 <- as.data.frame(sapply(bloom2, gsub,
@@ -181,6 +191,14 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
 bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Arabis divaricarpa",
                                replacement = "Boechera divaricarpa"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis drummondii",
+                               replacement = "Boechera drummondii"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis lemmonii",
+                               replacement = "Boechera lemmonii"))
 
 
 
@@ -203,7 +221,7 @@ bloom2[bloom2$scientificName=="",]
 bloom2[bloom2$Year=="",]
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2297
+length(unique(bloom2$scientificName)) #2294
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
@@ -233,13 +251,13 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 })))
 
 spyears[with(spyears, order(spyears$DataYrs)),]
-spyears[which.max(spyears$DataYrs),]
-length(spyears[spyears$DataYrs>=10,])
-mean(spyears$DataYrs[spyears$DataYrs>=10])
+spyears[which.max(spyears$DataYrs),] # 52
+length(spyears[spyears$DataYrs>=10,]) #544
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #22.18382
 
 spyears$Species <- row.names(spyears)
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-nrow(sp.10plus) #547 -> 545, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium
+nrow(sp.10plus) #547 -> 544, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium, fixing arabis/boechera synonomy
 ```
 
 compare to previous dataset
@@ -321,7 +339,7 @@ asuFams <- rbind(asuFams,data.frame(Family = "Polemoniaceae",
 Pull only the species that have 10 or more years of data for analyses
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by.x="scientificName",by.y="Species")
-length(unique(tenyearplus$scientificName)) #545
+length(unique(tenyearplus$scientificName)) #545 -> 544
 
 ```
 
@@ -584,7 +602,7 @@ HDD.yrs <- lapply(HDD, function(x){
 HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
 
-nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7732
+nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7730
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
@@ -592,18 +610,18 @@ nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7732
 min1950GDD_2 <- mergeMinGDD(min1950_2,tmps)
 
 length(unique(min1950GDD_2$day)) #1152
-length(unique(min1950GDD_2$scientificName)) #545
+length(unique(min1950GDD_2$scientificName)) #544
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$scientificName))
 yrspsp <- aggregate(gdddatayrs[,3], by = list(gdddatayrs$Var2), FUN=sum)
-nrow(yrspsp[yrspsp$x>=10,]) #406
+nrow(yrspsp[yrspsp$x>=10,]) #407
 
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="scientificName",by.y="Group.1")
-length(unique(min1950GDD_2_10$scientificName)) #545 -> 406
+length(unique(min1950GDD_2_10$scientificName)) #545 -> 407
 
 ```
 
@@ -800,6 +818,10 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #5
 mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
+
+head(m1)
+m1[grep("Arabis", m1$ScientificName),] #none
+m1[grep("Boechera", m1$ScientificName),] #Boechera drummondii, B. lemmonii, B. stricta
 
 ```
 
