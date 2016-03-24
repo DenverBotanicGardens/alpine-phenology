@@ -166,6 +166,24 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Eritrichum",
                                replacement = "Eritrichium"))
 
+#found Boechera drummondii and Arabis drummondii
+bloom2[grep("Boechera",bloom2$scientificName),]
+bloom2[grep("Arabis",bloom2$scientificName),]
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis oxylobula",
+                               replacement = "Boechera oxylobula"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis laevigata",
+                               replacement = "Boechera laevigata"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis divaricarpa",
+                               replacement = "Boechera divaricarpa"))
+
+
+
 tochar <- c(1:2)
 bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
   as.character(ch)
@@ -185,7 +203,7 @@ bloom2[bloom2$scientificName=="",]
 bloom2[bloom2$Year=="",]
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2299
+length(unique(bloom2$scientificName)) #2297
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
@@ -216,7 +234,7 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),]
-nrow(spyears[spyears$DataYrs>=10,])
+length(spyears[spyears$DataYrs>=10,])
 mean(spyears$DataYrs[spyears$DataYrs>=10])
 
 spyears$Species <- row.names(spyears)
@@ -323,8 +341,7 @@ nrow(singlefoo[singlefoo$Freq> 1,])
 
 ```
 
-
-Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 524 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
+Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
 earliestcollection <- data.frame(colSums(table(min1950_2$scientificName,
                                                 min1950_2$Year)))
@@ -471,32 +488,6 @@ summary(lm(startDayOfYear~Avg_Hi, data=min1950_2))
 
 ```
 
- 
-Park and Schwartz 2015, differing responses for early, mid, and late blooming species   
-```{r}
-# This doesn't break it down by species, might take away by species assessments
-eml <- min1950_2
-head(eml)
-hist(eml$startDayOfYear)
-# arbitrarily split <175, middle, >225
-eml$season <- "middle"
-eml$season[eml$startDayOfYear < 175] <- "early"
-eml$season[eml$startDayOfYear > 225] <- "late"
-
-ggplot(eml, aes(Avg_Hi, startDayOfYear, colour = scientificName))+
-  geom_point()+
-  stat_smooth(method="lm")+
-  facet_grid(~season)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression(~degree~C))+
-  ylab("Ordinal Date")+ 
-  theme(legend.position="none")
-
-summary(lm(startDayOfYear~Avg_Hi*season, data=eml))
-```
- 
-
 
 #Figure 3B
 ```{r}
@@ -612,13 +603,13 @@ nrow(yrspsp[yrspsp$x>=10,]) #406
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="scientificName",by.y="Group.1")
-length(unique(min1950GDD_2_10$scientificName)) #545
+length(unique(min1950GDD_2_10$scientificName)) #545 -> 406
 
 ```
 
 correlations with GDD and climate factors
 ```{r}
-unbloomGDD <- merge(unbloom,hddyrs,by="Year")
+.unbloomGDD <- merge(unbloom,hddyrs,by="Year")
 cor(unbloomGDD[,-1])
 cor.test(unbloomGDD$avgHDD,unbloomGDD$Raw_Precip)
 cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Hi)
@@ -648,7 +639,7 @@ ggplot(unbloomGDD, aes(Year,avgHDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
-  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
   ylab("cummulative GDD at collection date")
 

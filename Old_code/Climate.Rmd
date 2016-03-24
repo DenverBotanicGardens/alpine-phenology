@@ -1683,4 +1683,29 @@ test.status <- glht(test1, linfct=mcp(status="Tukey"))
 
 ```
 
+ 
+Park and Schwartz 2015, differing responses for early, mid, and late blooming species   
+```{r}
+# This doesn't break it down by species, might take away by species assessments
+eml <- min1950_2
+head(eml)
+hist(eml$startDayOfYear)
+# arbitrarily split <175, middle, >225
+eml$season <- "middle"
+eml$season[eml$startDayOfYear < 175] <- "early"
+eml$season[eml$startDayOfYear > 225] <- "late"
+
+ggplot(eml, aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  facet_grid(~season)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Ordinal Date")+ 
+  theme(legend.position="none")
+
+summary(lm(startDayOfYear~Avg_Hi*season, data=eml))
+```
+ 
 
