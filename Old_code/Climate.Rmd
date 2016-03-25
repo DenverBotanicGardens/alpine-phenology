@@ -413,7 +413,7 @@ ggplot(min.dates, aes(Year,startDayOfYear))+
   theme_bw()+
   labs(title="Earliest Bloom Date by Year")+
   xlab("Year")+
-  ylab("Julian Date")
+  ylab("Ordinal Date")
 
 summary(lm(min.dates$startDayOfYear~min.dates$Year))
 max(min.dates$startDayOfYear)
@@ -1708,4 +1708,54 @@ ggplot(eml, aes(Avg_Hi, startDayOfYear, colour = scientificName))+
 summary(lm(startDayOfYear~Avg_Hi*season, data=eml))
 ```
  
+ 
+ # shouldn't need the following fixes after using synonymy from our database...
+```{r, eval=FALSE}
+# accepted names http://cumuseum-archive.colorado.edu/Research/Botany/Databases/vascular_plants.pdf
+#found Boechera drummondii and Arabis drummondii   
+# Boechera laevigata isn't a species
+unique(bloom2$scientificName[grep("Boechera",bloom2$scientificName)])
+unique(bloom2$scientificName[grep("Arabis",bloom2$scientificName)])
+unique(bloom2$scientificName[grep("Turritis",bloom2$scientificName)])
+
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis oxylobula",
+                               replacement = "Boechera oxylobula"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis demissa var. demissa",
+                               replacement = "Boechera oxylobula"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis laevigata",
+                               replacement = "Boechera laevigata"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis divaricarpa",
+                               replacement = "Boechera divaricarpa"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis drummondii",
+                               replacement = "Boechera drummondii"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Arabis lemmonii",
+                               replacement = "Boechera lemmonii"))
+
+
+
+tochar <- c(1:2)
+bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
+  as.character(ch)
+})
+rm(tochar)
+
+tonum <- c(3:length(bloom2))
+bloom2[,tonum] <- sapply(bloom2[,tonum], function(num){
+  as.numeric(as.character(num))
+})
+rm(tonum)
+```
+
 

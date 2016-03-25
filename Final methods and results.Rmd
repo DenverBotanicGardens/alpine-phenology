@@ -167,73 +167,56 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Eritrichum",
                                replacement = "Eritrichium"))
 
-# accepted names http://cumuseum-archive.colorado.edu/Research/Botany/Databases/vascular_plants.pdf
-#found Boechera drummondii and Arabis drummondii   
-# Boechera laevigata isn't a species
-unique(bloom2$scientificName[grep("Boechera",bloom2$scientificName)])
-unique(bloom2$scientificName[grep("Arabis",bloom2$scientificName)])
-
-unique(bloom2$scientificName[grep("Turritis",bloom2$scientificName)])
-
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Arabis oxylobula",
-                               replacement = "Boechera oxylobula"))
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Arabis demissa var. demissa",
-                               replacement = "Boechera oxylobula"))
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Arabis laevigata",
-                               replacement = "Boechera laevigata"))
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Arabis divaricarpa",
-                               replacement = "Boechera divaricarpa"))
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Arabis drummondii",
-                               replacement = "Boechera drummondii"))
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Arabis lemmonii",
-                               replacement = "Boechera lemmonii"))
-
-
-
-tochar <- c(1:2)
-bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
-  as.character(ch)
-})
-rm(tochar)
-
-tonum <- c(3:length(bloom2))
-bloom2[,tonum] <- sapply(bloom2[,tonum], function(num){
-  as.numeric(as.character(num))
-})
-rm(tonum)
 ```
+
+
+#Check for synonyms   
+```{r}
+synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL.txt"))
+
+length(unique(synonyms$SYNONYMS))
+length(unique(synonyms$ID))
+length(unique(bloom2$scientificName)) #2299
+nrow(unique(bloom2[,c("ID","scientificName")]))
+nrow(unique(synonyms[,c("ID","SYNONYMS")]))
+
+length(unique(synonyms[,c("ID")]))
+
+# ID links synonyms
+bloom2 <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+
+length(unique(bloom2$ID)) #1563
+nrow(unique(bloom2[,c("ID","scientificName")]))
+length(unique(bloom2$ID))
+
+idyr <- lapply(unique(bloom2$Year),function(yr){
+  data.frame(table(bloom2$scientificName[bloom2$Year==yr],bloom2$ID[bloom2$Year==yr]))
+})
+idyr[[1]][idyr[[1]]$Freq > 0,]
+```
+
 
 After combining datasets, find species with at least 10 years of data
 ```{r}
+# all important data is there
 bloom2[bloom2$scientificName=="",]
 bloom2[bloom2$Year=="",]
+bloom2[bloom2$ID=="",]
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2294
+length(unique(bloom2$scientificName)) #2294 -> 1828
 
 # how many years collected per species
-sp.yr <- as.data.frame(table(bloom2$Year,bloom2$scientificName))
+sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 nrow(sp.yr[sp.yr$Var2=="",])
-sp.yr <- sp.yr[sp.yr$Var2!="",]
-nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666
-max(sp.yr$Freq[sp.yr$Freq>0])
+#sp.yr <- sp.yr[sp.yr$Var2!="",]
+nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666 -> 14498 after synonyms
+max(sp.yr$Freq[sp.yr$Freq>0]) #80
 head(sp.yr)
 sp.yr[100:130,]
 
 # How many vouchers per species per year
-colpyear <- data.frame(table(bloom2$scientificName,bloom2$Year))
+colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
 colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)), function(x) x[which.max(x$Freq),]))
 colpyear.2[with(colpyear.2, order(colpyear.2$Freq)),]
 
@@ -252,12 +235,20 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
-length(spyears[spyears$DataYrs>=10,]) #544
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #22.18382
+length(spyears[spyears$DataYrs>=10,]) #544 -> 479
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.65553
 
-spyears$Species <- row.names(spyears)
+# With the ID, no longer have species names as row names...   
+# Select the first instance of each synonym - not the accepted, just one of them
+first <- synonyms[!duplicated(synonyms$ID),]
+nrow(first)
+head(spyears)
+spyears$ID <- row.names(spyears)
+spyears <- merge(first[,-3],spyears, by="ID")
+colnames(spyears)[2] <- "Species"
+  
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-nrow(sp.10plus) #547 -> 544, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium, fixing arabis/boechera synonomy
+nrow(sp.10plus) #547 -> 479, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium, fixing arabis/boechera, synonymy
 ```
 
 compare to previous dataset
@@ -339,23 +330,34 @@ asuFams <- rbind(asuFams,data.frame(Family = "Polemoniaceae",
 Pull only the species that have 10 or more years of data for analyses
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by.x="scientificName",by.y="Species")
-length(unique(tenyearplus$scientificName)) #545 -> 544
+length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449
+tenyearplus[,-c(1:2)] <- lapply(tenyearplus[,-c(1:2)], function(x) as.numeric(as.character(x)))
 
 ```
 
 Pull out earliest collection
 ```{r}
+x<- unique(tenyearplus$ID.x)[1]
 
-minJul.dates.2 <- lapply(unique(tenyearplus$scientificName), function(x){
-  this.species <- tenyearplus[tenyearplus$scientificName == x,]
+minJul.dates.2 <- lapply(unique(tenyearplus$ID.x), function(x){
+  this.species <- tenyearplus[tenyearplus$ID.x == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  unique(merge(this.species[,c(1,5,7,8)], these.rows, by = c("startDayOfYear","Year")))
+  merge(unique(this.species[,c(1,5,7,8)]), these.rows, by = c("startDayOfYear","Year"))
   })
+
+#minJul.dates.2 <- lapply(unique(tenyearplus$scientificName), function(x){
+#  this.species <- tenyearplus[tenyearplus$scientificName == x,]
+#  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
+#  unique(merge(this.species[,c(1,5,7,8)], these.rows, by = c("startDayOfYear","Year")))
+#  })
 
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$scientificName))
-nrow(singlefoo[singlefoo$Freq> 1,])
+nrow(singlefoo[singlefoo$Freq> 1,]) #154?
+
+singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID.x))
+nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1??
 
 ```
 
@@ -490,6 +492,22 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
 
 summary(lm(Raw_Precip~Year, data = unbloom))
 
+```
+
+
+# Figure 3 before A
+### Minimum Julian bloom date by year
+```{r}
+ggplot(min.dates, aes(Year,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  labs(title="Earliest collection date by year")+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+summary(lm(min.dates$startDayOfYear~min.dates$Year))
+max(min.dates$startDayOfYear)
 ```
 
 #Figure 3A  
