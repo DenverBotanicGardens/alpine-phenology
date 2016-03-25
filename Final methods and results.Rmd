@@ -154,6 +154,9 @@ bloom2 <- rbind(seinet.bind,colo.bind)
 barplot(table(bloom2$Year))
 
 length(unique(bloom2$scientificName)) #2303
+unique(bloom2$Family.Name)[1:100]
+proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
+bloom2$Family.Name <- proper(bloom2$Family.Name)
 ```
 
 Fix spelling errors   
@@ -167,6 +170,17 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Eritrichum",
                                replacement = "Eritrichium"))
 
+str(bloom2)
+tochar <- c(1:2)
+bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
+  as.character(ch)
+})
+rm(tochar)
+
+tonumeric <- c(3:length(bloom2))
+bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
 ```
 
 
@@ -174,16 +188,42 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
 ```{r}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL.txt"))
 
-length(unique(synonyms$SYNONYMS))
-length(unique(synonyms$ID))
-length(unique(bloom2$scientificName)) #2299
+
+length(grep("ssp.",bloom2$scientificName)) #75
+length(grep("subsp.",bloom2$scientificName)) #1502
+length(grep("ssp.",synonyms$SYNONYMS)) #6400
+length(grep("subsp.",synonyms$SYNONYMS)) #27
+
+#use of ssp and subsp
+synonyms$SYNONYMS <- gsub(pattern = "subsp.", replacement = "ssp.", synonyms$SYNONYMS)
+bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
+
+# names before the merge from our dataset
+namebloom2 <- unique(bloom2$scientificName)
+
+
+# ID links synonyms
+bloom2 <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+
+length(unique(synonyms$SYNONYMS)) #91,084 names
+length(unique(synonyms$ID)) #48,141 unique taxa
+length(unique(bloom2$scientificName)) #2299 different names in bloom2 before merge - then 1986 after
+
+#which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
+badnames <- setdiff(namebloom2,bloom2$scientificName)
+badnames[1:100]
+length(badnames) #471
+badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
+length(badnames2) #471
+badnames3 <- bloom2$scientificName[!(bloom2$scientificName %in% namebloom2)]
+length(badnames3) #0
+write.table(badnames,"clipboard", sep="\t", row.names=FALSE)
+
 nrow(unique(bloom2[,c("ID","scientificName")]))
 nrow(unique(synonyms[,c("ID","SYNONYMS")]))
 
 length(unique(synonyms[,c("ID")]))
 
-# ID links synonyms
-bloom2 <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(bloom2$ID)) #1563
 nrow(unique(bloom2[,c("ID","scientificName")]))
