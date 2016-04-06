@@ -134,7 +134,7 @@ seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
 identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters >=3200,])
 ```
 
-Combine datasets
+Combine datasets to create bloom2   
 ```{r}
 names <- names(colo.sm[,c(1:2,5:6,11:13)])
 #names(seinet.sm[,c(1:4,7,5,8)])
@@ -203,11 +203,15 @@ namebloom2 <- unique(bloom2$scientificName)
 
 
 # ID links synonyms
-bloom2 <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+# to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join)
+bloom.lo <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS", all.x = TRUE)
+bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(synonyms$SYNONYMS)) #91,084 names
 length(unique(synonyms$ID)) #48,141 unique taxa
-length(unique(bloom2$scientificName)) #2299 different names in bloom2 before merge - then 1986 after
+length(unique(bloom.lo$scientificName)) #2284
+length(unique(bloom.o$scientificName)) #1986
+length(unique(bloom2$scientificName)) #(2284) 2299 different names in bloom2 before merge - then 1986 after
 
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames <- setdiff(namebloom2,bloom2$scientificName)
@@ -218,6 +222,16 @@ length(badnames2) #471
 badnames3 <- bloom2$scientificName[!(bloom2$scientificName %in% namebloom2)]
 length(badnames3) #0
 write.table(badnames,"clipboard", sep="\t", row.names=FALSE)
+
+#Use these 'badnames' which are names in bloom2 not found in the USDA synonym list to correct errors
+# some are crosses, some misspellings. 
+# csv has $Wrong: list of bloom2 names with no UDSA match 
+#         $Replacement: corrected or NA if it should just be removed/ignored
+# Should just remove ssp. and var. to lump. 
+corrections <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL.txt"))
+
+#try again, first replace names with corrections, then do the merge for left outer again)
+bloom2[]
 
 nrow(unique(bloom2[,c("ID","scientificName")]))
 nrow(unique(synonyms[,c("ID","SYNONYMS")]))
