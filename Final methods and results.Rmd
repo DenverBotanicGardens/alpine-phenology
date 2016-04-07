@@ -186,7 +186,7 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 
 #Check for synonyms   
 ```{r}
-synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL.txt"))
+synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL_2.txt"))
 
 
 length(grep("ssp.",bloom2$scientificName)) #75
