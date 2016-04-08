@@ -238,23 +238,29 @@ fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/Spellin
 #try again, first replace names with corrections, then do the merge for left outer again)
 fixbloom2.all <- fixbloom2[complete.cases(fixbloom2[,2]),-3]
 
+#maybe try a merge - make the new column scientificName be same if no matching, new if matching
+
 bloomfoo <- bloom2
 
-fixednames <- apply(fixbloom2.all, 1, function(fix){
-  gsub(bloomfoo$scientificName,pattern = fix[1],replacement = fix[2])})
-
-```
-scinamesfixed <- lapply(bloomfoo$scientificName, function(name){
-  if(name %in% fixbloom2.all$Wrong){
-    fixbloom2.all$Replacement[grep(name, fixbloom2.all$Wrong)]
-  } else {
-    name
-  }
+#where is there a match for each?
+matches <- apply(fixbloom2.all,1,function(checknames){
+  grep(checknames[1],bloomfoo$scientificName)
 })
+allmat <- do.call(c,matches)
+length(allmat)
 
-```{r}
-fixn <- do.call(rbind,scinamesfixed)
-length(fixn)
+which(bloomfoo[fixbloom2.all$Wrong %in% bloomfoo$scientificName,])
+
+
+fixednames <- apply(fixbloom2.all, 1, function(fix){
+  gsub(bloomfoo$scientificName,pattern = fix[1],replacement = fix[2])
+  })
+
+fixednames <- gsub(bloomfoo$scientificName, 
+                   pattern = fixbloom2.all[,1], 
+                   replacement = fixbloom2.all[,2])
+
+tail(fixednames[[1]])
 length(bloomfoo$scientificName)
 
 setdiff(fixn, bloomfoo$scientificName)
