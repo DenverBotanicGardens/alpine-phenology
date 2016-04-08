@@ -186,8 +186,9 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 
 #Check for synonyms   
 ```{r}
-synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL_2.txt"))
+synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
+tail(synonyms)
 
 length(grep("ssp.",bloom2$scientificName)) #75
 length(grep("subsp.",bloom2$scientificName)) #1502
@@ -200,22 +201,25 @@ bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$s
 
 # names before the merge from our dataset
 namebloom2 <- unique(bloom2$scientificName)
-
+length(namebloom2) #2284
 
 # ID links synonyms
 # to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join)
 bloom.lo <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS", all.x = TRUE)
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
-length(unique(synonyms$SYNONYMS)) #91,084 names
+length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand - 2 were repeated?)
 length(unique(synonyms$ID)) #48,141 unique taxa
 length(unique(bloom.lo$scientificName)) #2284
-length(unique(bloom.o$scientificName)) #1986
+length(unique(bloom.o$scientificName)) #1986 -> 1996 after adding ones by hand
 length(unique(bloom2$scientificName)) #(2284) 2299 different names in bloom2 before merge - then 1986 after
 
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
-badnames <- setdiff(namebloom2,bloom2$scientificName)
-badnames[1:100]
+badnames.o <- setdiff(namebloom2,bloom.o$scientificName)
+head(badnames.o)
+length(badnames.o) #288
+badnames.lo <- setdiff(namebloom2,bloom.lo$scientificName)
+head(badnames.lo)
 length(badnames) #471
 badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
 length(badnames2) #471
@@ -228,11 +232,20 @@ write.table(badnames,"clipboard", sep="\t", row.names=FALSE)
 # csv has $Wrong: list of bloom2 names with no UDSA match 
 #         $Replacement: corrected or NA if it should just be removed/ignored
 # Should just remove ssp. and var. to lump. 
-corrections <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_ALL.txt"))
+
 
 #try again, first replace names with corrections, then do the merge for left outer again)
-bloom2[]
+fixbloom2.all <- fixbloom2[complete.cases(fixbloom2),]
 
+bloomfoo <- bloom2
+matches <- match(bloomfoo$scientificName,fixbloom2.all$Wrong)
+
+bloomfoo$scientificName[matches[complete.cases(matches)]] <-
+  fixbloom2$Replacement[matches[complete.cases(matches)]]
+  
+head(bloomfoo)
+head(bloom2)
+  
 nrow(unique(bloom2[,c("ID","scientificName")]))
 nrow(unique(synonyms[,c("ID","SYNONYMS")]))
 
