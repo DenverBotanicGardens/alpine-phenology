@@ -241,10 +241,9 @@ fixbloom2.all <- fixbloom2[complete.cases(fixbloom2[,2]),-3]
 bloomfoo <- bloom2
 
 fixednames <- apply(fixbloom2.all, 1, function(fix){
-  as.data.frame(sapply(bloomfoo, gsub, 
-         pattern = fix[1],
-         replacement = fix[2]))})
+  gsub(bloomfoo$scientificName,pattern = fix[1],replacement = fix[2])})
 
+```
 scinamesfixed <- lapply(bloomfoo$scientificName, function(name){
   if(name %in% fixbloom2.all$Wrong){
     fixbloom2.all$Replacement[grep(name, fixbloom2.all$Wrong)]
@@ -253,6 +252,7 @@ scinamesfixed <- lapply(bloomfoo$scientificName, function(name){
   }
 })
 
+```{r}
 fixn <- do.call(rbind,scinamesfixed)
 length(fixn)
 length(bloomfoo$scientificName)
