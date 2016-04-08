@@ -232,17 +232,37 @@ write.table(badnames,"clipboard", sep="\t", row.names=FALSE)
 # csv has $Wrong: list of bloom2 names with no UDSA match 
 #         $Replacement: corrected or NA if it should just be removed/ignored
 # Should just remove ssp. and var. to lump. 
-
+fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections.csv"),
+                      na.strings = c("NA", "", " "), colClasses = "character")
 
 #try again, first replace names with corrections, then do the merge for left outer again)
-fixbloom2.all <- fixbloom2[complete.cases(fixbloom2),]
+fixbloom2.all <- fixbloom2[complete.cases(fixbloom2[,2]),-3]
 
 bloomfoo <- bloom2
-matches <- match(bloomfoo$scientificName,fixbloom2.all$Wrong)
 
-bloomfoo$scientificName[matches[complete.cases(matches)]] <-
-  fixbloom2$Replacement[matches[complete.cases(matches)]]
+bloomfoo$scientificName
+fixednames <- apply(fixbloom2.all, 1, function(fix){
+  sapply(bloomfoo$scientificName, gsub, 
+         pattern = fix[1],
+         replacement = fix[2])})
+
+scinamesfixed <- lapply(bloomfoo$scientificName, function(name){
+  if(name %in% fixbloom2.all$Wrong){
+    fixbloom2.all$Replacement[grep(name, fixbloom2.all$Wrong)]
+  } else {
+    name
+  }
+})
+
+fixn <- do.call(rbind,scinamesfixed)
+length(fixn)
+length(bloomfoo$scientificName)
+
+setdiff(fixn, bloomfoo$scientificName)
+
+bloomfoo$scientificName <- fixn
   
+head(fixn)
 head(bloomfoo)
 head(bloom2)
   
