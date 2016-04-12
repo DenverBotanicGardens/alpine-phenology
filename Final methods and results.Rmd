@@ -251,16 +251,42 @@ length(allmat)
 
 which(bloomfoo[fixbloom2.all$Wrong %in% bloomfoo$scientificName,])
 
+#(bloomfoo$scientificName[10] %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),bloomfoo$scientificName[10],value=TRUE))
 
-fixednames <- apply(fixbloom2.all, 1, function(fix){
-  gsub(bloomfoo$scientificName,pattern = fix[1],replacement = fix[2])
+fixednames <- lapply(bloomfoo$scientificName, function(tofix){
+  if(tofix %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),tofix,value=TRUE)){
+    do.call(rbind,
+            apply(fixbloom2.all, 1, function(fixer){
+              if(tofix == fixer[1]){
+                gsub(tofix,pattern = fixer[1],replacement = fixer[2])
+                } else {
+                  tofix
+                  }
+              }))
+    } else {
+      tofix
+      }
   })
 
-fixednames <- gsub(bloomfoo$scientificName, 
-                   pattern = fixbloom2.all[,1], 
-                   replacement = fixbloom2.all[,2])
+fixednames <- c()
+for(i in bloomfoo$scientificName){
+  fixednames <- c(fixednames,
+                  if(i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE)){
+                    apply(fixbloom2.all,1,function(fixer){
+                      if(i==fixer[1]){
+                        gsub(i,pattern=fixer[1],replacement=fixer[2])
+                      } 
+                      })
+                    } else {
+                        i
+                      })
+  }
 
-tail(fixednames[[1]])
+tail(fixednames)
+names <- do.call(rbind,fixednames)
+
+which(bloomfoo$scientificName %in% )
+
 length(bloomfoo$scientificName)
 
 setdiff(fixn, bloomfoo$scientificName)
