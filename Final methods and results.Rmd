@@ -247,26 +247,10 @@ matches <- apply(fixbloom2.all,1,function(checknames){
   grep(checknames[1],bloomfoo$scientificName)
 })
 allmat <- do.call(c,matches)
-length(allmat)
+length(allmat) #679 switches
 
-which(bloomfoo[fixbloom2.all$Wrong %in% bloomfoo$scientificName,])
-
-#(bloomfoo$scientificName[10] %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),bloomfoo$scientificName[10],value=TRUE))
-
-fixednames <- lapply(bloomfoo$scientificName, function(tofix){
-  if(tofix %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),tofix,value=TRUE)){
-    do.call(rbind,
-            apply(fixbloom2.all, 1, function(fixer){
-              if(tofix == fixer[1]){
-                gsub(tofix,pattern = fixer[1],replacement = fixer[2])
-                } else {
-                  tofix
-                  }
-              }))
-    } else {
-      tofix
-      }
-  })
+```
+## maybe still wrong
 
 fixednames <- c()
 for(i in bloomfoo$scientificName){
@@ -282,10 +266,34 @@ for(i in bloomfoo$scientificName){
                       })
   }
 
+str(fixednames)
 tail(fixednames)
-names <- do.call(rbind,fixednames)
+names <- do.call(c,fixednames)
+head(fixednames)
+nrow(bloomfoo)
+```{r}
+for(i in bloomfoo$scientificName){
+  if(i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE)){
+  bloomfoo$scientificName[which(bloomfoo$scientificName %in% i)] <-
+    apply(fixbloom2.all,1,function(fixer){
+      if(i==fixer[1]){
+        fixer[2]
+        }
+    })
+  }
+}
 
-which(bloomfoo$scientificName %in% )
+```
+
+
+
+
+```{r}
+errorsbloom <- which(bloom2$scientificName %in% grep(paste(fixbloom2.all$Wrong, collapse="|"), bloom2$scientificName,value=TRUE))
+fiexedbloomfoo <- which(fixednames %in% grep(paste(fixbloom2.all$Replacement, collapse="|"), fixednames,value=TRUE))
+identical(errorsbloom,fiexedbloomfoo)
+intersect(errorsbloom,fiexedbloomfoo)
+fixednames[intersect(errorsbloom,fiexedbloomfoo)]
 
 length(bloomfoo$scientificName)
 
