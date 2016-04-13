@@ -272,13 +272,20 @@ names <- do.call(c,fixednames)
 head(fixednames)
 nrow(bloomfoo)
 ```{r}
+i <- bloomfoo$scientificName[43608]
+((i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE)))
+bloomfoo$scientificName[which(bloomfoo$scientificName %in% i)] 
+(i == fixbloom2.all[1,1])
+
+bloomfoo <- as.data.frame(sapply(bloomfoo, gsub, pattern = fixbloom2.all[1,1], replacement = fixbloom2.all[1,2]))
+
 for(i in bloomfoo$scientificName){
-  if(i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE)){
+  if(!is.null(i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE))){
   bloomfoo$scientificName[which(bloomfoo$scientificName %in% i)] <-
     apply(fixbloom2.all,1,function(fixer){
-      if(i==fixer[1]){
+      if(i == fixer[1]){
         fixer[2]
-        }
+      }
     })
   }
 }
