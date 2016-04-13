@@ -192,8 +192,8 @@ tail(synonyms)
 
 length(grep("ssp.",bloom2$scientificName)) #75
 length(grep("subsp.",bloom2$scientificName)) #1502
-length(grep("ssp.",synonyms$SYNONYMS)) #6400
-length(grep("subsp.",synonyms$SYNONYMS)) #27
+length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
+length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
 
 #use of ssp and subsp
 synonyms$SYNONYMS <- gsub(pattern = "subsp.", replacement = "ssp.", synonyms$SYNONYMS)
@@ -220,7 +220,7 @@ head(badnames.o)
 length(badnames.o) #288
 badnames.lo <- setdiff(namebloom2,bloom.lo$scientificName)
 head(badnames.lo)
-length(badnames) #471
+length(badnames.lo) #471 -> 0
 badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
 length(badnames2) #471
 badnames3 <- bloom2$scientificName[!(bloom2$scientificName %in% namebloom2)]
@@ -250,84 +250,45 @@ allmat <- do.call(c,matches)
 length(allmat) #679 switches
 
 ```
-## maybe still wrong
 
-fixednames <- c()
-for(i in bloomfoo$scientificName){
-  fixednames <- c(fixednames,
-                  if(i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE)){
-                    apply(fixbloom2.all,1,function(fixer){
-                      if(i==fixer[1]){
-                        gsub(i,pattern=fixer[1],replacement=fixer[2])
-                      } 
-                      })
-                    } else {
-                        i
-                      })
-  }
 
-str(fixednames)
-tail(fixednames)
-names <- do.call(c,fixednames)
-head(fixednames)
-nrow(bloomfoo)
 ```{r}
-i <- bloomfoo$scientificName[43608]
-((i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE)))
-bloomfoo$scientificName[which(bloomfoo$scientificName %in% i)] 
-(i == fixbloom2.all[1,1])
-
-bloomfoo <- as.data.frame(sapply(bloomfoo, gsub, pattern = fixbloom2.all[1,1], replacement = fixbloom2.all[1,2]))
-
-for(i in bloomfoo$scientificName){
-  if(!is.null(i %in% grep(paste(fixbloom2.all$Wrong, collapse="|"),i,value=TRUE))){
-  bloomfoo$scientificName[which(bloomfoo$scientificName %in% i)] <-
-    apply(fixbloom2.all,1,function(fixer){
-      if(i == fixer[1]){
-        fixer[2]
-      }
-    })
+multisub <- function(pattern,replacement,x){
+  result <- x
+  for(i in 1:length(pattern)){
+    result <- gsub(pattern[i], replacement[i],result)
   }
+  result
 }
 
-```
+bloomfoo$scientificName <- multisub(fixbloom2.all$Wrong,fixbloom2.all$Replacement,bloomfoo$scientificName)
 
-
-
-
-```{r}
-errorsbloom <- which(bloom2$scientificName %in% grep(paste(fixbloom2.all$Wrong, collapse="|"), bloom2$scientificName,value=TRUE))
-fiexedbloomfoo <- which(fixednames %in% grep(paste(fixbloom2.all$Replacement, collapse="|"), fixednames,value=TRUE))
-identical(errorsbloom,fiexedbloomfoo)
-intersect(errorsbloom,fiexedbloomfoo)
-fixednames[intersect(errorsbloom,fiexedbloomfoo)]
-
-length(bloomfoo$scientificName)
-
-setdiff(fixn, bloomfoo$scientificName)
-
-bloomfoo$scientificName <- fixn
-  
-head(fixn)
-head(bloomfoo)
-head(bloom2)
-  
-nrow(unique(bloom2[,c("ID","scientificName")]))
-nrow(unique(synonyms[,c("ID","SYNONYMS")]))
-
-length(unique(synonyms[,c("ID")]))
-
-
-length(unique(bloom2$ID)) #1563
-nrow(unique(bloom2[,c("ID","scientificName")]))
-length(unique(bloom2$ID))
-
-idyr <- lapply(unique(bloom2$Year),function(yr){
-  data.frame(table(bloom2$scientificName[bloom2$Year==yr],bloom2$ID[bloom2$Year==yr]))
+str(bloomfoo)
+tochar <- 1
+bloomfoo[,tochar] <- sapply(bloomfoo[,tochar], function(ch){
+  as.character(ch)
 })
-idyr[[1]][idyr[[1]]$Freq > 0,]
+rm(tochar)
+
+tonumeric <- c(3:length(bloomfoo))
+bloomfoo[,tonumeric] <- sapply(bloomfoo[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+
 ```
 
+Did it work?
+Sure looks like it did!!
+```{r}
+bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum",]
+bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum Nutt.",]
+
+bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca",]
+bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca var.",]
+
+# Ok, do it!
+bloom2 <- bloomfoo
+```
 
 After combining datasets, find species with at least 10 years of data
 ```{r}
@@ -337,7 +298,7 @@ bloom2[bloom2$Year=="",]
 bloom2[bloom2$ID=="",]
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2294 -> 1828
+length(unique(bloom2$scientificName)) #2294 -> 1828 -> 2207
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
