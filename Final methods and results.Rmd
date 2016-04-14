@@ -188,10 +188,8 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 ```{r}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
-tail(synonyms)
-
-length(grep("ssp.",bloom2$scientificName)) #75
-length(grep("subsp.",bloom2$scientificName)) #1502
+length(grep("ssp.",bloom2$scientificName)) #1577 (75)
+length(grep("subsp.",bloom2$scientificName)) #1502 (0)
 length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
 length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
 
@@ -212,20 +210,18 @@ length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand -
 length(unique(synonyms$ID)) #48,141 unique taxa
 length(unique(bloom.lo$scientificName)) #2284
 length(unique(bloom.o$scientificName)) #1986 -> 1996 after adding ones by hand
-length(unique(bloom2$scientificName)) #(2284) 2299 different names in bloom2 before merge - then 1986 after
+length(unique(bloom2$scientificName)) #(2284) 2299 different names in bloom2 before merge - then 1986 after; 2284
 
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames.o <- setdiff(namebloom2,bloom.o$scientificName)
 head(badnames.o)
 length(badnames.o) #288
-badnames.lo <- setdiff(namebloom2,bloom.lo$scientificName)
-head(badnames.lo)
-length(badnames.lo) #471 -> 0
+
 badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
 length(badnames2) #471
 badnames3 <- bloom2$scientificName[!(bloom2$scientificName %in% namebloom2)]
 length(badnames3) #0
-write.table(badnames,"clipboard", sep="\t", row.names=FALSE)
+write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
 
 #Use these 'badnames' which are names in bloom2 not found in the USDA synonym list to correct errors
 # some are crosses, some misspellings. 
@@ -264,6 +260,10 @@ multisub <- function(pattern,replacement,x){
 bloomfoo$scientificName <- multisub(fixbloom2.all$Wrong,fixbloom2.all$Replacement,bloomfoo$scientificName)
 
 str(bloomfoo)
+```
+
+Doesn't seem to be changing the data frame types
+```{r}
 tochar <- 1
 bloomfoo[,tochar] <- sapply(bloomfoo[,tochar], function(ch){
   as.character(ch)
@@ -282,12 +282,20 @@ Sure looks like it did!!
 ```{r}
 bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum",]
 bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum Nutt.",]
+bloom2[bloom2$scientificName %in% "Aconitum columbianum Nutt.",]
 
 bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca",]
 bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca var.",]
+bloom2[bloom2$scientificName %in% "Agoseris aurantiaca var.",]
 
 # Ok, do it!
 bloom2 <- bloomfoo
+
+# Now merge with synonyms
+bloom.temp <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+
+str(bloom.temp)
+bloom2 <- bloom.temp
 ```
 
 After combining datasets, find species with at least 10 years of data
@@ -298,20 +306,23 @@ bloom2[bloom2$Year=="",]
 bloom2[bloom2$ID=="",]
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2294 -> 1828 -> 2207
+length(unique(bloom2$scientificName)) #2294 -> 1828 -> 2207 -> 2018
+length(unique(bloom2$ID)) # 1661 grouped by synonyms
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 nrow(sp.yr[sp.yr$Var2=="",])
-#sp.yr <- sp.yr[sp.yr$Var2!="",]
-nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666 -> 14498 after synonyms
+
+nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666 -> 14498 after synonyms -> 15121
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 head(sp.yr)
 sp.yr[100:130,]
 
 # How many vouchers per species per year
 colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
-colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)), function(x) x[which.max(x$Freq),]))
+colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)),
+                                   function(x) x[which.max(x$Freq),]))
+
 colpyear.2[with(colpyear.2, order(colpyear.2$Freq)),]
 
 # change all values above 0 to 1 from number of collections for that species a year
@@ -329,7 +340,7 @@ spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
-length(spyears[spyears$DataYrs>=10,]) #544 -> 479
+length(spyears[spyears$DataYrs>=10,]) #544 -> 479 -> 498
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.65553
 
 # With the ID, no longer have species names as row names...   
@@ -342,122 +353,46 @@ spyears <- merge(first[,-3],spyears, by="ID")
 colnames(spyears)[2] <- "Species"
   
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-nrow(sp.10plus) #547 -> 479, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium, fixing arabis/boechera, synonymy
+nrow(sp.10plus) #547 -> 479 -> 498, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium, fixing arabis/boechera, synonymy
 ```
 
-compare to previous dataset
-```{r}
-bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/QR_final_R_plant_climate_data_2.csv")) 
-
-minJul.dates <- lapply(unique(bloom$sppListID), function(x){
-  this.species <- bloom[bloom$sppListID == x,c(4:5,11,19:26)]
-  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
-  })
-
-mindate <- function(bl50){
-  lapply(unique(bl50$sppListID), function(x){
-  #almost, need to use grep with "Avg" or type them all out...
-  this.species <- bl50[bl50$sppListID == x,names(bl50) %in% c("Scientific.Name",
-                                             "sppListID",
-                                             "startDayOfYear",
-                                             "Year","Raw_Precip",
-                                             "Avg_Hi","Avg_Lo")]   #c(4:5,11,19:28)]
-  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  unique(merge(this.species, these.rows, by = c("startDayOfYear","Year")))
-  })
-  names(minJul.dates) <- unique(bl50$sppListID)
-  min.dates <- do.call(rbind,minJul.dates)
-}
-
-bl50 <- subset(bloom, bloom$year_plant > 1949) 
-min1950 <- mindate(bl50)
-min1950 <- as.data.frame(sapply(min1950, gsub, 
-                                  pattern = "coerulea", 
-                                  replacement = "caerulea"))
-
-#Fix double space in Hierochola hirta
-min1950 <- as.data.frame(sapply(min1950, gsub,
-                                  pattern="Hierochlo  hirta",
-                                  replacement = "Hierochlo hirta"))
-
-tonumeric <- c(1:2,4:length(min1950))
-min1950[,tonumeric] <- sapply(min1950[,tonumeric], function(s){
-  as.numeric(as.character(s))
-})
-
-i <- sapply(min1950,is.factor)
-min1950[i] <- lapply(min1950[i], as.character)
-
-min1950$SciName <- sub( "(^[^ ]+[ ][^ ]+)(.+$)", "\\1", min1950$Scientific.Name)
-
-unique(bloom2$scientificName[complete.cases(match(unique(bloom2$scientificName),unique(min1950$SciName)))])
-```
-
-#Family names for each genus    
-```{r}
-genera <- gsub(" .*$", "", bloom2[,2])
-head(genera)
-
-write.table(unique(genera), file =  "Q:/Research/Projects/alpine-phenology/speciesbloom2.csv", sep=",")
-
-#In SEINet loaded genera, updated with ASU Taxonomic Thesaurus
-# 121 Families, 457 Genera
-asuFams <- read.csv("Q:/Research/Projects/alpine-phenology/colo_seinet_alpine_2016_genus.csv")
-
-asuFams$genus <- gsub(" .*$", "", asuFams[,2])
-
-tochar <- c(1:3)
-asuFams[,tochar] <- sapply(asuFams[,tochar], function(ch){
-  as.character(ch)
-}) 
-
-#missing Polemonium
-asuFams <- rbind(asuFams,data.frame(Family = "Polemoniaceae",
-                                    ScientificName = "Polemonium sp.",
-                                    ScientificNameAuthorship = "L.",
-                                    TaxonId = max(asuFams$TaxonId)+1,
-                                    genus = "Polemonium"))
-
-```
 
 Pull only the species that have 10 or more years of data for analyses
 ```{r}
-tenyearplus <- merge(bloom2,sp.10plus,by.x="scientificName",by.y="Species")
-length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449
-tenyearplus[,-c(1:2)] <- lapply(tenyearplus[,-c(1:2)], function(x) as.numeric(as.character(x)))
-
+tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
+length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 486
+length(unique(tenyearplus$ID)) # 498
 ```
 
 Pull out earliest collection
 ```{r}
-x<- unique(tenyearplus$ID.x)[1]
+#
+x<- unique(tenyearplus$ID)[100]
 
-minJul.dates.2 <- lapply(unique(tenyearplus$ID.x), function(x){
-  this.species <- tenyearplus[tenyearplus$ID.x == x,]
+minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
+  this.species <- tenyearplus[tenyearplus$ID == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  merge(unique(this.species[,c(1,5,7,8)]), these.rows, by = c("startDayOfYear","Year"))
+  merge(unique(this.species[,c("ID","Year","startDayOfYear","DataYrs")]), these.rows, by = c("startDayOfYear","Year"))
   })
-
-#minJul.dates.2 <- lapply(unique(tenyearplus$scientificName), function(x){
-#  this.species <- tenyearplus[tenyearplus$scientificName == x,]
-#  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-#  unique(merge(this.species[,c(1,5,7,8)], these.rows, by = c("startDayOfYear","Year")))
-#  })
 
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
-singlefoo <- data.frame(table(min1950_2$Year,min1950_2$scientificName))
+singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154?
 
-singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID.x))
-nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1??
+# add back the first species name for each data ID
+onename <- tenyearplus[!duplicated(tenyearplus$ID),]
+min1950_2 <- merge(min1950_2, onename, by=c("ID","startDayOfYear","Year","DataYrs"))
+
+#Check that there is only one species collection date per year
+singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
+nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
 
 ```
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
-earliestcollection <- data.frame(colSums(table(min1950_2$scientificName,
+earliestcollection <- data.frame(colSums(table(min1950_2$scientificName, #should be only one name now
                                                 min1950_2$Year)))
 earcol <- data.frame(Year = row.names(earliestcollection),
                      Collections = earliestcollection)
