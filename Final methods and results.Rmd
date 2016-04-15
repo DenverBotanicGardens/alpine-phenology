@@ -359,8 +359,7 @@ length(unique(tenyearplus$ID)) # 498
 ```
 
 
-Pull out earliest collection
-###START HERE#####
+Pull out earliest collection   
 ```{r}
 #
 x<- unique(tenyearplus$ID)[100]
@@ -393,8 +392,17 @@ singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
 
 length(unique(min1950_2$ID)) #498 species
+mean(min1950_2$DataYrs[!duplicated(min1950_2$ID)]) #23.665 years
+
 nrow(min1950_2) #11673
 write.table(min1950_2, file="P:/hackathon/alpine-phenology/datasets/min1950_2.csv", sep=",")
+```
+
+min1950_2 from away
+```{r}
+min1950_2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950_2.csv"))
+
+
 ```
 
 
@@ -408,11 +416,12 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections)
+mean(earcol$Collections) #191.36
 
 ```
         Year    Collections    
-1998    1998            416         
+1998    1998            416    
+
 
 #Figure 1A
 ```{r}
