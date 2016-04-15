@@ -314,9 +314,10 @@ sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 nrow(sp.yr[sp.yr$Var2=="",])
 
 nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666 -> 14498 after synonyms -> 15121
+mean(sp.yr$Freq)
+mean(sp.yr$Freq[sp.yr$Freq > 0])
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 head(sp.yr)
-sp.yr[100:130,]
 
 # How many vouchers per species per year
 colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
@@ -326,6 +327,7 @@ colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)),
 colpyear.2[with(colpyear.2, order(colpyear.2$Freq)),]
 
 # change all values above 0 to 1 from number of collections for that species a year
+# finding which years have any data, not the minimum date
 sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
   if(x>0) {1}
   else 0
@@ -333,67 +335,67 @@ sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
 
 sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
 bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
+names(bysp[1])
 
-spyears <- data.frame(DataYrs = do.call(rbind,lapply(bysp, function(x){
-  sum(x$Freq)
-})))
+spyears <- do.call(rbind,lapply(bysp, function(x){
+  data.frame(DataYrs = sum(x$Freq),ID = unique(x$Var2))
+}))
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
-length(spyears[spyears$DataYrs>=10,]) #544 -> 479 -> 498
+nrow(spyears[spyears$DataYrs>=10,]) #544 -> 479 -> 498
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.65553
 
-# With the ID, no longer have species names as row names...   
-# Select the first instance of each synonym - not the accepted, just one of them
-first <- synonyms[!duplicated(synonyms$ID),]
-nrow(first)
-head(spyears)
-spyears$ID <- row.names(spyears)
-spyears <- merge(first[,-3],spyears, by="ID")
-colnames(spyears)[2] <- "Species"
-  
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-nrow(sp.10plus) #547 -> 479 -> 498, after changing all spelling to coerulea from caerulea and Eritrichum to Eritrichium, fixing arabis/boechera, synonymy
 ```
 
-
-Pull only the species that have 10 or more years of data for analyses
-```{r}
-tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 486
-length(unique(tenyearplus$ID)) # 498
-```
 
 Pull out earliest collection
+###START HERE#####
 ```{r}
 #
-x<- unique(tenyearplus$ID)[100]
+x<- unique(bloom2$ID)[100]
 
-minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
-  this.species <- tenyearplus[tenyearplus$ID == x,]
+minJul.dates.2 <- lapply(unique(bloom2$ID), function(x){
+  this.species <- bloom2[bloom2$ID == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  merge(unique(this.species[,c("ID","Year","startDayOfYear","DataYrs")]), these.rows, by = c("startDayOfYear","Year"))
+  merge(unique(this.species[,c("ID","Year","startDayOfYear")]), these.rows,
+        by=c("startDayOfYear","Year"))
   })
 
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
-singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
-nrow(singlefoo[singlefoo$Freq> 1,]) #154?
 
-# add back the first species name for each data ID
-onename <- tenyearplus[!duplicated(tenyearplus$ID),]
+# check that none have more than one a year
+singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
+nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0
+
+# add back the first species name (not the synonyms) for each data ID
+onename <- bloom2[!duplicated(bloom2$ID),]
 min1950_2 <- merge(min1950_2, onename, by=c("ID","startDayOfYear","Year","DataYrs"))
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
 
+length(unique(min1950_2$ID)) #246 species
+nrow(min1950_2) #246!! Should have more, right?
 ```
+
+
+Pull only the species that have 10 or more years of data for analyses
+```{r}
+tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
+length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 741
+length(unique(tenyearplus$ID)) # 498
+```
+
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
 earliestcollection <- data.frame(colSums(table(min1950_2$scientificName, #should be only one name now
                                                 min1950_2$Year)))
+
 earcol <- data.frame(Year = row.names(earliestcollection),
                      Collections = earliestcollection)
 colnames(earcol)[2] <- "Collections"
