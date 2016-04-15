@@ -350,44 +350,50 @@ sp.10plus <- spyears[spyears$DataYrs>=10,]
 ```
 
 
+Pull only the species that have 10 or more years of data for analyses   
+Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
+```{r}
+tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
+length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 741
+length(unique(tenyearplus$ID)) # 498
+```
+
+
 Pull out earliest collection
 ###START HERE#####
 ```{r}
 #
-x<- unique(bloom2$ID)[100]
+x<- unique(tenyearplus$ID)[100]
 
-minJul.dates.2 <- lapply(unique(bloom2$ID), function(x){
-  this.species <- bloom2[bloom2$ID == x,]
+minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
+  this.species <- tenyearplus[tenyearplus$ID == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  merge(unique(this.species[,c("ID","Year","startDayOfYear")]), these.rows,
+  merge(unique(this.species[,c("ID","Year","startDayOfYear","DataYrs")]), these.rows,
         by=c("startDayOfYear","Year"))
   })
 
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
+length(unique(min1950_2$ID)) #498 ! Yay!
+
 # check that none have more than one a year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
-nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0
+nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
 # add back the first species name (not the synonyms) for each data ID
 onename <- bloom2[!duplicated(bloom2$ID),]
-min1950_2 <- merge(min1950_2, onename, by=c("ID","startDayOfYear","Year","DataYrs"))
+min1950_2.foo <- merge(min1950_2, onename[,c("scientificName","Family.Name","ID")], by="ID")
+head(min1950_2.foo)
+length(unique(min1950_2.foo$ID)) #498! Yay!
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
 
-length(unique(min1950_2$ID)) #246 species
-nrow(min1950_2) #246!! Should have more, right?
-```
+length(unique(min1950_2$ID)) #498 species
+nrow(min1950_2) #11673
 
-
-Pull only the species that have 10 or more years of data for analyses
-```{r}
-tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 741
-length(unique(tenyearplus$ID)) # 498
 ```
 
 
