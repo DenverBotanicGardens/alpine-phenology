@@ -1,0 +1,736 @@
+Species_ID,Common_Name,Kingdom,Genus,Species,ITIS_Taxonomic_SN,Active,Cloned,USDA_Symbol,Date_Added,Functional_Type
+1,bigleaf maple,Plantae,Acer,macrophyllum,28748,1,0,ACMA3,8/25/2008 0:00,Deciduous broadleaf
+2,boxelder,Plantae,Acer,negundo,28749,1,0,ACNE2,8/25/2008 0:00,Deciduous broadleaf
+3,red maple,Plantae,Acer,rubrum,28728,1,0,ACRU,8/25/2008 0:00,Deciduous broadleaf
+4,Saskatoon serviceberry,Plantae,Amelanchier,alnifolia,25109,1,0,AMAL2,8/25/2008 0:00,Deciduous broadleaf
+6,yellow marsh marigold,Plantae,Caltha,palustris,18454,1,0,CAPA5,8/25/2008 0:00,Forb
+7,eastern redbud,Plantae,Cercis,canadensis,25782,1,0,CECA4,8/25/2008 0:00,Deciduous broadleaf
+8,Virginia springbeauty,Plantae,Claytonia,virginica,20382,1,0,CLVI3,8/25/2008 0:00,Forb
+9,bluebead,Plantae,Clintonia,borealis,42903,1,0,CLBO3,8/25/2008 0:00,Forb
+11,bunchberry dogwood,Plantae,Cornus,canadensis,27816,1,0,COCA13,8/25/2008 0:00,Forb
+12,flowering dogwood,Plantae,Cornus,florida,27806,1,0,COFL2,8/25/2008 0:00,Deciduous broadleaf
+16,ocotillo,Plantae,Fouquieria,splendens,502645,1,0,FOSP2,8/25/2008 0:00,Semi-deciduous broadleaf
+17,Virginia strawberry,Plantae,Fragaria,virginiana,24639,1,0,FRVI,8/25/2008 0:00,Forb
+19,twinflower,Plantae,Linnaea,borealis,35314,1,0,LIBO3,8/25/2008 0:00,Evergreen broadleaf
+20,Arnold Red honeysuckle,Plantae,Lonicera,tatarica-arnoldred,35306,1,1,LOTA,8/25/2008 0:00,Deciduous broadleaf
+22,desert ironwood,Plantae,Olneya,tesota,26808,1,0,OLTE,8/25/2008 0:00,Semi-deciduous broadleaf
+25,ponderosa pine,Plantae,Pinus,ponderosa,183365,1,0,PIPO,8/25/2008 0:00,Evergreen conifer
+26,mayapple,Plantae,Podophyllum,peltatum,18850,1,0,POPE,8/25/2008 0:00,Forb
+27,quaking aspen,Plantae,Populus,tremuloides,195773,1,0,POTR5,8/25/2008 0:00,Deciduous broadleaf
+28,black cherry,Plantae,Prunus,serotina,24764,1,0,PRSE2,8/25/2008 0:00,Deciduous broadleaf
+29,chokecherry,Plantae,Prunus,virginiana,24806,1,0,PRVI,8/25/2008 0:00,Deciduous broadleaf
+33,black locust,Plantae,Robinia,pseudoacacia,504804,1,0,ROPS,8/25/2008 0:00,Deciduous broadleaf
+35,Red Rothomagensis lilac,Plantae,Syringa,chinensis,NULL,1,1,SYCH3,8/25/2008 0:00,Deciduous broadleaf
+36,common lilac,Plantae,Syringa,vulgaris,32996,1,0,SYVU,8/25/2008 0:00,Deciduous broadleaf
+38,white trillium,Plantae,Trillium,grandiflorum,43074,1,0,TRGR4,8/25/2008 0:00,Forb
+39,balsam fir,Plantae,Abies,balsamea,18032,1,0,ABBA,8/25/2008 0:00,Evergreen conifer
+40,white fir,Plantae,Abies,concolor,181826,1,0,ABCO,8/25/2008 0:00,Evergreen conifer
+41,grand fir,Plantae,Abies,grandis,183284,1,0,ABGR,8/25/2008 0:00,Evergreen conifer
+42,subalpine fir,Plantae,Abies,lasiocarpa,181830,1,0,ABLA,8/25/2008 0:00,Evergreen conifer
+43,Ashe's juniper,Plantae,Juniperus,ashei,194812,1,0,JUAS,8/25/2008 0:00,Evergreen conifer
+44,eastern redcedar,Plantae,Juniperus,virginiana,18048,1,0,JUVI,8/25/2008 0:00,Evergreen conifer
+45,tamarack,Plantae,Larix,laricina,183412,1,0,LALA,8/25/2008 0:00,Deciduous conifer
+46,Engelmann spruce,Plantae,Picea,engelmannii,183291,1,0,PIEN,8/25/2008 0:00,Evergreen conifer
+47,white spruce,Plantae,Picea,glauca,183295,1,0,PIGL,8/25/2008 0:00,Evergreen conifer
+48,black spruce,Plantae,Picea,mariana,183302,1,0,PIMA,8/25/2008 0:00,Evergreen conifer
+49,red spruce,Plantae,Picea,rubens,18034,1,0,PIRU,8/25/2008 0:00,Evergreen conifer
+50,twoneedle pinyon,Plantae,Pinus,edulis,183336,1,0,PIED,8/25/2008 0:00,Evergreen conifer
+51,singleleaf pinyon,Plantae,Pinus,monophylla,183353,1,0,PIMO,8/25/2008 0:00,Evergreen conifer
+52,longleaf pine,Plantae,Pinus,palustris,18038,1,0,PIPA2,8/25/2008 0:00,Evergreen conifer
+53,eastern white pine,Plantae,Pinus,strobus,183385,1,0,PIST,8/25/2008 0:00,Evergreen conifer
+54,loblolly pine,Plantae,Pinus,taeda,18037,1,0,PITA,8/25/2008 0:00,Evergreen conifer
+55,Douglas-fir,Plantae,Pseudotsuga,menziesii,183424,1,0,PSME,8/25/2008 0:00,Evergreen conifer
+56,eastern hemlock,Plantae,Tsuga,canadensis,183397,1,0,TSCA,8/25/2008 0:00,Evergreen conifer
+57,western hemlock,Plantae,Tsuga,heterophylla,183400,1,0,TSHE,8/25/2008 0:00,Evergreen conifer
+58,mountain hemlock,Plantae,Tsuga,mertensiana,183402,1,0,TSME,8/25/2008 0:00,Evergreen conifer
+59,Rocky Mountain maple,Plantae,Acer,glabrum,28742,1,0,ACGL,8/25/2008 0:00,Deciduous broadleaf
+60,striped maple,Plantae,Acer,pensylvanicum,28754,1,0,ACPE,8/25/2008 0:00,Deciduous broadleaf
+61,sugar maple,Plantae,Acer,saccharum,28731,1,0,ACSA3,8/25/2008 0:00,Deciduous broadleaf
+62,gray alder,Plantae,Alnus,incana,19471,1,0,ALIN2,8/25/2008 0:00,Deciduous broadleaf
+63,red alder,Plantae,Alnus,rubra,19474,1,0,ALRU2,8/25/2008 0:00,Deciduous broadleaf
+64,Canadian serviceberry,Plantae,Amelanchier,canadensis,25112,1,0,AMCA4,8/25/2008 0:00,Deciduous broadleaf
+65,Utah serviceberry,Plantae,Amelanchier,utahensis,25121,1,0,AMUT,8/25/2008 0:00,Deciduous broadleaf
+66,gumbo limbo,Plantae,Bursera,simaruba,28766,1,0,BUSI,8/25/2008 0:00,Semi-deciduous broadleaf
+67,pignut hickory,Plantae,Carya,glabra,19231,1,0,CAGL8,8/25/2008 0:00,Deciduous broadleaf
+68,shagbark hickory,Plantae,Carya,ovata,19242,1,0,CAOV2,8/25/2008 0:00,Deciduous broadleaf
+69,Pacific dogwood,Plantae,Cornus,nuttallii,27809,1,0,CONU4,8/25/2008 0:00,Deciduous broadleaf
+70,redosier dogwood,Plantae,Cornus,sericea,501637,1,0,COSE16,8/25/2008 0:00,Deciduous broadleaf
+71,American hazelnut,Plantae,Corylus,americana,19506,1,0,COAM3,8/25/2008 0:00,Deciduous broadleaf
+72,beaked hazelnut,Plantae,Corylus,cornuta,19507,1,0,COCO6,8/25/2008 0:00,Deciduous broadleaf
+73,forsythia,Plantae,Forsythia,spp.,32961,1,0,FORSY,8/25/2008 0:00,Deciduous broadleaf
+74,white ash,Plantae,Fraxinus,americana,32931,1,0,FRAM2,8/25/2008 0:00,Deciduous broadleaf
+75,green ash,Plantae,Fraxinus,pennsylvanica,32929,1,0,FRPE,8/25/2008 0:00,Deciduous broadleaf
+76,American witchhazel,Plantae,Hamamelis,virginiana,19033,1,0,HAVI4,8/25/2008 0:00,Deciduous broadleaf
+77,greyleaf willow,Plantae,Salix,glauca,22482,1,0,SAGL,8/25/2008 0:00,Deciduous broadleaf
+78,white cedar,Plantae,Tabebuia,heterophylla,34345,1,0,TAHE,8/25/2008 0:00,Semi-deciduous broadleaf
+79,American beech,Plantae,Fagus,grandifolia,19462,1,0,FAGR,8/25/2008 0:00,Deciduous broadleaf
+80,black walnut,Plantae,Juglans,nigra,19254,1,0,JUNI,8/25/2008 0:00,Deciduous broadleaf
+81,sweetgum,Plantae,Liquidambar,styraciflua,19027,1,0,LIST2,8/25/2008 0:00,Deciduous broadleaf
+82,tuliptree,Plantae,Liriodendron,tulipifera,18086,1,0,LITU,8/25/2008 0:00,Deciduous broadleaf
+83,paradise apple,Plantae,Malus,pumila,25262,1,0,MAPU,8/25/2008 0:00,Deciduous broadleaf
+84,honey mesquite,Plantae,Prosopis,glandulosa,26879,1,0,PRGL2,8/25/2008 0:00,Semi-deciduous broadleaf
+85,mesquite,Plantae,Prosopis,juliflora,565434,1,0,PRJU3,8/25/2008 0:00,Semi-deciduous broadleaf
+86,sweet almond,Plantae,Prunus,dulcis,24775,1,0,PRDU,8/25/2008 0:00,Deciduous broadleaf
+87,bitter cherry,Plantae,Prunus,emarginata,24776,1,0,PREM,8/25/2008 0:00,Deciduous broadleaf
+88,peach,Plantae,Prunus,persica,24765,1,0,PRPE3,8/25/2008 0:00,Deciduous broadleaf
+89,common buckthorn,Plantae,Rhamnus,cathartica,28573,1,0,RHCA3,8/25/2008 0:00,Deciduous broadleaf
+90,black elderberry,Plantae,Sambucus,nigra,35324,1,0,SANI4,8/25/2008 0:00,Deciduous broadleaf
+91,American mountain ash,Plantae,Sorbus,americana,25319,1,0,SOAM3,8/25/2008 0:00,Deciduous broadleaf
+92,common snowberry,Plantae,Symphoricarpos,albus,35332,1,0,SYAL,8/25/2008 0:00,Deciduous broadleaf
+93,American basswood,Plantae,Tilia,americana,21536,1,0,TIAM,8/25/2008 0:00,Deciduous broadleaf
+94,highbush blueberry,Plantae,Vaccinium,corymbosum,23573,1,0,VACO,8/25/2008 0:00,Deciduous broadleaf
+95,hobblebush,Plantae,Viburnum,lantanoides,35265,1,0,VILA11,8/25/2008 0:00,Deciduous broadleaf
+96,wine grape,Plantae,Vitis,vinifera,28629,1,0,VIVI5,8/25/2008 0:00,Deciduous broadleaf
+97,yellow birch,Plantae,Betula,alleghaniensis,19481,1,0,BEAL2,8/25/2008 0:00,Deciduous broadleaf
+98,sweet birch,Plantae,Betula,lenta,19487,1,0,BELE,8/25/2008 0:00,Deciduous broadleaf
+99,paper birch,Plantae,Betula,papyrifera,19489,1,0,BEPA,8/25/2008 0:00,Deciduous broadleaf
+100,white oak,Plantae,Quercus,alba,19290,1,0,QUAL,8/25/2008 0:00,Deciduous broadleaf
+101,bur oak,Plantae,Quercus,macrocarpa,19287,1,0,QUMA2,8/25/2008 0:00,Deciduous broadleaf
+102,northern red oak,Plantae,Quercus,rubra,19408,1,0,QURU,8/25/2008 0:00,Deciduous broadleaf
+103,koa,Plantae,Acacia,koa,182079,1,0,ACKO,8/25/2008 0:00,Evergreen broadleaf
+104,kinnikinnick,Plantae,Arctostaphylos,uva-ursi,23530,1,0,ARUV,8/25/2008 0:00,Evergreen broadleaf
+105,big sagebrush,Plantae,Artemisia,tridentata,35498,1,0,ARTR2,8/25/2008 0:00,Evergreen broadleaf
+106,black mangrove,Plantae,Avicennia,germinans,32137,1,0,AVGE,8/25/2008 0:00,Evergreen broadleaf
+107,snowbrush ceanothus,Plantae,Ceanothus,velutinus,28517,1,0,CEVE,8/25/2008 0:00,Evergreen broadleaf
+108,curl-leaf mountain mahogany,Plantae,Cercocarpus,ledifolius,25134,1,0,CELE3,8/25/2008 0:00,Semi-deciduous broadleaf
+109,olapalapa,Plantae,Cheirodendron,trigynum,29385,1,0,CHTR2,8/25/2008 0:00,Evergreen broadleaf
+110,puckhout,Plantae,Coccoloba,microstachya,21042,1,0,COMI,8/25/2008 0:00,Evergreen broadleaf
+111,button mangrove,Plantae,Conocarpus,erectus,27766,1,0,COER2,8/25/2008 0:00,Evergreen broadleaf
+112,eightpetal mountain-avens,Plantae,Dryas,octopetala,24619,1,0,DROC,8/25/2008 0:00,Evergreen broadleaf
+113,holywood,Plantae,Guaiacum,sanctum,29041,1,0,GUSA,8/25/2008 0:00,Evergreen broadleaf
+114,oysterwood,Plantae,Gymnanthes,lucida,502845,1,0,GYLU,8/25/2008 0:00,Evergreen broadleaf
+115,Hawai'i holly,Plantae,Ilex,anomala,28014,1,0,ILAN,8/25/2008 0:00,Evergreen broadleaf
+116,white mangrove,Plantae,Laguncularia,racemosa,503318,1,0,LARA2,8/25/2008 0:00,Evergreen broadleaf
+117,creosote bush,Plantae,Larrea,tridentata,29051,1,0,LATR2,8/25/2008 0:00,Evergreen broadleaf
+118,white leadtree,Plantae,Leucaena,leucocephala,26766,1,0,LELE10,8/25/2008 0:00,Evergreen broadleaf
+119,creeping barberry,Plantae,Mahonia,repens,195045,1,0,MARE11,8/25/2008 0:00,Evergreen broadleaf
+120,'ohi'a lehua,Plantae,Metrosideros,polymorpha,27259,1,0,MEPO5,8/25/2008 0:00,Evergreen broadleaf
+121,kolea lau nui,Plantae,Myrsine,lessertiana,23916,1,0,MYLE2,8/25/2008 0:00,Evergreen broadleaf
+122,blue paloverde,Plantae,Parkinsonia,florida,26827,1,0,PAFL6,8/25/2008 0:00,Semi-deciduous broadleaf
+123,yellow paloverde,Plantae,Parkinsonia,microphylla,26828,1,0,PAMI5,8/25/2008 0:00,Semi-deciduous broadleaf
+124,avocado,Plantae,Persea,americana,18154,1,0,PEAM3,8/25/2008 0:00,Semi-deciduous broadleaf
+125,corcho bobo,Plantae,Pisonia,albida,19609,1,0,PIAL3,8/25/2008 0:00,Semi-deciduous broadleaf
+126,antelope bitterbrush,Plantae,Purshia,tridentata,25290,1,0,PUTR2,8/25/2008 0:00,Semi-deciduous broadleaf
+127,red mangrove,Plantae,Rhizophora,mangle,27791,1,0,RHMA2,8/25/2008 0:00,Evergreen broadleaf
+128,tamarisk,Plantae,Tamarix,spp.,22303,1,0,TAMAR2,8/25/2008 0:00,Semi-deciduous broadleaf
+129,big bluestem,Plantae,Andropogon,gerardii,40462,1,0,ANGE,8/25/2008 0:00,Graminoid
+130,sideoats grama,Plantae,Bouteloua,curtipendula,41500,1,0,BOCU,8/25/2008 0:00,Graminoid
+131,blue grama,Plantae,Bouteloua,gracilis,41493,1,0,BOGR2,8/25/2008 0:00,Graminoid
+132,red brome,Plantae,Bromus,rubens,40518,1,0,BRRU2,8/25/2008 0:00,Graminoid
+133,cheatgrass,Plantae,Bromus,tectorum,40524,1,0,BRTE,8/25/2008 0:00,Graminoid
+134,buffalograss,Plantae,Buchloe,dactyloides,41533,1,0,BODA2,8/25/2008 0:00,Graminoid
+135,tufted hairgrass,Plantae,Deschampsia,cespitosa,502001,1,0,DECE,8/25/2008 0:00,Graminoid
+136,needle and thread,Plantae,Hesperostipa,comata,507974,1,0,HECO26,8/25/2008 0:00,Graminoid
+137,switchgrass,Plantae,Panicum,virgatum,40913,1,0,PAVI2,8/25/2008 0:00,Graminoid
+138,western wheatgrass,Plantae,Pascopyrum,smithii,504124,1,0,PASM,8/25/2008 0:00,Graminoid
+139,buffelgrass,Plantae,Pennisetum,ciliare,504198,1,0,PECI,8/25/2008 0:00,Graminoid
+140,common reed,Plantae,Phragmites,australis,41072,1,0,PHAU7,8/25/2008 0:00,Graminoid
+141,bluebunch wheatgrass,Plantae,Pseudoroegneria,spicata,504637,1,0,PSSP6,8/25/2008 0:00,Graminoid
+142,wheat,Plantae,Triticum,spp.,42236,1,0,TRITI,8/25/2008 0:00,Graminoid
+143,guineagrass,Plantae,Urochloa,maxima,507480,1,0,URMA3,8/25/2008 0:00,Graminoid
+144,common yarrow,Plantae,Achillea,millefolium,35423,1,0,ACMI2,8/25/2008 0:00,Forb
+145,annual ragweed,Plantae,Ambrosia,artemisiifolia,36496,1,0,AMAR2,8/25/2008 0:00,Forb
+146,cuman ragweed,Plantae,Ambrosia,psilostachya,36516,1,0,AMPS,8/25/2008 0:00,Forb
+147,red columbine,Plantae,Aquilegia,canadensis,18730,1,0,AQCA,8/25/2008 0:00,Forb
+148,Colorado blue columbine,Plantae,Aquilegia,caerulea,565004,1,0,AQCO,8/25/2008 0:00,Forb
+149,western columbine,Plantae,Aquilegia,formosa,18738,1,0,AQFO,8/25/2008 0:00,Forb
+150,jack in the pulpit,Plantae,Arisaema,triphyllum,42525,1,0,ARTR,8/25/2008 0:00,Forb
+151,soft greeneyes,Plantae,Berlandiera,pumila,36833,1,0,BEPU2,8/25/2008 0:00,Forb
+152,field mustard,Plantae,Brassica,rapa,23063,1,0,BRRA,8/25/2008 0:00,Forb
+153,Asian mustard,Plantae,Brassica,tournefortii,23064,1,0,BRTO,8/25/2008 0:00,Forb
+154,yellow star-thistle,Plantae,Centaurea,solstitialis,36972,1,0,CESO3,8/25/2008 0:00,Forb
+155,spotted knapweed,Plantae,Centaurea,stoebe,780246,1,0,CEST8,8/25/2008 0:00,Forb
+156,Canada thistle,Plantae,Cirsium,arvense,36335,1,0,CIAR4,8/25/2008 0:00,Forb
+157,lanceleaf springbeauty,Plantae,Claytonia,lanceolata,20390,1,0,CLLA2,8/25/2008 0:00,Forb
+158,pride of Ohio,Plantae,Dodecatheon,meadia,23969,1,0,DOME,8/25/2008 0:00,Forb
+159,darkthroat shooting star,Plantae,Dodecatheon,pulchellum,23945,1,0,DOPU,8/25/2008 0:00,Forb
+160,white fawnlily,Plantae,Erythronium,albidum,42927,1,0,ERAL9,8/25/2008 0:00,Forb
+161,dogtooth violet,Plantae,Erythronium,americanum,196365,1,0,ERAM5,8/25/2008 0:00,Forb
+162,California poppy,Plantae,Eschscholzia,californica,18956,1,0,ESCA2,8/25/2008 0:00,Forb
+163,leafy spurge,Plantae,Euphorbia,esula,28064,1,0,EUES,8/25/2008 0:00,Forb
+164,soybean,Plantae,Glycine,max,26716,1,0,GLMA4,8/25/2008 0:00,Forb
+165,common cowparsnip,Plantae,Heracleum,maximum,502953,1,0,HEMA80,8/25/2008 0:00,Forb
+166,jewelweed,Plantae,Impatiens,capensis,29182,1,0,IMCA,8/25/2008 0:00,Forb
+167,scarlet gilia,Plantae,Ipomopsis,aggregata,31192,1,0,IPAG,8/25/2008 0:00,Forb
+168,sericia lespedeza,Plantae,Lespedeza,cuneata,25898,1,0,LECU,8/25/2008 0:00,Forb
+169,bitter root,Plantae,Lewisia,rediviva,20490,1,0,LERE7,8/25/2008 0:00,Forb
+170,sundial lupine,Plantae,Lupinus,perennis,26091,1,0,LUPE3,8/25/2008 0:00,Forb
+171,bigleaf lupine,Plantae,Lupinus,polyphyllus,25921,1,0,LUPO2,8/25/2008 0:00,Forb
+172,purple loosestrife,Plantae,Lythrum,salicaria,27079,1,0,LYSA2,8/25/2008 0:00,Forb
+173,Canada mayflower,Plantae,Maianthemum,canadense,503653,1,0,MACA4,8/25/2008 0:00,Forb
+174,alfalfa,Plantae,Medicago,sativa,183623,1,0,MESA,8/25/2008 0:00,Forb
+175,yellow sweetclover,Plantae,Melilotus,officinalis,26150,1,0,MEOF,8/25/2008 0:00,Forb
+176,Virginia bluebells,Plantae,Mertensia,virginica,31673,1,0,MEVI3,8/25/2008 0:00,Forb
+177,Eurasian watermilfoil,Plantae,Myriophyllum,spicatum,27039,1,0,MYSP2,8/25/2008 0:00,Forb
+178,common evening primrose,Plantae,Oenothera,biennis,27368,1,0,OEBI,8/25/2008 0:00,Forb
+179,tufted evening primrose,Plantae,Oenothera,caespitosa,565328,1,0,OECA10,8/25/2008 0:00,Forb
+180,pinkladies,Plantae,Oenothera,speciosa,27415,1,0,OESP2,8/25/2008 0:00,Forb
+181,mountain woodsorrel,Plantae,Oxalis,montana,29090,1,0,OXMO,8/25/2008 0:00,Forb
+182,purple passionflower,Plantae,Passiflora,incarnata,504139,1,0,PAIN6,8/25/2008 0:00,Forb
+183,silverleaf phacelia,Plantae,Phacelia,hastata,31529,1,0,PHHA,8/25/2008 0:00,Forb
+184,Japanese knotweed,Plantae,Polygonum,cuspidatum,20889,1,0,POCU6,8/25/2008 0:00,Forb
+185,eastern pasqueflower,Plantae,Pulsatilla,patens,18799,1,0,PUPA5,8/25/2008 0:00,Forb
+186,Missouri goldenrod,Plantae,Solidago,missouriensis,36277,1,0,SOMI2,8/25/2008 0:00,Forb
+187,scarlet globemallow,Plantae,Sphaeralcea,coccinea,21920,1,0,SPCO,8/25/2008 0:00,Forb
+188,woodland pinkroot,Plantae,Spigelia,marilandica,505330,1,0,SPMA3,8/25/2008 0:00,Forb
+189,common dandelion,Plantae,Taraxacum,officinale,36213,1,0,TAOF,8/25/2008 0:00,Forb
+190,bluejacket,Plantae,Tradescantia,ohiensis,39169,1,0,TROH,8/25/2008 0:00,Forb
+191,white clover,Plantae,Trifolium,repens,26206,1,0,TRRE3,8/25/2008 0:00,Forb
+192,red trillium,Plantae,Trillium,erectum,43070,1,0,TRER3,8/25/2008 0:00,Forb
+193,Pacific trillium,Plantae,Trillium,ovatum,43080,1,0,TROV2,8/25/2008 0:00,Forb
+194,painted trillium,Plantae,Trillium,undulatum,43092,1,0,TRUN,8/25/2008 0:00,Forb
+195,butterfly milkweed,Plantae,Asclepias,tuberosa,30313,1,0,ASTU,8/25/2008 0:00,Forb
+197,swamp milkweed,Plantae,Asclepias,incarnata,30241,1,0,ASIN,8/25/2008 0:00,Forb
+198,prairie milkweed,Plantae,Asclepias,sullivanti,30309,1,0,ASSU3,8/25/2008 0:00,Forb
+199,common milkweed,Plantae,Asclepias,syriaca,30310,1,0,ASSY,8/25/2008 0:00,Forb
+200,green antelopehorn,Plantae,Asclepias,viridis,30323,1,0,ASVI2,8/25/2008 0:00,Forb
+201,common buttonbush,Plantae,Cephalanthus,occidentalis,34786,1,0,CEOC2,8/25/2008 0:00,Deciduous broadleaf
+202,eastern purple coneflower,Plantae,Echinacea,purpurea,37281,1,0,ECPU,8/25/2008 0:00,Forb
+203,common sunflower,Plantae,Helianthus,annuus,36616,1,0,HEAN3,8/25/2008 0:00,Forb
+204,tall blazing star,Plantae,Liatris,aspera,37909,1,0,LIAS,8/25/2008 0:00,Forb
+205,stiff goldenrod,Plantae,Oligoneuron,rigidum,508151,1,0,OLRI,8/25/2008 0:00,Forb
+206,American plum,Plantae,Prunus,americana,24763,1,0,PRAM,8/25/2008 0:00,Deciduous broadleaf
+207,white heath aster,Plantae,Symphyotrichum,ericoides,522202,1,0,SYER,8/25/2008 0:00,Forb
+208,white crownbeard,Plantae,Verbesina,virginica,38613,1,0,VEVI3,8/25/2008 0:00,Forb
+209,prairie ironweed,Plantae,Vernonia,fasciculata,38629,1,0,VEFA2,8/25/2008 0:00,Forb
+210,saguaro,Plantae,Carnegia,gigantea,501299,1,0,CAGI10,8/25/2008 0:00,Cactus
+211,shrubby cinquefoil,Plantae,Dasiphora,floribunda,565123,1,0,DAFRF,8/25/2008 0:00,Deciduous broadleaf
+212,creole cotton,Plantae,Gossypium,barbadense,21710,1,0,GOBA,8/25/2008 0:00,Forb
+213,upland cotton,Plantae,Gossypium,hirsutum,21711,1,0,GOHI,8/25/2008 0:00,Forb
+214,Lewis' mock orange,Plantae,Philadelphus,lewisii,24430,1,0,PHLE4,8/25/2008 0:00,Deciduous broadleaf
+215,Royen's tree cactus,Plantae,Pilosocereus,royenii,504399,1,0,PIRO6,8/25/2008 0:00,Cactus
+216,kudzu,Plantae,Pueraria,montana,504683,1,0,PUMO,8/25/2008 0:00,Deciduous broadleaf
+217,Woods' rose,Plantae,Rosa,woodsii,24847,1,0,ROWO,8/25/2008 0:00,Deciduous broadleaf
+218,citrus,Plantae,Citrus,spp.,28882,1,0,CITRU2,8/25/2008 0:00,Evergreen broadleaf
+219,Great Basin bristlecone pine,Plantae,Pinus,longaeva,183352,1,0,PILO,10/1/2008 0:00,Evergreen conifer
+220,limber pine,Plantae,Pinus,flexilis,183343,1,0,PIFL2,10/1/2008 0:00,Evergreen conifer
+221,Florida hopbush,Plantae,Dodonaea,viscosa,28675,1,0,DOVI,3/2/2009 0:00,Evergreen broadleaf
+222,wild banyantree,Plantae,Ficus,citrifolia,19094,1,0,FICI,3/2/2009 0:00,Evergreen broadleaf
+223,spider milkweed,Plantae,Asclepias,asperula,30247,1,0,ASAS,3/2/2009 0:00,Forb
+224,showy milkweed,Plantae,Asclepias,speciosa,30304,1,0,ASSP,3/2/2009 0:00,Forb
+225,naio,Plantae,Myoporum,sandwicense,34079,1,0,MYSA,3/2/2009 0:00,Semi-deciduous broadleaf
+226,mamani,Plantae,Sophora,chrysophylla,505293,1,0,SOCH,3/2/2009 0:00,Evergreen broadleaf
+227,Japanese flowering cherry,Plantae,Prunus,serrulata,506233,1,0,PRSE3,3/2/2009 0:00,Deciduous broadleaf
+228,Yoshino cherry,Plantae,Prunus,yedoensis,NULL,1,0,PRYE,3/2/2009 0:00,Deciduous broadleaf
+289,oneseed juniper,Plantae,Juniperus,monosperma,194853,1,0,JUMO,3/27/2010 0:00,Evergreen conifer
+290,Rocky Mountain juniper,Plantae,Juniperus,scopulorum,194872,1,0,JUSC2,3/27/2010 0:00,Evergreen conifer
+291,Pinchot's juniper,Plantae,Juniperus,pinchotii,194869,1,0,JUPI,3/27/2010 0:00,Evergreen conifer
+292,stiff dogwood,Plantae,Cornus,foemina,27803,1,0,COFO,3/27/2010 0:00,Deciduous broadleaf
+293,coastal plain willow,Plantae,Salix,caroliniana,22516,1,0,SACA5,3/27/2010 0:00,Deciduous broadleaf
+294,devil's-tongue,Plantae,Opuntia,humifusa,19710,1,0,OPHU,3/27/2010 0:00,Cactus
+295,slash pine,Plantae,Pinus,elliottii,18036,1,0,PIEL,3/27/2010 0:00,Evergreen conifer
+296,bald cypress,Plantae,Taxodium,distichum,18041,1,0,TADI2,3/27/2010 0:00,Deciduous conifer
+297,sand live oak,Plantae,Quercus,geminata,195176,1,0,QUGE2,3/27/2010 0:00,Evergreen broadleaf
+298,cabbage palmetto,Plantae,Sabal,palmetto,42506,1,0,SAPA,3/27/2010 0:00,Evergreen broadleaf
+299,wrinkleleaf goldenrod,Plantae,Solidago,rugosa,36299,1,0,SORU2,3/27/2010 0:00,Forb
+301,laurel oak,Plantae,Quercus,laurifolia,19368,1,0,QULA3,4/7/2010 0:00,Semi-deciduous broadleaf
+302,fireweed,Plantae,Chamerion,angustifolium,510756,1,0,CHAN9,4/9/2010 0:00,Forb
+303,common persimmon,Plantae,Diospyros,virginiana,23855,1,0,DIVI5,4/27/2010 0:00,Deciduous broadleaf
+304,feathery false lily of the valley,Plantae,Maianthemum,racemosum,503655,1,0,MARA7,4/27/2010 0:00,Forb
+305,live oak,Plantae,Quercus,virginiana,19283,1,0,QUVI,4/27/2010 0:00,Evergreen broadleaf
+306,saw palmetto,Plantae,Serenoa,repens,42508,1,0,SERE2,4/27/2010 0:00,Evergreen broadleaf
+308,garlic mustard,Plantae,Alliaria,petiolata,184481,1,0,ALPE4,6/10/2010 0:00,Forb
+309,trumpet creeper,Plantae,Campsis,radicans,34309,1,0,CARA2,6/10/2010 0:00,Deciduous broadleaf
+310,Pacific bleeding heart,Plantae,Dicentra,formosa,18947,1,0,DIFO,6/10/2010 0:00,Forb
+311,salal,Plantae,Gaultheria,shallon,23658,1,0,GASH,6/10/2010 0:00,Evergreen broadleaf
+312,oceanspray,Plantae,Holodiscus,discolor,25177,1,0,HODI,6/10/2010 0:00,Deciduous broadleaf
+313,bog Labrador tea,Plantae,Ledum,groenlandicum,23546,1,0,LEGR,6/10/2010 0:00,Evergreen broadleaf
+314,rugosa rose,Plantae,Rosa,rugosa,24811,1,0,RORU,6/10/2010 0:00,Deciduous broadleaf
+315,staghorn sumac,Plantae,Rhus,typhina,504755,1,0,RHTY,6/10/2010 0:00,Deciduous broadleaf
+316,Oregon white oak,Plantae,Quercus,garryana,10340,1,0,QUGA4,6/10/2010 0:00,Deciduous broadleaf
+317,velvet mesquite,Plantae,Prosopis,velutina,26883,1,0,PRVE,6/10/2010 0:00,Semi-deciduous broadleaf
+318,laurel sumac,Plantae,Malosma,laurina,503671,1,0,MALA6,6/10/2010 0:00,Evergreen broadleaf
+319,green alder,Plantae,Alnus,viridis,181892,1,0,ALVI5,6/10/2010 0:00,Deciduous broadleaf
+320,balsam poplar,Plantae,Populus,balsamifera,22453,1,0,POBA2,6/10/2010 0:00,Deciduous broadleaf
+321,thimbleberry,Plantae,Rubus,parviflorus,25007,1,0,RUPA,6/10/2010 0:00,Deciduous broadleaf
+322,diamondleaf willow,Plantae,Salix,planifolia,22569,1,0,SAPL2,6/10/2010 0:00,Deciduous broadleaf
+323,arrowleaf balsamroot,Plantae,Balsamorhiza,sagittata,36818,1,0,BASA3,6/10/2010 0:00,Forb
+324,leatherleaf,Plantae,Chamaedaphne,calyculata,23637,1,0,CHCA2,6/10/2010 0:00,Evergreen broadleaf
+325,red elderberry,Plantae,Sambucus,racemosa,35326,1,0,SARA2,6/10/2010 0:00,Deciduous broadleaf
+326,white meadowsweet,Plantae,Spiraea,alba,25329,1,0,SPAL2,6/10/2010 0:00,Deciduous broadleaf
+327,small-leaf arrowwood,Plantae,Viburnum,obovatum,35269,1,0,VIOB,6/10/2010 0:00,Evergreen broadleaf
+328,bog blueberry,Plantae,Vaccinium,uliginosum,23574,1,0,VAUL,6/10/2010 0:00,Deciduous broadleaf
+329,lingonberry,Plantae,Vaccinium,vitis-idaea,505637,1,0,VAVI,6/10/2010 0:00,Evergreen broadleaf
+430,dwarf birch,Plantae,Betula,nana,19479,1,0,BENA,12/3/2010 0:00,Deciduous broadleaf
+431,tussock cottongrass,Plantae,Eriophorum,vaginatum,40104,1,0,ERVA4,12/8/2010 0:00,Graminoid
+432,tall cottongrass,Plantae,Eriophorum,angustifolium,40080,1,0,ERAN6,12/8/2010 0:00,Graminoid
+433,water sedge,Plantae,Carex,aquatilis,39374,1,0,CAAQ,12/8/2010 0:00,Graminoid
+434,arctic sweet coltsfoot,Plantae,Petasites,frigidus,36054,1,0,PEFR5,12/3/2010 0:00,Forb
+435,fourwing saltbush,Plantae,Atriplex,canescens,20518,1,0,ATCA2,3/25/2011 0:00,Evergreen broadleaf
+436,rubber rabbitbrush,Plantae,Ericameria,nauseosa,50759,1,0,ERNA10,3/25/2011 0:00,Semi-deciduous broadleaf
+437,smooth desertdandelion,Plantae,Malacothrix,glabrata,38050,1,0,MAGL3,3/25/2011 0:00,Forb
+438,chia,Plantae,Salvia,columbariae,32707,1,0,SACO6,3/25/2011 0:00,Forb
+439,seep monkeyflower,Plantae,Mimulus,guttatus,33236,1,0,MIGU,3/25/2011 0:00,Forb
+440,blackbrush,Plantae,Coleogyne,ramosissima,25150,1,0,CORA,3/25/2011 0:00,Semi-deciduous broadleaf
+441,desertholly,Plantae,Atriplex,hymenelytra,20539,1,0,ATHY,3/25/2011 0:00,Evergreen broadleaf
+442,Joshua tree,Plantae,Yucca,brevifolia,565605,1,0,YUBR,3/25/2011 0:00,Evergreen broadleaf
+443,Mojave yucca,Plantae,Yucca,schidigera,505787,1,0,YUSC2,3/25/2011 0:00,Evergreen broadleaf
+444,Appalachian Spring dogwood,Plantae,Cornus,florida-appalachianspring,27806,1,1,COFL2,3/25/2011 0:00,Deciduous broadleaf
+701,chamise,Plantae,Adenostoma,fasciculatum,25090,1,0,ADFA,5/9/2011 0:00,Evergreen broadleaf
+702,coyotebrush,Plantae,Baccharis,pilularis,35693,1,0,BAPI,5/9/2011 0:00,Evergreen broadleaf
+703,milkmaids,Plantae,Cardamine,californica,22782,1,0,CACA39,5/9/2011 0:00,Forb
+704,valley oak,Plantae,Quercus,lobata,19370,1,0,QULO,5/9/2011 0:00,Deciduous broadleaf
+705,California live oak,Plantae,Quercus,agrifolia,19289,1,0,QUAG,5/9/2011 0:00,Evergreen broadleaf
+706,buckbrush,Plantae,Ceanothus,cuneatus,28460,1,0,CECU,5/9/2011 0:00,Evergreen broadleaf
+707,toyon ,Plantae,Heteromeles,arbutifolia,25174,1,0,HEAR5,5/9/2011 0:00,Evergreen broadleaf
+708,Eastern Mojave buckwheat,Plantae,Eriogonum,fasciculatum,21132,1,0,ERFA2,5/9/2011 0:00,Semi-deciduous broadleaf
+709,western blue-eyed grass,Plantae,Sisyrinchium,bellum,43242,1,0,SIBE,5/9/2011 0:00,Forb
+713,California buckeye,Plantae,Aesculus,californica,28716,1,0,AECA,5/31/2011 0:00,Deciduous broadleaf
+714,bull thistle,Plantae,Cirsium,vulgare,36428,1,0,CIVU,5/31/2011 0:00,Forb
+715,cobwebby thistle,Plantae,Cirsium,occidentale,36391,1,0,CIOC,5/31/2011 0:00,Forb
+716,Pacific rhododendron,Plantae,Rhododendron,macrophyllum,23720,1,0,RHMA3,5/31/2011 0:00,Evergreen broadleaf
+717,arroyo willow,Plantae,Salix,lasiolepis,22551,1,0,SALA6,5/31/2011 0:00,Deciduous broadleaf
+718,silky beach pea,Plantae,Lathyrus,littoralis,25858,1,0,LALI2,5/31/2011 0:00,Forb
+719,salmonberry,Plantae,Rubus,spectabilis,25051,1,0,RUSP,5/31/2011 0:00,Deciduous broadleaf
+720,San Francisco lessingia,Plantae,Lessingia,germanorum,37893,1,0,LEGE,5/31/2011 0:00,Forb
+721,southern magnolia,Plantae,Magnolia,grandiflora,18074,1,0,MAGR4,5/31/2011 0:00,Evergreen broadleaf
+722,wax myrtle,Plantae,Morella,cerifera,507899,1,0,MOCE2,5/31/2011 0:00,Evergreen broadleaf
+723,mallow ninebark,Plantae,Physocarpus,malvaceus,25280,1,0,PHMA5,5/31/2011 0:00,Deciduous broadleaf
+724,American chestnut,Plantae,Castanea,dentata,19454,1,0,CADE12,5/31/2011 0:00,Deciduous broadleaf
+725,beach pea,Plantae,Lathyrus,japonicus,25836,1,0,LAJA,5/31/2011 0:00,Forb
+726,white wood aster,Plantae,Eurybia,divaricata,513440,1,0,EUDI16,5/31/2011 0:00,Forb
+743,pincushion plant,Plantae,Diapensia,lapponica,23792,1,0,DILA,5/31/2011 0:00,Evergreen broadleaf
+745,lavender thrift,Plantae,Limonium,carolinianum,21330,1,0,LICA17,5/31/2011 0:00,Forb
+747,seaside goldenrod,Plantae,Solidago,sempervirens,36226,1,0,SOSE,5/31/2011 0:00,Forb
+757,blue oak,Plantae,Quercus,douglasii,19322,1,0,QUDO,5/31/2011 0:00,Deciduous broadleaf
+758,skypilot,Plantae,Polemonium,eximium,504483,1,0,POEX,5/31/2011 0:00,Forb
+759,Bolander's woodland-star,Plantae,Lithophragma,bolanderi,24392,1,0,LIBO5,5/31/2011 0:00,Forb
+760,mountain pride,Plantae,Penstemon,newberryi,33730,1,0,PENE3,5/31/2011 0:00,Evergreen broadleaf
+761,greenleaf manzanita,Plantae,Arctostaphylos,patula,23513,1,0,ARPA6,5/31/2011 0:00,Evergreen broadleaf
+762,lodgepole pine,Plantae,Pinus,contorta,183327,1,0,PICO,5/31/2011 0:00,Evergreen conifer
+763,hummingbird trumpet,Plantae,Epilobium,canum,27289,1,0,EPCA3,5/31/2011 0:00,Forb
+764,western azalea,Plantae,Rhododendron,occidentale ,23724,1,0,RHOC,5/31/2011 0:00,Deciduous broadleaf
+765,California black oak,Plantae,Quercus,kelloggii,19366,1,0,QUKE,5/31/2011 0:00,Deciduous broadleaf
+766,whitethorn ceanothus,Plantae,Ceanothus,cordulatus,28458,1,0,CECO,5/31/2011 0:00,Evergreen broadleaf
+767,broadleaf lupine,Plantae,Lupinus,latifolius,26040,1,0,LULA4,5/31/2011 0:00,Forb
+768,woolly mule-ears,Plantae,Wyethia,mollis,38684,1,0,WYMO,5/31/2011 0:00,Forb
+769,jojoba,Plantae,Simmondsia,chinensis,28030,1,0,SICH,5/31/2011 0:00,Evergreen broadleaf
+770,Tatarian honeysuckle,Plantae,Lonicera,tatarica,35306,1,0,LOTA,5/31/2011 0:00,Deciduous broadleaf
+771,orange bush monkeyflower,Plantae,Diplacus,aurantiacus,523972,1,0,DIAUA,12/19/2011 0:00,Semi-deciduous broadleaf
+772,bluntlobe lupine,Plantae,Lupinus,obtusilobus,26077,1,0,LUOB,12/19/2011 0:00,Forb
+775,guajillo,Plantae,Acacia,berlandieri,26420,1,0,ACBE,3/8/2012 0:00,Semi-deciduous broadleaf
+776,catclaw acacia,Plantae,Acacia,greggii,26428,1,0,ACGR,3/8/2012 0:00,Semi-deciduous broadleaf
+777,vine maple,Plantae,Acer,circinatum,28740,1,0,ACCI,3/8/2012 0:00,Deciduous broadleaf
+778,bigtooth maple,Plantae,Acer,grandidentatum,28760,1,0,ACGR3,3/8/2012 0:00,Deciduous broadleaf
+779,Norway maple,Plantae,Acer,platanoides,28755,1,0,ACPL,3/8/2012 0:00,Deciduous broadleaf
+780,sycamore maple,Plantae,Acer,pseudoplatanus,28756,1,0,ACPS,3/8/2012 0:00,Deciduous broadleaf
+781,silver maple,Plantae,Acer,saccharinum,28757,1,0,ACSA2,3/8/2012 0:00,Deciduous broadleaf
+782,white baneberry,Plantae,Actaea,pachypoda,1872,1,0,ACPA,3/8/2012 0:00,Forb
+783,Ohio buckeye,Plantae,Aesculus,glabra,28718,1,0,AEGL,3/8/2012 0:00,Deciduous broadleaf
+784,red buckeye,Plantae,Aesculus,pavia,28723,1,0,AEPA,3/8/2012 0:00,Deciduous broadleaf
+785,lechuguilla,Plantae,Agave,lechuguilla,182675,1,0,AGLE,3/8/2012 0:00,Evergreen broadleaf
+786,white snakeroot,Plantae,Ageratina,altissima,36466,1,0,AGAL5,3/8/2012 0:00,Forb
+787,plains onion,Plantae,Allium,perdulce,42693,1,0,ALPE2,3/8/2012 0:00,Forb
+788,burrobush,Plantae,Ambrosia,dumosa,36506,1,0,AMDU2,3/8/2012 0:00,Deciduous broadleaf
+789,leadplant,Plantae,Amorpha,canescens,25371,1,0,AMCA6,3/8/2012 0:00,Deciduous broadleaf
+790,bog rosemary,Plantae,Andromeda,polifolia,23465,1,0,ANPO,3/8/2012 0:00,Evergreen broadleaf
+791,wild sarsaparilla,Plantae,Aralia,nudicaulis,29376,1,0,ARNU2,3/8/2012 0:00,Forb
+792,sharplobe hepatica,Plantae,Anemone,acutiloba,565909,1,0,HENOA,3/8/2012 0:00,Forb
+793,Pacific madrone,Plantae,Arbutus,menziesii,23627,1,0,ARME,3/8/2012 0:00,Evergreen broadleaf
+794,pendantgrass,Plantae,Arctophila,fulva,500961,1,0,ARFU2,3/8/2012 0:00,Graminoid
+795,pineland threeawn,Plantae,Aristida,stricta,41433,1,0,ARST5,3/8/2012 0:00,Graminoid
+796,coastal sagebrush,Plantae,Artemisia,californica,35453,1,0,ARCA11,3/8/2012 0:00,Deciduous broadleaf
+797,Douglas' sagewort,Plantae,Artemisia,douglasiana,35460,1,0,ARDO3,3/8/2012 0:00,Forb
+798,sand sagebrush,Plantae,Artemisia,filifolia,35463,1,0,ARFI2,3/8/2012 0:00,Evergreen broadleaf
+799,bride's feathers,Plantae,Aruncus,dioicus,25130,1,0,ARDI8,3/8/2012 0:00,Deciduous broadleaf
+800,Canadian wildginger,Plantae,Asarum,canadense,18353,1,0,ASCA,3/8/2012 0:00,Forb
+801,rush milkweed,Plantae,Asclepias,subulata,30307,1,0,ASSU,3/8/2012 0:00,Forb
+802,bigflower pawpaw,Plantae,Asimina,obovata,18112,1,0,ASOB6,3/8/2012 0:00,Deciduous broadleaf
+803,garden asparagus,Plantae,Asparagus,officinalis,42784,1,0,ASOF,3/8/2012 0:00,Forb
+804,eastern baccharis,Plantae,Baccharis,halimifolia,35682,1,0,BAHA,3/8/2012 0:00,Deciduous broadleaf
+805,hairyseed bahia,Plantae,Bahia,absinthifolia,36791,1,0,BAAB,3/8/2012 0:00,Forb
+806,desert marigold,Plantae,Baileya,multiradiata,36799,1,0,BAMU,3/8/2012 0:00,Forb
+807,garden yellowrocket,Plantae,Barbarea,vulgaris,22741,1,0,BAVU,3/8/2012 0:00,Forb
+808,Richardson's brookfoam,Plantae,Boykinia,richardsonii,501038,1,0,BORI2,3/8/2012 0:00,Forb
+809,black mustard,Plantae,Brassica,nigra,23061,1,0,BRNI,3/8/2012 0:00,Forb
+810,angel's-tears,Plantae,Brugmansia,suaveolens,501975,1,0,BRSU3,3/8/2012 0:00,Deciduous broadleaf
+811,bluejoint,Plantae,Calamagrostis,canadensis,40544,1,0,CACA4,3/8/2012 0:00,Graminoid
+812,American beautyberry,Plantae,Callicarpa,americana,32144,1,0,CAAM2,3/8/2012 0:00,Deciduous broadleaf
+813,tuberous grasspink,Plantae,Calopogon,tuberosus,43506,1,0,CATU5,3/8/2012 0:00,Forb
+814,hedge false bindweed,Plantae,Calystegia,sepium,30650,1,0,CASE13,3/8/2012 0:00,Forb
+815,small camas,Plantae,Camassia,quamash,42883,1,0,CAQU2,3/8/2012 0:00,Forb
+816,Griffin's bellflower,Plantae,Campanula,griffinii,501170,1,0,CAGR26,3/8/2012 0:00,Forb
+817,Bigelow's sedge,Plantae,Carex,bigelowii,39378,1,0,CABI5,3/8/2012 0:00,Graminoid
+818,fringed sedge,Plantae,Carex,crinita,39385,1,0,CACR6,3/8/2012 0:00,Graminoid
+819,Lyngbye's sedge,Plantae,Carex,lyngbyei,39415,1,0,CALY3,3/8/2012 0:00,Graminoid
+820,slough sedge,Plantae,Carex,obnupta,39444,1,0,CAOB3,3/8/2012 0:00,Graminoid
+821,Pennsylvania sedge,Plantae,Carex,pensylvanica,39749,1,0,CAPE6,3/8/2012 0:00,Graminoid
+822,Hoppner's sedge,Plantae,Carex,subspathacea,39436,1,0,CASU8,3/8/2012 0:00,Graminoid
+823,American hornbeam,Plantae,Carpinus,caroliniana,19504,1,0,CACA18,3/8/2012 0:00,Deciduous broadleaf
+824,pecan,Plantae,Carya,illinoinensis,19234,1,0,CAIL2,3/8/2012 0:00,Deciduous broadleaf
+825,giant red Indian paintbrush,Plantae,Castilleja,miniata,33069,1,0,CAMI12,3/8/2012 0:00,Forb
+826,blue cohosh,Plantae,Caulophyllum,thalictroides,18840,1,0,CATH2,3/8/2012 0:00,Forb
+827,New Jersey tea,Plantae,Ceanothus,americanus,28454,1,0,CEAM,3/8/2012 0:00,Deciduous broadleaf
+828,deerbrush,Plantae,Ceanothus,integerrimus,28479,1,0,CEIN3,3/8/2012 0:00,Semi-deciduous broadleaf
+829,common hackberry,Plantae,Celtis,occidentalis,19040,1,0,CEOC,3/8/2012 0:00,Deciduous broadleaf
+830,sand heath,Plantae,Ceratiola,ericoides,23747,1,0,CEER3,3/8/2012 0:00,Evergreen broadleaf
+831,Atlantic white cedar,Plantae,Chamaecyparis,thyoides,18046,1,0,CHTH2,3/8/2012 0:00,Evergreen conifer
+832,desert willow,Plantae,Chilopsis,linearis,34318,1,0,CHLI2,3/8/2012 0:00,Semi-deciduous broadleaf
+833,California sawgrass,Plantae,Cladium,mariscus,501576,1,0,CLCA2,3/8/2012 0:00,Graminoid
+834,miner's lettuce,Plantae,Claytonia,perfoliata,20395,1,0,CLPE,3/8/2012 0:00,Forb
+835,devil's darning needles,Plantae,Clematis,virginiana,18716,1,0,CLVI5,3/8/2012 0:00,Deciduous broadleaf
+836,evergreen clematis,Plantae,Clematis,vitalba,18717,1,0,CLVI6,3/8/2012 0:00,Deciduous broadleaf
+837,seagrape,Plantae,Coccoloba,uvifera,21039,1,0,COUV,3/8/2012 0:00,Semi-deciduous broadleaf
+838,threeleaf goldthread,Plantae,Coptis,trifolia,18767,1,0,COTR2,3/8/2012 0:00,Forb
+839,black hawthorn,Plantae,Crataegus,douglasii,24557,1,0,CRDO2,3/8/2012 0:00,Deciduous broadleaf
+840,seven sisters,Plantae,Crinum,americanum,182710,1,0,CRAM2,3/8/2012 0:00,Forb
+841,crocus,Plantae,Crocus,spp.,43285,1,0,CROCU,3/8/2012 0:00,Forb
+842,moccasin flower,Plantae,Cypripedium,acaule,43534,1,0,CYAC3,3/8/2012 0:00,Forb
+843,showy lady's slipper,Plantae,Cypripedium,reginae,43538,1,0,CYRE6,3/8/2012 0:00,Forb
+844,Scotch broom,Plantae,Cytisus,scoparius,501966,1,0,CYSC4,3/8/2012 0:00,Deciduous broadleaf
+845,purple prairie clover,Plantae,Dalea,purpurea,26642,1,0,DAPU5,3/8/2012 0:00,Forb
+846,California pitcherplant,Plantae,Darlingtonia,californica,22004,1,0,DACA5,3/8/2012 0:00,Forb
+847,Queen Anne's lace,Plantae,Daucus,carota,29477,1,0,DACA6,3/8/2012 0:00,Forb
+848,Columbian larkspur,Plantae,Delphinium,trolliifolium,18516,1,0,DETR2,3/8/2012 0:00,Forb
+849,squirrel corn,Plantae,Dicentra,canadensis,18943,1,0,DICA,3/8/2012 0:00,Forb
+850,dutchman's breeches,Plantae,Dicentra,cucullaria,18945,1,0,DICU,3/8/2012 0:00,Forb
+851,bluedicks,Plantae,Dichelostemma,capitatum,524921,1,0,DICAC5,3/8/2012 0:00,Forb
+852,drops-of-gold,Plantae,Prosartes,hookeri,519634,1,0,PRHOH,3/8/2012 0:00,Forb
+853,French's shootingstar,Plantae,Dodecatheon,frenchii,502108,1,0,DOFR2,3/8/2012 0:00,Forb
+854,entireleaf mountain-avens,Plantae,Dryas,integrifolia,24614,1,0,DRIN4,3/8/2012 0:00,Semi-deciduous broadleaf
+855,Engelmann's hedgehog cactus,Plantae,Echinocereus,engelmannii,19806,1,0,ECEN,3/8/2012 0:00,Cactus
+856,common water hyacinth,Plantae,Eichhornia,crassipes,42623,1,0,EICR,3/8/2012 0:00,Forb
+857,black crowberry,Plantae,Empetrum,nigrum,23743,1,0,EMNI,3/8/2012 0:00,Evergreen broadleaf
+858,California brittlebush,Plantae,Encelia,californica,37307,1,0,ENCA,3/8/2012 0:00,Semi-deciduous broadleaf
+859,brittlebush,Plantae,Encelia,farinosa,37308,1,0,ENFA,3/8/2012 0:00,Semi-deciduous broadleaf
+860,Nevada jointfir,Plantae,Ephedra,nevadensis,502316,1,0,EPNE,3/8/2012 0:00,Evergreen broadleaf
+861,trailing arbutus,Plantae,Epigaea,repens,23646,1,0,EPRE2,3/8/2012 0:00,Evergreen broadleaf
+862,broadleaf helleborine,Plantae,Epipactis,helleborine,43482,1,0,EPHE,3/8/2012 0:00,Forb
+863,common woolly sunflower,Plantae,Eriophyllum,lanatum,37334,1,0,ERLA6,3/8/2012 0:00,Forb
+864,yellow avalanche-lily,Plantae,Erythronium,grandiflorum,196372,1,0,ERGR9,3/8/2012 0:00,Forb
+865,giant white fawnlily ,Plantae,Erythronium,oregonum,196382,1,0,EROR4,3/8/2012 0:00,Forb
+866,spinystar,Plantae,Escobaria,vivipara,502456,1,0,ESVI2,3/8/2012 0:00,Cactus
+867,candy barrelcactus,Plantae,Ferocactus,wislizeni,502595,1,0,FEWI,3/8/2012 0:00,Cactus
+868,Arizona fescue,Plantae,Festuca,arizonica,40809,1,0,FEAR2,3/8/2012 0:00,Graminoid
+869,Idaho fescue ,Plantae,Festuca,idahoensis,40816,1,0,FEID,3/8/2012 0:00,Graminoid
+870,beach strawberry ,Plantae,Fragaria,chiloensis,24625,1,0,FRCH,3/8/2012 0:00,Forb
+871,Cascara buckthorn,Plantae,Frangula,purshiana,506987,1,0,FRPU7,3/8/2012 0:00,Deciduous broadleaf
+872,Oregon ash,Plantae,Fraxinus,latifolia,32944,1,0,FRLA,3/8/2012 0:00,Deciduous broadleaf
+873,black ash,Plantae,Fraxinus,nigra,32945,1,0,FRNI,3/8/2012 0:00,Deciduous broadleaf
+874,Kamchatka fritillary,Plantae,Fritillaria,camschatcensis,502671,1,0,FRCA5,3/8/2012 0:00,Forb
+875,yellow fritillary,Plantae,Fritillaria,pudica,42936,1,0,FRPU2,3/8/2012 0:00,Forb
+876,firewheel,Plantae,Gaillardia,pulchella,37410,1,0,GAPU,3/8/2012 0:00,Forb
+877,cape jasmine,Plantae,Gardenia,angusta,502727,1,0,GAJA,3/8/2012 0:00,Evergreen broadleaf
+878,wavyleaf silktassel,Plantae,Garrya,elliptica,27828,1,0,GAEL,3/8/2012 0:00,Evergreen broadleaf
+879,eastern teaberry,Plantae,Gaultheria,procumbens,23657,1,0,GAPR2,3/8/2012 0:00,Evergreen broadleaf
+880,evening trumpetflower,Plantae,Gelsemium,sempervirens,29932,1,0,GESE,3/8/2012 0:00,Evergreen broadleaf
+881,greater fringed gentian,Plantae,Gentianopsis,crinita,30080,1,0,GECR2,3/8/2012 0:00,Forb
+882,spotted geranium,Plantae,Geranium,maculatum,29107,1,0,GEMA,3/8/2012 0:00,Forb
+883,Robert geranium,Plantae,Geranium,robertianum,29119,1,0,GERO,3/8/2012 0:00,Forb
+884,maidenhair tree,Plantae,Ginkgo,biloba,183269,1,0,GIBI2,3/8/2012 0:00,Deciduous broadleaf
+885,honeylocust,Plantae,Gleditsia,triacanthos,26714,1,0,GLTR,3/8/2012 0:00,Deciduous broadleaf
+886,western rattlesnake plantain,Plantae,Goodyera,oblongifolia,43593,1,0,GOOB2,3/8/2012 0:00,Forb
+887,English ivy,Plantae,Hedera,helix,29393,1,0,HEHE,3/8/2012 0:00,Evergreen broadleaf
+888,alpine sweetvetch,Plantae,Hedysarum,alpinum,26723,1,0,HEAL,3/8/2012 0:00,Forb
+889,Utah sweetvetch,Plantae,Hedysarum,boreale,26724,1,0,HEBO,3/8/2012 0:00,Forb
+890,orange daylily,Plantae,Hemerocallis,fulva,42943,1,0,HEFU,3/8/2012 0:00,Forb
+891,desert lily,Plantae,Hesperocallis,undulata,42949,1,0,HEUN2,3/8/2012 0:00,Forb
+892,orange hawkweed,Plantae,Hieracium,aurantiacum,37697,1,0,HIAU,3/8/2012 0:00,Forb
+893,big galleta,Plantae,Hilaria,rigida,41770,1,0,PLRI3,3/8/2012 0:00,Graminoid
+894,Carolina spiderlily,Plantae,Hymenocallis,occidentalis,514969,1,0,HYCA9,3/8/2012 0:00,Forb
+895,English holly ,Plantae,Ilex,aquifolium,503154,1,0,ILAQ80,3/8/2012 0:00,Evergreen broadleaf
+896,dahoon,Plantae,Ilex,cassine,27992,1,0,ILCA,3/8/2012 0:00,Semi-deciduous broadleaf
+897,common winterberry ,Plantae,Ilex,verticillata,27985,1,0,ILVE,3/8/2012 0:00,Deciduous broadleaf
+898,bayhops,Plantae,Ipomoea,pes-caprae,30787,1,0,IPPE,3/8/2012 0:00,Forb
+899,beachhead iris,Plantae,Iris,setosa,43195,1,0,IRSE,3/8/2012 0:00,Forb
+900,toughleaf iris,Plantae,Iris,tenax,43226,1,0,IRTE,3/8/2012 0:00,Forb
+901,needlegrass rush,Plantae,Juncus,roemerianus,39238,1,0,JURO,3/8/2012 0:00,Graminoid
+902,Utah juniper,Plantae,Juniperus,osteosperma,194859,1,0,JUOS,3/8/2012 0:00,Evergreen conifer
+903,sheep laurel,Plantae,Kalmia,angustifolia,503278,1,0,KAAN,3/8/2012 0:00,Evergreen broadleaf
+904,mountain laurel,Plantae,Kalmia,latifolia,23677,1,0,KALA,3/8/2012 0:00,Evergreen broadleaf
+905,bog laurel,Plantae,Kalmia,polifolia,23679,1,0,KAPO,3/8/2012 0:00,Evergreen broadleaf
+906,Virginia saltmarsh mallow,Plantae,Kosteletzkya,virginica,21655,1,0,KOVI,3/8/2012 0:00,Forb
+907,marsh Labrador tea,Plantae,Ledum,palustre,524215,1,0,LEPA11,3/8/2012 0:00,Evergreen broadleaf
+908,oxeye daisy,Plantae,Leucanthemum,vulgare,37903,1,0,LEVU,3/8/2012 0:00,Forb
+909,Texas barometer bush,Plantae,Leucophyllum,frutescens,33629,1,0,LEFR3,3/8/2012 0:00,Evergreen broadleaf
+910,American dunegrass,Plantae,Leymus,mollis,503437,1,0,LEMO8,3/8/2012 0:00,Graminoid
+911,pinkscale blazing star,Plantae,Liatris,elegans,37919,1,0,LIEL,3/8/2012 0:00,Forb
+912,dense blazing star,Plantae,Liatris,spicata,37944,1,0,LISP,3/8/2012 0:00,Forb
+913,gopher apple,Plantae,Licania,michauxii,25247,1,0,LIMI5,3/8/2012 0:00,Evergreen broadleaf
+914,turk's-cap lily,Plantae,Lilium,superbum,42723,1,0,LISU,3/8/2012 0:00,Forb
+915,northern spicebush,Plantae,Lindera,benzoin,18147,1,0,LIBE3,3/8/2012 0:00,Deciduous broadleaf
+916,cardinalflower,Plantae,Lobelia,cardinalis,34505,1,0,LOCA2,3/8/2012 0:00,Forb
+917,purple leptotaenia,Plantae,Lomatium,columbianum,29686,1,0,LOCO,3/8/2012 0:00,Forb
+918,bigseed biscuitroot,Plantae,Lomatium,macrocarpum,29719,1,0,LOMA3,3/8/2012 0:00,Forb
+919,twinberry honeysuckle,Plantae,Lonicera,involucrata,35297,1,0,LOIN5,3/8/2012 0:00,Deciduous broadleaf
+920,trumpet honeysuckle,Plantae,Lonicera,sempervirens,35303,1,0,LOSE,3/8/2012 0:00,Deciduous broadleaf
+921,Coulter's lupine,Plantae,Lupinus,sparsiflorus,26121,1,0,LUSP2,3/8/2012 0:00,Forb
+922,American skunkcabbage,Plantae,Lysichiton,americanus,503629,1,0,LYAM3,3/8/2012 0:00,Forb
+923,sweetbay,Plantae,Magnolia,virginiana,18070,1,0,MAVI2,3/8/2012 0:00,Deciduous broadleaf
+924,hollyleaved barberry,Plantae,Mahonia,aquifolium,195030,1,0,MAAQ2,3/8/2012 0:00,Evergreen broadleaf
+925,Cascade barberry,Plantae,Mahonia,nervosa,195036,1,0,MANE2,3/8/2012 0:00,Evergreen broadleaf
+926,false lily of the valley ,Plantae,Maianthemum,dilatatum,503654,1,0,MADI,3/8/2012 0:00,Forb
+927,false aloe,Plantae,Manfreda,virginica,503687,1,0,MAVI5,3/8/2012 0:00,Forb
+928,Indian cucumber,Plantae,Medeola,virginiana,42963,1,0,MEVI,3/8/2012 0:00,Forb
+929,buckbean,Plantae,Menyanthes,trifoliata,30102,1,0,METR3,3/8/2012 0:00,Forb
+930,twoleaf miterwort,Plantae,Mitella,diphylla,24407,1,0,MIDI3,3/8/2012 0:00,Forb
+931,wild bergamot,Plantae,Monarda,fistulosa,565311,1,0,MOFI,3/8/2012 0:00,Forb
+932,single delight,Plantae,Moneses,uniflora,503869,1,0,MOUN2,3/8/2012 0:00,Forb
+933,firetree,Plantae,Morella,faya,507900,1,0,MOFA,3/8/2012 0:00,Evergreen broadleaf
+934,deergrass,Plantae,Muhlenbergia,rigens,503883,1,0,MURI2,3/8/2012 0:00,Graminoid
+935,sweetgale,Plantae,Myrica,gale,19265,1,0,MYGA,3/8/2012 0:00,Deciduous broadleaf
+936,purple needlegrass,Plantae,Nassella,pulchra,507084,1,0,NAPU4,3/8/2012 0:00,Graminoid
+937,Colusagrass,Plantae,Neostapfia,colusana,41958,0,0,NECO2,3/8/2012 0:00,Graminoid
+938,American white waterlily,Plantae,Nymphaea,odorata,18384,1,0,NYOD,3/8/2012 0:00,Forb
+939,yellow pond-lily,Plantae,Nuphar,lutea,503968,1,0,NULU,3/8/2012 0:00,Forb
+940,water tupelo ,Plantae,Nyssa,aquatica,27824,1,0,NYAQ2,3/8/2012 0:00,Deciduous broadleaf
+941,blackgum,Plantae,Nyssa,sylvatica,27821,1,0,NYSY,3/8/2012 0:00,Deciduous broadleaf
+942,Indian plum,Plantae,Oemleria,cerasiformis,25268,1,0,OECE,3/8/2012 0:00,Deciduous broadleaf
+943,Douglas' grasswidow,Plantae,Olsynium,douglasii,507253,1,0,OLDO,3/8/2012 0:00,Forb
+944,devilsclub,Plantae,Oplopanax,horridus,29397,1,0,OPHO,3/8/2012 0:00,Deciduous broadleaf
+945,buck-horn cholla,Plantae,Opuntia,acanthocarpa,19688,1,0,CYAC8,3/8/2012 0:00,Cactus
+946,beavertail pricklypear,Plantae,Opuntia,basilaris,19693,1,0,OPBA2,3/8/2012 0:00,Cactus
+947,tree cholla,Plantae,Opuntia,imbricata,19711,1,0,CYIM2,3/8/2012 0:00,Cactus
+948,Santa Rita pricklypear,Plantae,Opuntia,santa-rita,195334,1,0,OPSA,3/8/2012 0:00,Cactus
+949,hophornbeam,Plantae,Ostrya,virginiana,19511,1,0,OSVI,3/8/2012 0:00,Deciduous broadleaf
+950,redwood-sorrel,Plantae,Oxalis,oregana,29091,1,0,OXOR,3/8/2012 0:00,Forb
+951,alpine mountainsorrel,Plantae,Oxyria,digyna,20846,1,0,OXDI3,3/8/2012 0:00,Forb
+952,Virginia creeper,Plantae,Parthenocissus,quinquefolia,28602,1,0,PAQU2,3/8/2012 0:00,Deciduous broadleaf
+953,gilia beardtongue,Plantae,Penstemon,ambiguus,33808,1,0,PEAM,3/8/2012 0:00,Forb
+954,firecracker penstemon,Plantae,Penstemon,eatoni,33686,1,0,PEEA,3/8/2012 0:00,Forb
+955,manyflower beardtongue,Plantae,Penstemon,multiflorus,33953,1,0,PEMU9,3/8/2012 0:00,Forb
+956,Palmer's penstemon,Plantae,Penstemon,palmeri,33738,1,0,PEPA8,3/8/2012 0:00,Forb
+957,Parry's beardtongue,Plantae,Penstemon,parryi,33741,1,0,PEPA24,3/8/2012 0:00,Forb
+958,desert penstemon,Plantae,Penstemon,pseudospectabilis,33751,1,0,PEPS,3/8/2012 0:00,Forb
+959,desertbells,Plantae,Phacelia,campanularia,31465,1,0,PHCA3,3/8/2012 0:00,Forb
+960,reed canarygrass,Plantae,Phalaris,arundinacea,41335,1,0,PHAR3,3/8/2012 0:00,Graminoid
+961,wild blue phlox,Plantae,Phlox,divaricata,30934,1,0,PHDI5,3/8/2012 0:00,Forb
+962,Pacific ninebark,Plantae,Physocarpus,capitatus,25279,1,0,PHCA11,3/8/2012 0:00,Deciduous broadleaf
+963,American pokeweed,Plantae,Phytolacca,americana,19523,1,0,PHAM4,3/8/2012 0:00,Forb
+964,Sitka spruce,Plantae,Picea,sitchensis,183309,1,0,PISI,3/8/2012 0:00,Evergreen conifer
+965,Mexican pinyon,Plantae,Pinus,cembroides,183321,1,0,PICE,3/8/2012 0:00,Evergreen conifer
+966,western white pine,Plantae,Pinus,monticola,183356,1,0,PIMO3,3/8/2012 0:00,Evergreen conifer
+967,Bishop pine,Plantae,Pinus,muricata,183359,1,0,PIMU,3/8/2012 0:00,Evergreen conifer
+968,red pine,Plantae,Pinus,resinosa,183375,1,0,PIRE,3/8/2012 0:00,Evergreen conifer
+969,goose tongue,Plantae,Plantago,maritima,32871,1,0,PLMA3,3/8/2012 0:00,Forb
+970,American sycamore,Plantae,Platanus,occidentalis,19020,1,0,PLOC,3/8/2012 0:00,Deciduous broadleaf
+971,Kentucky bluegrass,Plantae,Poa,pratensis,41088,1,0,POPR,3/8/2012 0:00,Graminoid
+972,snakemouth orchid,Plantae,Pogonia,ophioglossoides,43441,1,0,POOP,3/8/2012 0:00,Forb
+973,smooth Solomon's seal,Plantae,Polygonatum,biflorum,43006,1,0,POBI2,3/8/2012 0:00,Forb
+974,hardy orange,Plantae,Poncirus,trifoliata,28989,1,0,POTR4,3/8/2012 0:00,Deciduous broadleaf
+975,pickerelweed,Plantae,Pontederia,cordata,42620,1,0,POCO14,3/8/2012 0:00,Forb
+976,eastern cottonwood,Plantae,Populus,deltoides,22445,1,0,PODE3,3/8/2012 0:00,Deciduous broadleaf
+977,Fremont cottonwood,Plantae,Populus,fremontii,22459,1,0,POFR2,3/8/2012 0:00,Deciduous broadleaf
+978,common cinquefoil,Plantae,Potentilla,simplex,24751,1,0,POSI2,3/8/2012 0:00,Forb
+979,Sierran palm,Plantae,Prestoea,acuminata,565430,1,0,PRAC,3/8/2012 0:00,Evergreen broadleaf
+980,hollyleaf cherry,Plantae,Prunus,ilicifolia,24785,1,0,PRIL,3/8/2012 0:00,Evergreen broadleaf
+981,cherry laurel,Plantae,Prunus,laurocerasus,24786,1,0,PRLA5,3/8/2012 0:00,Evergreen broadleaf
+982,beach plum,Plantae,Prunus,maritima,24790,1,0,PRMA2,3/8/2012 0:00,Deciduous broadleaf
+983,Nanking cherry,Plantae,Prunus,tomentosa,504627,1,0,PRTO80,3/8/2012 0:00,Deciduous broadleaf
+984,whitestem paperflower,Plantae,Psilostrophe,cooperi,38313,1,0,PSCO2,3/8/2012 0:00,Semi-deciduous broadleaf
+985,Seminole balsamo,Plantae,Psychotria,nervosa,35092,1,0,PSNE,3/8/2012 0:00,Evergreen broadleaf
+986,Stansbury cliffrose,Plantae,Purshia,stansburiana,195901,1,0,PUST,3/8/2012 0:00,Evergreen broadleaf
+987,Emory oak,Plantae,Quercus,emoryi,19328,1,0,QUEM,3/8/2012 0:00,Evergreen broadleaf
+988,Gambel oak,Plantae,Quercus,gambelii,19337,1,0,QUGA,3/8/2012 0:00,Deciduous broadleaf
+989,pin oak,Plantae,Quercus,palustris,19281,1,0,QUPA2,3/8/2012 0:00,Deciduous broadleaf
+990,sagebrush buttercup ,Plantae,Ranunculus,glaberrimus,18606,1,0,RAGL,3/8/2012 0:00,Forb
+991,upright prairie coneflower,Plantae,Ratibida,columnifera,38341,1,0,RACO3,3/8/2012 0:00,Forb
+992,pink azalea,Plantae,Rhododendron,periclymenoides,23726,1,0,RHPE4,3/8/2012 0:00,Deciduous broadleaf
+993,winged sumac,Plantae,Rhus,copallinum,504754,1,0,RHCO,3/8/2012 0:00,Deciduous broadleaf
+994,smooth sumac,Plantae,Rhus,glabra,28782,1,0,RHGL,3/8/2012 0:00,Deciduous broadleaf
+995,lemonade sumac,Plantae,Rhus,integrifolia,28783,1,0,RHIN2,3/8/2012 0:00,Evergreen broadleaf
+996,golden currant,Plantae,Ribes,aureum,24452,1,0,RIAU,3/8/2012 0:00,Deciduous broadleaf
+997,redflower currant,Plantae,Ribes,sanguineum,24498,1,0,RISA,3/8/2012 0:00,Deciduous broadleaf
+998,watercress,Plantae,Rorippa,nasturtium-aquaticum,22993,1,0,NAOF,3/8/2012 0:00,Forb
+999,prickly rose,Plantae,Rosa,acicularis,24812,1,0,ROAC,3/8/2012 0:00,Deciduous broadleaf
+1000,dwarf rose ,Plantae,Rosa,gymnocarpa,24828,1,0,ROGY,3/8/2012 0:00,Deciduous broadleaf
+1001,Nootka rose,Plantae,Rosa,nutkana,24835,1,0,RONU,3/8/2012 0:00,Deciduous broadleaf
+1002,Himalayan blackberry,Plantae,Rubus,discolor,24852,1,0,RUDI2,3/8/2012 0:00,Deciduous broadleaf
+1003,cutleaf blackberry,Plantae,Rubus,laciniatus,24853,1,0,RULA,3/8/2012 0:00,Evergreen broadleaf
+1004,California blackberry,Plantae,Rubus,ursinus,25073,1,0,RUUR,3/8/2012 0:00,Deciduous broadleaf
+1005,Virginia glasswort,Plantae,Salicornia,virginica,20648,1,0,SADE10,3/8/2012 0:00,Forb
+1006,feltleaf willow,Plantae,Salix,alaxensis,22497,1,0,SAAL,3/8/2012 0:00,Deciduous broadleaf
+1007,arctic willow,Plantae,Salix,arctica,565479,1,0,SAAR27,3/8/2012 0:00,Deciduous broadleaf
+1008,pussy willow,Plantae,Salix,discolor,22524,1,0,SADI,3/8/2012 0:00,Deciduous broadleaf
+1009,netleaf willow,Plantae,Salix,reticulata,22489,1,0,SARE2,3/8/2012 0:00,Deciduous broadleaf
+1010,Scouler's willow,Plantae,Salix,scouleriana,504980,1,0,SASC,3/8/2012 0:00,Deciduous broadleaf
+1011,white sage,Plantae,Salvia,apiana,32697,1,0,SAAP2,3/8/2012 0:00,Forb
+1012,purple sage,Plantae,Salvia,dorrii,32683,1,0,SADO4,3/8/2012 0:00,Forb
+1013,black sage,Plantae,Salvia,mellifera,32724,1,0,SAME3,3/8/2012 0:00,Semi-deciduous broadleaf
+1014,hummingbird sage,Plantae,Salvia,spathacea,32744,1,0,SASP3,3/8/2012 0:00,Forb
+1015,blue elderberry,Plantae,Sambucus,nigra-cerulea,525080,1,0,SANIC5,3/8/2012 0:00,Deciduous broadleaf
+1016,bloodroot,Plantae,Sanguinaria,canadensis,18990,1,0,SACA13,3/8/2012 0:00,Forb
+1017,yellow pitcherplant,Plantae,Sarracenia,flava,21996,1,0,SAFL4,3/8/2012 0:00,Forb
+1018,purple pitcherplant,Plantae,Sarracenia,purpurea,21993,1,0,SAPU4,3/8/2012 0:00,Forb
+1019,sassafras,Plantae,Sassafras,albidum,18158,1,0,SAAL5,3/8/2012 0:00,Deciduous broadleaf
+1020,hardstem bulrush,Plantae,Schoenoplectus,acutus,507785,1,0,SCAC3,3/8/2012 0:00,Graminoid
+1021,panicled bulrush,Plantae,Scirpus,microcarpus,40235,1,0,SCMI2,3/8/2012 0:00,Graminoid
+1022,Coues' cassia,Plantae,Senna,covesii,505149,1,0,SECO10,3/8/2012 0:00,Forb
+1023,russet buffaloberry,Plantae,Shepherdia,canadensis,27779,1,0,SHCA,3/8/2012 0:00,Deciduous broadleaf
+1024,compassplant,Plantae,Silphium,laciniatum,38401,1,0,SILA3,3/8/2012 0:00,Forb
+1025,climbing nightshade,Plantae,Solanum,dulcamara,30414,1,0,SODU,3/8/2012 0:00,Forb
+1026,silverleaf nightshade,Plantae,Solanum,elaeagnifolium,30429,1,0,SOEL,3/8/2012 0:00,Forb
+1027,wand goldenrod,Plantae,Solidago,stricta,36315,1,0,SOST,3/8/2012 0:00,Forb
+1028,bog goldenrod,Plantae,Solidago,uliginosa,36317,1,0,SOULL2,3/8/2012 0:00,Forb
+1029,gulf cordgrass ,Plantae,Spartina,spartinae,41276,1,0,SPSP,3/8/2012 0:00,Graminoid
+1030,rose spirea,Plantae,Spiraea,douglasii,25334,1,0,SPDO,3/8/2012 0:00,Deciduous broadleaf
+1031,Van Houtt's spirea ,Plantae,Spiraea,vanhouttei,25344,1,0,SPVA2,3/8/2012 0:00,Deciduous broadleaf
+1032,alkali sacaton,Plantae,Sporobolus,airoides,42128,1,0,SPAI,3/8/2012 0:00,Graminoid
+1033,mountain snowberry,Plantae,Symphoricarpos,oreophilus,35338,1,0,SYOR2,3/8/2012 0:00,Deciduous broadleaf
+1034,New England aster,Plantae,Symphyotrichum,novae-angliae,522226,1,0,SYNO2,3/8/2012 0:00,Forb
+1035,skunk cabbage,Plantae,Symplocarpus,foetidus,42538,1,0,SYFO,3/8/2012 0:00,Forb
+1036,Japanese yew,Plantae,Taxus,cuspidata,194886,1,0,TACU,3/8/2012 0:00,Evergreen conifer
+1037,bigflower tellima,Plantae,Tellima,grandiflora,24527,1,0,TEGR2,3/8/2012 0:00,Forb
+1038,Virginia tephrosia ,Plantae,Tephrosia,virginiana,26998,1,0,TEVI,3/8/2012 0:00,Forb
+1039,rue anemone,Plantae,Thalictrum,thalictroides,18683,1,0,THTH2,3/8/2012 0:00,Forb
+1040,western redcedar,Plantae,Thuja,plicata,18044,1,0,THPL,3/8/2012 0:00,Evergreen conifer
+1041,heartleaf foamflower,Plantae,Tiarella,cordifolia,24530,1,0,TICO,3/8/2012 0:00,Forb
+1042,Spanish moss,Plantae,Tillandsia,usneoides,42371,1,0,TIUS,3/8/2012 0:00,Forb
+1043,youth on age,Plantae,Tolmiea,menziesii,24533,1,0,TOME,3/8/2012 0:00,Forb
+1044,eastern poison ivy,Plantae,Toxicodendron,radicans,28821,1,0,TORA2,3/8/2012 0:00,Deciduous broadleaf
+1045,Chinese tallow,Plantae,Triadica,sebifera,522777,1,0,TRSE6,3/8/2012 0:00,Deciduous broadleaf
+1046,starflower,Plantae,Trientalis,borealis,24053,1,0,TRBO2,3/8/2012 0:00,Forb
+1047,red clover,Plantae,Trifolium,pratense,26313,1,0,TRPR2,3/8/2012 0:00,Forb
+1048,American elm,Plantae,Ulmus,americana,19049,1,0,ULAM,3/8/2012 0:00,Deciduous broadleaf
+1049,cedar elm,Plantae,Ulmus,crassifolia,19052,1,0,ULCR,3/8/2012 0:00,Deciduous broadleaf
+1050,stinging nettle,Plantae,Urtica,dioica,19152,1,0,URDI,3/8/2012 0:00,Forb
+1051,horned bladderwort,Plantae,Utricularia,cornuta,34447,1,0,UTCO,3/8/2012 0:00,Forb
+1052,largeflower bellwort,Plantae,Uvularia,grandiflora,43109,1,0,UVGR,3/8/2012 0:00,Forb
+1053,perfoliate bellwort,Plantae,Uvularia,perfoliata,43110,1,0,UVPE,3/8/2012 0:00,Forb
+1054,sessileleaf bellwort,Plantae,Uvularia,sessilifolia,43112,1,0,UVSE,3/8/2012 0:00,Forb
+1055,cranberry,Plantae,Vaccinium,macrocarpon,23599,1,0,VAMA,3/8/2012 0:00,Evergreen broadleaf
+1056,thinleaf huckleberry,Plantae,Vaccinium,membranaceum,23601,1,0,VAME,3/8/2012 0:00,Deciduous broadleaf
+1057,California huckleberry,Plantae,Vaccinium,ovatum,23608,1,0,VAOV2,3/8/2012 0:00,Evergreen broadleaf
+1058,small cranberry,Plantae,Vaccinium,oxycoccos,505635,1,0,VAOX,3/8/2012 0:00,Evergreen broadleaf
+1059,red huckleberry,Plantae,Vaccinium,parvifolium,23612,1,0,VAPA,3/8/2012 0:00,Deciduous broadleaf
+1060,smallflower blueberry,Plantae,Vaccinium,virgatum,505636,1,0,VAVI2,3/8/2012 0:00,Deciduous broadleaf
+1061,green false hellebore,Plantae,Veratrum,viride,42764,1,0,VEVI,3/8/2012 0:00,Forb
+1062,wingstem,Plantae,Verbesina,alternifolia,38597,1,0,VEAL,3/8/2012 0:00,Forb
+1063,New York ironweed,Plantae,Vernonia,noveboracensis,38644,1,0,VENO,3/8/2012 0:00,Forb
+1064,pioneer violet,Plantae,Viola,glabella,22082,1,0,VIGL,3/8/2012 0:00,Forb
+1065,common blue violet,Plantae,Viola,sororia,22169,1,0,VISO,3/8/2012 0:00,Forb
+1066,fox grape,Plantae,Vitis,labrusca,28608,1,0,VILA8,3/8/2012 0:00,Deciduous broadleaf
+1067,common beargrass,Plantae,Xerophyllum,tenax,505768,1,0,XETE,3/8/2012 0:00,Evergreen broadleaf
+1068,banana yucca,Plantae,Yucca,baccata,43134,1,0,YUBA,3/8/2012 0:00,Evergreen broadleaf
+1069,soapweed yucca,Plantae,Yucca,glauca,43142,1,0,YUGL,3/8/2012 0:00,Evergreen broadleaf
+1070,mountain deathcamas,Plantae,Zigadenus,elegans,43158,1,0,ZIEL2,3/8/2012 0:00,Forb
+1071,desert zinnia,Plantae,Zinnia,acerosa,38712,1,0,ZIAC,3/8/2012 0:00,Semi-deciduous broadleaf
+1072,lotebush,Plantae,Ziziphus,obtusifolia,28596,1,0,ZIOB,3/8/2012 0:00,Semi-deciduous broadleaf
+1073,seawrack,Plantae,Zostera,marina,39074,1,0,ZOMA,3/8/2012 0:00,Forb
+1147,pink sand verbena,Plantae,Abronia,umbellata,19572,1,0,ABUM,4/10/2012 0:00,Forb
+1148,narrowleaf arnica,Plantae,Arnica,alpina,36556,1,0,ARAL29,4/10/2012 0:00,Forb
+1149,beach suncup,Plantae,Camissoniopsis,cheiranthifolia,836120,1,0,CACH13,4/10/2012 0:00,Forb
+1150,pipsissewa,Plantae,Chimaphila,umbellata,23769,1,0,CHUM,4/10/2012 0:00,Forb
+1151,Oregon goldthread,Plantae,Coptis,laciniata,18765,1,0,COLA3,4/10/2012 0:00,Forb
+1152,Lehmann lovegrass,Plantae,Eragrostis,lehmanniana,565171,1,0,ERLE,4/10/2012 0:00,Graminoid
+1153,Pacific waterleaf,Plantae,Hydrophyllum,tenuipes,31395,1,0,HYTE,4/10/2012 0:00,Forb
+1154,saltmeadow rush,Plantae,Juncus,gerardii,503251,1,0,JUGE,4/10/2012 0:00,Graminoid
+1155,arctic lupine,Plantae,Lupinus,arcticus,25917,1,0,LUAR2,4/10/2012 0:00,Forb
+1156,superb beardtongue,Plantae,Penstemon,superbus,33779,1,0,PESU8,4/10/2012 0:00,Forb
+1157,charity,Plantae,Polemonium,caeruleum,31005,1,0,POCA2,4/10/2012 0:00,Forb
+1158,Jacob's-ladder,Plantae,Polemonium,pulcherrimum,31023,1,0,POPU3,4/10/2012 0:00,Forb
+1159,black oak,Plantae,Quercus,velutina,19447,1,0,QUVE,4/10/2012 0:00,Deciduous broadleaf
+1160,California buckthorn,Plantae,Rhamnus,californica ,28565,1,0,FRCAC5,4/10/2012 0:00,Evergreen broadleaf
+1161,California wildrose,Plantae,Rosa,californica,24818,1,0,ROCA2,4/10/2012 0:00,Deciduous broadleaf
+1162,Hawai'i blackberry,Plantae,Rubus,hawaiensis,504855,1,0,RUHA,4/10/2012 0:00,Deciduous broadleaf
+1163,Goodding's willow,Plantae,Salix,gooddingii,22539,1,0,SAGO,4/10/2012 0:00,Deciduous broadleaf
+1164,Siberian squill,Plantae,Scilla,siberica,505061,1,0,SCSI2,4/10/2012 0:00,Forb
+1165,snowqueen,Plantae,Synthyris,reniformis,34063,1,0,SYRE,4/10/2012 0:00,Forb
+1166,California laurel,Plantae,Umbellularia,californica,18208,1,0,UMCA,4/10/2012 0:00,Evergreen broadleaf
+1167,golden crownbeard,Plantae,Verbesina,encelioides,38601,1,0,VEEN,4/10/2012 0:00,Forb
+1168,evergreen violet,Plantae,Viola,sempervirens,22164,1,0,VISE3,4/10/2012 0:00,Forb
+1169,lilac chastetree,Plantae,Vitex,agnus-castus,32221,1,0,VIAG,4/10/2012 0:00,Deciduous broadleaf
+1170,soaptree yucca,Plantae,Yucca,elata,43139,1,0,YUEL,4/10/2012 0:00,Evergreen broadleaf
+1171,rockweed,Plantae,Ascophyllum,nodosum,11331,1,0,NULL,4/24/2012 0:00,Algae
+1172,yellow buckeye,Plantae,Aesculus,flava,837871,1,0,AEFL,1/30/2013 0:00,Deciduous broadleaf
+1173,Autumn Brilliance serviceberry,Plantae,Amelanchier,grandiflora-autumnbrilliance,508690,1,1,AMGR6,1/30/2013 0:00,Deciduous broadleaf
+1174,Allegheny serviceberry,Plantae,Amelanchier,laevis,182046,1,0,AMLA,1/30/2013 0:00,Deciduous broadleaf
+1175,cutleaf toothwort,Plantae,Cardamine,concatenata,22787,1,0,CACO26,1/30/2013 0:00,Forb
+1176,bitternut hickory,Plantae,Carya,cordiformis,19227,1,0,CACO15,1/30/2013 0:00,Deciduous broadleaf
+1177,mockernut hickory,Plantae,Carya,tomentosa,19247,1,0,CAAL27,1/30/2013 0:00,Deciduous broadleaf
+1178,blueblossom,Plantae,Ceanothus,thyrsiflorus,28513,1,0,CETH,1/30/2013 0:00,Evergreen broadleaf
+1179,Kentucky yellowwood,Plantae,Cladrastis,kentukea,26539,1,0,CLKE,1/30/2013 0:00,Deciduous broadleaf
+1180,eastern false rue anemone,Plantae,Enemion,biternatum,18769,1,0,ENBI,1/30/2013 0:00,Forb
+1181,Carolina silverbell,Plantae,Halesia,carolina,23864,1,0,HACA3,1/30/2013 0:00,Deciduous broadleaf
+1182,subalpine larch,Plantae,Larix,lyallii,183416,1,0,LALY,1/30/2013 0:00,Deciduous conifer
+1183,western larch,Plantae,Larix,occidentalis,183417,1,0,LAOC,1/30/2013 0:00,Deciduous conifer
+1184,mountain magnolia,Plantae,Magnolia,fraseri,18073,1,0,MAFR,1/30/2013 0:00,Deciduous broadleaf
+1185,umbrella-tree,Plantae,Magnolia,tripetala,18077,1,0,MATR,1/30/2013 0:00,Deciduous broadleaf
+1186,scarlet beebalm,Plantae,Monarda,didyma,32283,1,0,MODI,1/30/2013 0:00,Forb
+1187,sourwood,Plantae,Oxydendrum,arboreum,23690,1,0,OXAR,1/30/2013 0:00,Deciduous broadleaf
+1188,bigtooth aspen,Plantae,Populus,grandidentata,22463,1,0,POGR4,1/30/2013 0:00,Deciduous broadleaf
+1189,pin cherry,Plantae,Prunus,pensylvanica,24799,1,0,PRPE2,1/30/2013 0:00,Deciduous broadleaf
+1190,shingle oak,Plantae,Quercus,imbricaria,19359,1,0,QUIM,1/30/2013 0:00,Deciduous broadleaf
+1191,Pacific poison oak,Plantae,Toxicodendron,diversilobum,28819,1,0,TODI,1/30/2013 0:00,Deciduous broadleaf
+1192,winged elm,Plantae,Ulmus,alata,19051,1,0,ULAL,1/30/2013 0:00,Deciduous broadleaf
+1198,Zabelii honeysuckle,Plantae,Lonicera,korolkowii-zabelii,823539,0,1,LOKOZ2,NULL,Deciduous broadleaf
+1199,mountain maple,Plantae,Acer,spicatum,28758,1,0,ACSP2,1/29/2014 0:00,Deciduous broadleaf
+1200,red chokeberry,Plantae,Aronia,arbutifolia,25126,1,0,PHPY4,1/29/2014 0:00,Deciduous broadleaf
+1201,pawpaw,Plantae,Asimina,triloba,18117,1,0,ASTR,1/29/2014 0:00,Deciduous broadleaf
+1202,blue wild indigo,Plantae,Baptisia,australis,26468,1,0,BAAU,1/29/2014 0:00,Forb
+1203,mountain avens,Plantae,Geum,peckii,24655,1,0,GEPE,1/29/2014 0:00,Forb
+1204,hellebore,Plantae,Helleborus,spp.,18776,1,0,HELLE,1/29/2014 0:00,Forb
+1205,witch's moneybags,Plantae,Hylotelephium,telephium,565233,1,0,HYTET2,1/29/2014 0:00,Forb
+1206,Chinese privet,Plantae,Ligustrum,sinense,32979,1,0,LISI,1/29/2014 0:00,Semi-deciduous broadleaf
+1207,star magnolia,Plantae,Magnolia,stellata,506192,1,0,MAST6,1/29/2014 0:00,Deciduous broadleaf
+1208,apple,Plantae,Malus,spp.,25254,1,0,MALUS,1/29/2014 0:00,Deciduous broadleaf
+1209,foxglove beardtongue,Plantae,Penstemon,digitalis,33881,1,0,PEDI,1/29/2014 0:00,Forb
+1210,fall phlox,Plantae,Phlox,paniculata,30973,1,0,PHPA9,1/29/2014 0:00,Forb
+1211,California sycamore,Plantae,Platanus,racemosa,19022,1,0,PLRA,1/29/2014 0:00,Deciduous broadleaf
+1212,chestnut oak,Plantae,Quercus,montana,19379,1,0,QUPR2,1/29/2014 0:00,Deciduous broadleaf
+1213,Shumard's oak,Plantae,Quercus,shumardii,19417,1,0,QUSH,1/29/2014 0:00,Deciduous broadleaf
+1214,Manchurian lilac,Plantae,Syringa,pubescens,832925,1,0,SYPU2,1/29/2014 0:00,Deciduous broadleaf
+1215,Siberian elm,Plantae,Ulmus,pumila,19057,1,0,ULPU,1/29/2014 0:00,Deciduous broadleaf
+1216,slippery elm,Plantae,Ulmus,rubra,19050,1,0,ULRU,1/29/2014 0:00,Deciduous broadleaf
+1217,southern arrowwood,Plantae,Viburnum,dentatum,35251,1,0,VIDE,1/29/2014 0:00,Deciduous broadleaf
+1244,showy forsythia,Plantae,Forsythia,intermedia,507912,0,0,FOIN3,5/21/2014 0:00,Deciduous broadleaf
+1245,Amur corktree,Plantae,Phellodendron,amurense,504297,1,0,PHAM2,2/12/2015 0:00,Deciduous broadleaf
+1246,Amur honeysuckle,Plantae,Lonicera,maackii,35298,1,0,LOMA6,2/12/2015 0:00,Deciduous broadleaf
+1247,Japanese honeysuckle,Plantae,Lonicera,japonica,35283,1,0,LOJA,2/12/2015 0:00,Semi-deciduous broadleaf
+1248,multiflora rose,Plantae,Rosa,multiflora,24833,1,0,ROMU,2/12/2015 0:00,Deciduous broadleaf
+1249,fig buttercup,Plantae,Ranunculus,ficaria,18603,1,0,RAFI,2/12/2015 0:00,Forb
+1250,Japanese angelica tree,Plantae,Aralia,elata,184745,1,0,AREL8,2/12/2015 0:00,Deciduous broadleaf
+1321,black baneberry,Plantae,Actaea,racemosa,821148,1,0,ACRA7,3/10/2015 0:00,Forb
+1322,Parry's agave,Plantae,Agave,parryi,182683,1,0,AGPA4,3/10/2015 0:00,Evergreen broadleaf
+1323,Texas madrone,Plantae,Arbutus,xalapensis,184548,1,0,ARXA80,3/10/2015 0:00,Evergreen broadleaf
+1324,pointleaf manzanita,Plantae,Arctostaphylos,pungens,23519,1,0,ARPU5,3/10/2015 0:00,Evergreen broadleaf
+1325,heartleaf milkweed,Plantae,Asclepias,cordifolia,30256,1,0,ASCO,3/10/2015 0:00,Forb
+1326,bloodflower,Plantae,Asclepias,curassavica,30258,1,0,ASCU,3/10/2015 0:00,Forb
+1327,woollypod milkweed,Plantae,Asclepias,eriocarpa,30264,1,0,ASER,3/10/2015 0:00,Forb
+1328,poke milkweed,Plantae,Asclepias,exaltata,30266,1,0,ASEX,3/10/2015 0:00,Forb
+1329,Mexican whorled milkweed,Plantae,Asclepias,fascicularis,30267,1,0,ASFA,3/10/2015 0:00,Forb
+1330,pinewoods milkweed,Plantae,Asclepias,humistrata,30272,1,0,ASHU3,3/10/2015 0:00,Forb
+1331,fewflower milkweed,Plantae,Asclepias,lanceolata,30242,1,0,ASLA2,3/10/2015 0:00,Forb
+1332,broadleaf milkweed,Plantae,Asclepias,latifolia,30278,1,0,ASLA4,3/10/2015 0:00,Forb
+1333,savannah milkweed,Plantae,Asclepias,pedicellata,30292,1,0,ASPE8,3/10/2015 0:00,Forb
+1334,aquatic milkweed,Plantae,Asclepias,perennis,30293,1,0,ASPE,3/10/2015 0:00,Forb
+1335,purple milkweed,Plantae,Asclepias,purpurascens,30296,1,0,ASPU2,3/10/2015 0:00,Forb
+1336,horsetail milkweed,Plantae,Asclepias,subverticillata,30308,1,0,ASSU2,3/10/2015 0:00,Forb
+1337,whorled milkweed,Plantae,Asclepias,verticillata,30320,1,0,ASVE,3/10/2015 0:00,Forb
+1338,mule-fat,Plantae,Baccharis,salicifolia,183763,1,0,BASA4,3/10/2015 0:00,Semi-deciduous broadleaf
+1339,river birch,Plantae,Betula,nigra,19480,1,0,BENI,3/10/2015 0:00,Deciduous broadleaf
+1340,cabbage,Plantae,Brassica,oleracea,23062,1,0,BROL,3/10/2015 0:00,Forb
+1341,desert ceanothus,Plantae,Ceanothus,greggii,28473,1,0,CEGR,3/10/2015 0:00,Semi-deciduous broadleaf
+1342,netleaf hackberry,Plantae,Celtis,reticulata,19045,1,0,CELAR,3/10/2015 0:00,Deciduous broadleaf
+1343,alderleaf mountain-mahogany,Plantae,Cercocarpus,montanus,25136,1,0,CEMO2,3/10/2015 0:00,Semi-deciduous broadleaf
+1344,Kousa dogwood,Plantae,Cornus,kousa,507498,1,0,COKO2,3/10/2015 0:00,Deciduous broadleaf
+1345,quince,Plantae,Cydonia,oblonga,25159,1,0,CYOB2,3/10/2015 0:00,Deciduous broadleaf
+1346,common sotol,Plantae,Dasylirion,wheeleri,42914,1,0,DAWH2,3/10/2015 0:00,Evergreen broadleaf
+1347,sacred thorn-apple,Plantae,Datura,wrightii,30521,1,0,DAWR2,3/10/2015 0:00,Forb
+1348,Russian olive,Plantae,Elaeagnus,angustifolia,27770,1,0,ELAN,3/10/2015 0:00,Deciduous broadleaf
+1349,turpentine bush,Plantae,Ericameria,laricifolia,37326,1,0,ERLA12,3/10/2015 0:00,Evergreen broadleaf
+1350,velvet ash,Plantae,Fraxinus,velutina,32936,1,0,FRVE2,3/10/2015 0:00,Deciduous broadleaf
+1351,Wright's silktassel,Plantae,Garrya,wrightii,27839,1,0,GAWR3,3/10/2015 0:00,Evergreen broadleaf
+1352,Douglas iris,Plantae,Iris,douglasiana,43205,1,0,IRDO,3/10/2015 0:00,Forb
+1353,Arizona walnut,Plantae,Juglans,major,19252,1,0,JUMA,3/10/2015 0:00,Deciduous broadleaf
+1354,alligator juniper,Plantae,Juniperus,deppeana,194834,1,0,JUDE2,3/10/2015 0:00,Evergreen conifer
+1355,Berlandier's wolfberry,Plantae,Lycium,berlandieri,30534,1,0,LYBE,3/10/2015 0:00,Semi-deciduous broadleaf
+1356,dawn redwood,Plantae,Metasequoia,glyptostroboides,505864,1,0,MEGL8,3/10/2015 0:00,Deciduous conifer
+1357,Nepalese browntop,Plantae,Microstegium,vimineum,503829,1,0,MIVI,3/10/2015 0:00,Graminoid
+1358,catclaw mimosa,Plantae,Mimosa,aculeaticarpa,507071,1,0,MIAC3,3/10/2015 0:00,Deciduous broadleaf
+1359,sacahuista,Plantae,Nolina,microcarpa,42995,1,0,NOMI,3/10/2015 0:00,Evergreen broadleaf
+1360,olive,Plantae,Olea,europaea,32990,1,0,OLEU,3/10/2015 0:00,Evergreen broadleaf
+1361,narrowleaf cottonwood,Plantae,Populus,angustifolia,22452,1,0,POAN3,3/10/2015 0:00,Deciduous broadleaf
+1362,apricot,Plantae,Prunus,armeniaca,24769,1,0,PRAR3,3/10/2015 0:00,Deciduous broadleaf
+1363,European plum,Plantae,Prunus,domestica,24774,1,0,PRDO,3/10/2015 0:00,Deciduous broadleaf
+1364,common pear,Plantae,Pyrus,communis,25295,1,0,PYCO,3/10/2015 0:00,Deciduous broadleaf
+1365,Arizona white oak,Plantae,Quercus,arizonica,19292,1,0,QUAR,3/10/2015 0:00,Semi-deciduous broadleaf
+1366,willow oak,Plantae,Quercus,phellos,19282,1,0,QUPH,3/10/2015 0:00,Deciduous broadleaf
+1367,fragrant sumac,Plantae,Rhus,aromatica,28779,1,0,RHAR4,3/10/2015 0:00,Deciduous broadleaf
+1368,sugar sumac,Plantae,Rhus,ovata,28789,1,0,RHOV,3/10/2015 0:00,Evergreen broadleaf
+1369,wax currant,Plantae,Ribes,cereum,24457,1,0,RICE,3/10/2015 0:00,Deciduous broadleaf
+1370,New Mexico locust,Plantae,Robinia,neomexicana,26196,1,0,RONE,3/10/2015 0:00,Deciduous broadleaf
+1371,narrowleaf willow,Plantae,Salix,exigua,22529,1,0,SAEX,3/10/2015 0:00,Deciduous broadleaf
+1372,red willow,Plantae,Salix,laevigata,507257,1,0,SALA3,3/10/2015 0:00,Deciduous broadleaf
+1373,canyon grape,Plantae,Vitis,arizonica,28612,1,0,VIAR2,3/10/2015 0:00,Deciduous broadleaf
+1374,Japanese zelkova,Plantae,Zelkova,serrata,505790,1,0,ZESE80,3/10/2015 0:00,Deciduous broadleaf
