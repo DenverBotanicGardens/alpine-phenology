@@ -370,7 +370,6 @@ synlist[1:30,]
 
 Pull out earliest collection   
 ```{r}
-#
 x<- unique(tenyearplus$ID)[100]
 
 minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
@@ -384,13 +383,15 @@ min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
 length(unique(min1950_2$ID)) #498 ! Yay!
+```
 
+```{r}
 # check that none have more than one a year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
 # add back the first species name (not the synonyms) for each data ID
-onename <- synlist
+onename <- bloom2[!duplicated(bloom2$ID),]
 min1950_2.foo <- merge(min1950_2, onename[,c("scientificName","Family.Name","ID")], by="ID")
 head(min1950_2.foo)
 length(unique(min1950_2.foo$ID)) #498! Yay!
@@ -446,7 +447,6 @@ ggplot(earcol, aes(Year, Collections))+
 
  
 ```{r}
-
 allcollections <- data.frame(colSums(table(bloom2$scientificName,bloom2$Year)))
 allcol <- data.frame(Year = row.names(allcollections),
                      allcollections)
@@ -504,6 +504,20 @@ cor.test(unbloom[,3],unbloom[,4])
 
 ```
 
+#Figure 2 Year x Bloom date
+```{r}
+ggplot(min1950_2, aes(Year, startDayOfYear)) +
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal date")+
+  scale_x_continuous(breaks = seq(1950,2011,10))  
+
+summary(lm(startDayOfYear~Year, data=min1950_2))
+
+```
+
 #Figure 2A  
 Using just the average temp per year, not repeated for everytime we have specimen data in a year
 ```{r}
@@ -553,25 +567,10 @@ summary(lm(Raw_Precip~Year, data = unbloom))
 ```
 
 
-# Figure 3 before A
-### Minimum Julian bloom date by year
-```{r}
-ggplot(min.dates, aes(Year,startDayOfYear))+
-  geom_point()+
-  stat_smooth(method="lm")+
-  theme_bw()+
-  labs(title="Earliest collection date by year")+
-  xlab("Year")+
-  ylab("Ordinal Date")
-
-summary(lm(min.dates$startDayOfYear~min.dates$Year))
-max(min.dates$startDayOfYear)
-```
-
 #Figure 3A  
 ```{r}
 ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
-  geom_point()+
+  geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
@@ -586,7 +585,7 @@ summary(lm(startDayOfYear~Avg_Hi, data=min1950_2))
 #Figure 3B
 ```{r}
 ggplot(min1950_2, aes(Avg_Lo, startDayOfYear))+
-  geom_point()+
+  geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
@@ -597,6 +596,7 @@ summary(lm(startDayOfYear~Avg_Lo, data = min1950_2))
 ```
 
 #Figure 3C
+###start here###
 ```{r}
 ggplot(min1950_2, aes(Raw_Precip, startDayOfYear))+
   geom_point()+
