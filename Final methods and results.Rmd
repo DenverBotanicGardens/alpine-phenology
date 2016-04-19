@@ -354,13 +354,20 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
+length(unique(sp.10plus$ID)) # 498
 length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 741
 length(unique(tenyearplus$ID)) # 498
+
+synlist <- lapply(split(tenyearplus, tenyearplus$ID), function(x){
+  data.frame(Names = unique(x$scientificName), ID = unique(x$ID))
+})
+
+synlist <- do.call(rbind,synlist)
+synlist[1:30,]
 ```
 
 
 Pull out earliest collection
-###START HERE#####
 ```{r}
 #
 x<- unique(tenyearplus$ID)[100]
