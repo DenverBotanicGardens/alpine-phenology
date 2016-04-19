@@ -367,11 +367,8 @@ synlist[1:30,]
 ```
 
 
-<<<<<<< HEAD
-Pull out earliest collection
-=======
+
 Pull out earliest collection   
->>>>>>> edbdd0367b3016cc41e33765001661badf67afe5
 ```{r}
 #
 x<- unique(tenyearplus$ID)[100]
@@ -393,7 +390,7 @@ singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
 # add back the first species name (not the synonyms) for each data ID
-onename <- bloom2[!duplicated(bloom2$ID),]
+onename <- synlist
 min1950_2.foo <- merge(min1950_2, onename[,c("scientificName","Family.Name","ID")], by="ID")
 head(min1950_2.foo)
 length(unique(min1950_2.foo$ID)) #498! Yay!
