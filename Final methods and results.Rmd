@@ -683,6 +683,7 @@ nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7730
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
+### Start here to make min1950GDD_2 #####
 min1950GDD_2 <- mergeMinGDD(min1950_2,tmps)
 
 length(unique(min1950GDD_2$day)) #1152
