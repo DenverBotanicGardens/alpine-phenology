@@ -492,6 +492,8 @@ head(bloom[,c(19,20,21,23)])
 head(min1950_2)
 min1950_2 <- merge(min1950_2,unique(bloom[,c(19,20,21,23)]), by="Year")
 
+write.table(min1950_2, file="P:/hackathon/alpine-phenology/datasets/min1950_2.csv", sep=",")
+
 unbloom <- unique(bloom[,c(19,20,21,23)])
 ```
 
