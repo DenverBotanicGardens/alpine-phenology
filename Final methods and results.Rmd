@@ -742,7 +742,6 @@ summary(lm(avgHDD~Year, data=unbloomGDD))
 
 
 #Figure 4B
-###START HERE####
 ```{r}
 totalGDD <- lapply(HDD.yrs, function(x){
   max(x)
@@ -802,7 +801,7 @@ ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
-  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
+#  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
   xlab("Average rate of GDD accumulation")+
   ylab("Ordinal Date")
 
@@ -861,7 +860,8 @@ JulBloomDate.min1950 <- function(variable,dataset){
 ```
 
 
-Phenology summary tables   
+Phenology summary tables 
+####START HERE####
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
 
