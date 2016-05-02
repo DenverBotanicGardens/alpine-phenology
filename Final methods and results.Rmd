@@ -979,19 +979,16 @@ ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
 ```
 
 # NPN only precip, high, low
-###NPN year
-###START HERE#####
+###NPN year     
 ```{r}
+npn.min1950 <- npn.foo
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
-yr.npn_2$genus <- gsub(" .*$", "", yr.npn_2$Species)
-m5 <- merge(yr.npn_2,asuFams,by="genus")
-nrow(m5) #27 
+nrow(yr.npn_2) #29 
 
-write.table(m5, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
+write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
 
 nrow(yr.npn_2) 
-nrow(yr.npn_2[yr.npn_2$p.value>=0.05,]) 
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,])
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2)
 
@@ -1001,7 +998,7 @@ mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0])
 mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0])
 
 #later
-nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0,]) #5
+nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0,]) #5 -> 0
 mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
 mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
 
@@ -1010,11 +1007,9 @@ mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
 ```{r}
 high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
 
-high.npn_2$genus <- gsub(" .*$", "", high.npn_2$Species)
-m6 <- merge(high.npn_2,asuFams,by="genus")
-nrow(m6) #27 
+nrow(high.npn_2) #27 -> 29
 
-write.table(m6, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
+write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
 
 nrow(high.npn_2[high.npn_2$p.value<0.05,])
 
@@ -1032,12 +1027,9 @@ mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0])
 ```{r}
 low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
 
-low.npn_2$genus <- gsub(" .*$", "", low.npn_2$Species)
-m7 <- merge(low.npn_2,asuFams,by="genus")
-nrow(m7) #27 
+nrow(low.npn_2) #27 -> 29
 
-write.table(m7, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2.csv", sep=",")
-nrow(low.npn_2)
+write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2.csv", sep=",")
 
 nrow(low.npn_2[low.npn_2$p.value<0.05,])
 nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2)
@@ -1057,12 +1049,9 @@ mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0])
 ```{r}
 precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
 
-precip.NPN_2$genus <- gsub(" .*$", "", precip.NPN_2$Species)
-m8 <- merge(precip.NPN_2,asuFams,by="genus")
-nrow(m8) #27 
+nrow(precip.NPN_2) #27 -> 29
 
-write.table(m8, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
-nrow(precip.NPN_2)
+write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
 
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #1
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2)
@@ -1174,44 +1163,3 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=scientificName))+
   theme_bw()+
   ylab(expression(GDD))
 ```
-
-
-Write to clipboard
-```{r}
-nrow(m1)
-write.table(m1[1:100,], "clipboard", sep="\t", row.names=FALSE)
-write.table(m1[101:250,], "clipboard", sep="\t", row.names=FALSE)
-write.table(m1[251:400,], "clipboard", sep="\t", row.names=FALSE)
-write.table(m1[401:545,], "clipboard", sep="\t", row.names=FALSE)
-```
-
-```{r, eval=FALSE}
-m1$stat <- 
-head(  substitute(
-  byquote(F[(ndf*","*ddf)]==f*","~p-value=*p*","~r^2==r), 
-                                 list(ndf = m1$numDF,
-                                      ddf = m1$denDF,
-                                      f = m1$`F Stat`,
-                                      p=m1$p.value,
-                                      r=m1$adj.r.squ)))
-```
-
-#NPN
-```{r}
-write.table(m5, "clipboard", sep="\t", row.names=FALSE)
-write.table(m6, "clipboard", sep="\t", row.names=FALSE)
-write.table(m7, "clipboard", sep="\t", row.names=FALSE)
-write.table(m8, "clipboard", sep="\t", row.names=FALSE)
-
-write.table(rst.npn, "clipboard", sep="\t", row.names=FALSE)
-
-
-```
-
-
-
-
-
-
-
-
