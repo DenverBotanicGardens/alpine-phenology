@@ -862,18 +862,19 @@ JulBloomDate.min1950 <- function(variable,dataset){
 
 Phenology summary tables 
 ####START HERE####
+# stop using asuFam - Family is in min1950_2, use that.
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
 
 yr.1950_2$genus <- gsub(" .*$", "", yr.1950_2$Species)
-m1 <- merge(yr.1950_2,asuFams,by="genus")
-nrow(m1) #545 
+m1 <- merge(yr.1950_2,min1950_2,by.x="genus",by.y = "scientificName")
+nrow(m1) #545 -> 470
 
 write.table(m1, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
-nrow(yr.1950_2) #545
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #475
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #70
+nrow(yr.1950_2) #545 -> 493
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #475 -> 435
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #70 -> 50
 
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2)
 
