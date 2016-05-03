@@ -1178,25 +1178,25 @@ names(snow)<-paste(header,header2,sep="_")
 head(snow)
 ```
 
-sum of snow over all stations per month over the years
+Average of snow over all stations per month over the years
 ```{r}
 #average over all stations per year
-total.p.yr <- do.call(rbind,lapply(split(snow[,grep("_Snow Depth", names(snow))], 
+avg.p.yr <- do.call(rbind,lapply(split(snow[,grep("_Snow Depth", names(snow))], 
                                        snow$`Water Year_`), 
-                                 function(x) colSums(x, na.rm = TRUE)))
+                                 function(x) colMeans(x, na.rm = TRUE)))
 
 # get rid of years with no data (every month says 0) - should remove 2016 and Oct and Nov from 1997
-total.p.yr.cc <- total.p.yr[!rowSums(total.p.yr) == 0,]
-total.p.yr.cc
+avg.p.yr.cc <- avg.p.yr[!is.nan(avg.p.yr[,4]),]
+avg.p.yr.cc
 # Not to be confused with snowmelt - this is just reformating the data
-melt.snow <- melt(total.p.yr.cc)
+melt.snow <- melt(avg.p.yr.cc)
 head(melt.snow)
+melt.snow <- melt.snow[!is.nan(melt.snow$value),]
 melt.snow$Var2 <- factor(melt.snow$Var2)
 str(melt.snow)
 
 
 ggplot(melt.snow, aes(as.numeric(Var2),value))+
-#  geom_smooth(method="lm")+
   geom_point()+
   geom_smooth()+
   facet_wrap(~Var1)
@@ -1205,23 +1205,19 @@ ggplot(melt.snow, aes(as.numeric(Var2),value))+
 Reformat snow data:
 ```{r}
 snow.depth <- grep("_Snow Depth", names(snow))
-total.snow <- aggregate(snow[,c(snow.depth)], by=list(snow$`Water Year_`),
-                      function(x) sum(x,na.rm=TRUE))
-total.snow <- total.snow[!rowSums(total.snow) == 0,]
+avg.snow <- aggregate(snow[,c(snow.depth)], by=list(snow$`Water Year_`),
+                      function(x) mean(x,na.rm=TRUE))
+avg.snow <- avg.snow[!is.na(avg.snow[,5]),]
 
-do.call(rbind,lapply(split(total.snow, total.snow$Group.1), function(x){ 
-  apply(x[,-c(1:2)], 2, function(y) sum(y, na.rm = TRUE))
-  }
-  ))
-
-snow.long <- reshape(total.snow, direction="long",
-                     varying=list(names(total.snow[,-c(1:2)])),
+snow.long <- reshape(avg.snow, direction="long",
+                     varying=list(names(avg.snow[,-1])),
                      timevar="Month",
-                     times=names(total.snow[,-c(1:2)]),
+                     times=names(avg.snow[,-1]),
                      idvar=c("Group.1"),
                      v.names="Snow.Depth")
 
-snow.long <- snow.long[!is.nan(snow.long$Snow.Depth)]
+
+snow.long <- snow.long[!is.nan(snow.long$Snow.Depth),]
 snow.long$Month <- factor(snow.long$Month, levels = unique(snow.long$Month))
 levels(snow.long$Month)
 names(snow.long) <- c("Year","Month","Snow.Depth")
@@ -1241,6 +1237,26 @@ summary(aov(Snow.Depth~Year*Month, data=snow.long))
 
 summary(lm(Snow.Depth~Year*Month, data=snow.long))
 
+```
+
+```{r}
+yr.snow <- aggregate(snow.long$Snow.Depth, by = list(snow.long$Year),
+          function(x) sum(x))
+#missing data for 1997 and 2016, take those out
+yr.snow <- yr.snow[yr.snow$Group.1 %in% c(1998:2015),]
+```
+
+#Correlation of snow depth to precip, high and low   
+#Snow depth is averaged over sites and then summed for Oct-Sept water year   
+Snow depth is only 1998-2015    
+precip (unbloom) is only 1950 - 2011
+Overlap is 14 years
+```{r}
+raw.precip.snow <- merge(unbloom, yr.snow, by.x = "Year", by.y = "Group.1")
+colnames(raw.precip.snow) <- c("Year","Precip","HighTemp","LowTemp","SnowDepth")
+
+cor(raw.precip.snow[,-1])
+pairs(raw.precip.snow[,-1])
 ```
 
 
