@@ -1163,3 +1163,14 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=scientificName))+
   theme_bw()+
   ylab(expression(GDD))
 ```
+
+#Snow   
+Snow report generator <http://wcc.sc.egov.usda.gov/reportGenerator/>   
+```{r}
+snow <- read.table(path.expand("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_QGIS Projects/Alpine Phenology Project/Snowpack Data 2/Monthly19782016_over3200m.txt"),
+                   skip=7, header=FALSE,sep=",", na.strings = " ")
+
+
+
+```
+

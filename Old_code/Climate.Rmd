@@ -1523,6 +1523,9 @@ summary(lm(startDayOfYear~data, data = min.precip))
 #How does snowmelt and precip relate?    
 From Results_medl.Rmd   
 May I think is the peak, September is the end of first collection times
+## snow2 is from Results_medl    
+#### snow2 is from snow.total which is row sums of avg.p.yr
+#### avg.p.yr is from 'snow'
 
 ```{r}
 ggplot(snow2, aes(year,depth))+
