@@ -423,6 +423,13 @@ nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
 # add back the first species name (not the synonyms) for each data ID
 onename <- bloom2[!duplicated(bloom2$ID),]
+
+foo <- data.frame(table(min1950_2$scientificName,min1950_2$ID))
+foo[foo$Freq>1,]
+
+foo <- data.frame(table(onename$scientificName,onename$ID))
+table(foo$Var1,foo$var2)
+
 min1950_2.foo <- merge(min1950_2, onename[,c("scientificName","Family.Name","ID")], by="ID")
 head(min1950_2.foo)
 length(unique(min1950_2.foo$ID)) #498! Yay!
