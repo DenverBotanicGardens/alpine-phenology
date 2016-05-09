@@ -244,7 +244,6 @@ matches <- apply(fixbloom2.all,1,function(checknames){
 })
 allmat <- do.call(c,matches)
 length(allmat) #679 switches
-
 ```
 
 
@@ -296,7 +295,35 @@ bloom.temp <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNO
 
 str(bloom.temp)
 bloom2 <- bloom.temp
+
 ```
+
+How many species have two species ID numbers?
+```{r}
+foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
+foo[foo$Freq > 0,]
+sort(table(foo$Var1[foo$Freq>0]))
+```
+Agrostis variabilis    
+Anemone multifida    
+Antennaria parvifolia   
+Antennaria umbrinella    
+Bromus anomalus    
+Carex atrata    
+Carex hallii    
+Dasiphora fruticosa    
+Eleocharis  
+Erigeron acris     
+Festuca ovina    
+Galium boreale     
+Linum lewisii   
+Oxytropis deflexa       
+Paronychia pulvinata    
+Rorippa teres      
+Salix anglorum     
+Salix arctica      
+Senecio cymbalarioides     
+
 
 After combining datasets, find species with at least 10 years of data
 ```{r}
@@ -383,6 +410,10 @@ min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
 length(unique(min1950_2$ID)) #498 ! Yay!
+length(unique(min1950_2$Family.Name)) #51
+length(unique(min1950_2$ID))
+
+
 ```
 
 ```{r}
@@ -1259,5 +1290,13 @@ cor(raw.precip.snow[,-1])
 pairs(raw.precip.snow[,-1])
 ```
 
+Growth traits for tables
+```{r}
+plantinfo <- read.table("P:/hackathon/alpine-phenology/datasets/USDAplantsdata.txt",
+                        header=TRUE, sep = ",")
+head(plantinfo)
 
 
+gtyr <- merge(yr.1950_2, plantinfo, by.x = "Species", by.y = "Scientific.Name")
+
+```
