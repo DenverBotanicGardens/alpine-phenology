@@ -185,8 +185,10 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 
 
 #Check for synonyms   
-```{r}
+##SKIP THIS PART!
+```{r,eval=FALSE}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
+
 
 length(grep("ssp.",bloom2$scientificName)) #1577 (75)
 length(grep("subsp.",bloom2$scientificName)) #1502 (0)
@@ -247,7 +249,8 @@ length(allmat) #679 switches
 ```
 
 
-```{r}
+
+```{r,eval=FALSE}
 multisub <- function(pattern,replacement,x){
   result <- x
   for(i in 1:length(pattern)){
@@ -262,7 +265,7 @@ str(bloomfoo)
 ```
 
 Doesn't seem to be changing the data frame types
-```{r}
+```{r,eval=FALSE}
 tochar <- 1
 bloomfoo[,tochar] <- sapply(bloomfoo[,tochar], function(ch){
   as.character(ch)
@@ -278,7 +281,7 @@ bloomfoo[,tonumeric] <- sapply(bloomfoo[,tonumeric], function(s){
 
 Did it work?
 Sure looks like it did!!
-```{r}
+```{r,eval=FALSE}
 bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum",]
 bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum Nutt.",]
 bloom2[bloom2$scientificName %in% "Aconitum columbianum Nutt.",]
@@ -299,30 +302,65 @@ bloom2 <- bloom.temp
 ```
 
 How many species have two species ID numbers?
-```{r}
+```{r,eval=FALSE}
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-foo[foo$Freq > 0,]
 sort(table(foo$Var1[foo$Freq>0]))
+foo2 <- table(foo$Var1[foo$Freq>0])
+dups <- foo2[foo2>1]
+unique(bloom2[bloom2$scientificName %in% names(dups),c(1,2,8)])
+
+dupids <- unique(bloom2$ID[bloom2$scientificName %in% names(dups)])
+
 ```
-Agrostis variabilis    
-Anemone multifida    
-Antennaria parvifolia   
-Antennaria umbrinella    
-Bromus anomalus    
-Carex atrata    
-Carex hallii    
-Dasiphora fruticosa    
-Eleocharis  
-Erigeron acris     
-Festuca ovina    
-Galium boreale     
-Linum lewisii   
-Oxytropis deflexa       
-Paronychia pulvinata    
-Rorippa teres      
-Salix anglorum     
-Salix arctica      
-Senecio cymbalarioides     
+Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, Dasiphora fruticosa, Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, Senecio cymbalarioides     
+
+
+```{r}
+head(synonyms) # too big!
+synfoo <- data.frame(table(synonyms$SYNONYMS[1001:10000],synonyms$ID[1001:10000]))
+sort(table(synfoo$Var1[synfoo$Freq>0]))
+synfoo2 <- table(synfoo$Var1[synfoo$Freq>0])
+synfoodups <- synfoo2[synfoo2>1]
+unique(synonyms[synonyms$SYNONYMS %in% names(synfoodups),])
+
+unique(synonyms[synonyms$SYNONYMS %in% names(dups),])
+unique(bloom2[bloom2$ID %in% dupids,c(1,2,8)])
+
+unique(colo$Authority[grep("non", colo$Authority)]) #Desfontaines, non L.
+colo[grep("non", colo$Authority),c(1:5)]
+unique(seinet[grep("non", seinet$scientificNameAuthorship),c(12,13,14)]) #auct. non (L.) Rydb. 
+#auct. non L.         
+#auct. p.p. non L.    (Scribn.) Wagnon     auct. non D. Don   
+
+
+library(stringr)
+word(unique(synonyms$AUTH[synonyms$SYNONYMS %in% names(dups)]),start=3, end=-1)
+
+```
+
+
+
+#Check for synonyms with 
+#link by symbol instead of ID - no, no synonyms are listed
+###START HERE#####
+```{r}
+plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
+                        header=TRUE, sep = ",")
+head(plantsyn)
+
+length(grep("ssp.", plantsyn$Subspecies.Prefix)) #1456
+length(grep("subsp.", plantsyn$Subspecies.Prefix)) #0
+
+length(unique(plantsyn$Scientific.Name)) #15353
+length(unique(plantsyn$Accepted.Symbol)) #5513
+length(unique(plantsyn$Synonym.Symbol)) #9883
+
+bloom.o1 <- merge(bloom2, plantsyn[,c(4,1,2,25,26,27,28,29)], by.x = "scientificName", by.y = "Scientific.Name")
+
+head(bloom.o1)
+
+
+```
 
 
 After combining datasets, find species with at least 10 years of data
@@ -1146,7 +1184,6 @@ write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", se
 ```
 
 ###NPN Growing Degree Days     
-###START HERE#####
 ```{r}
 minNPNGDD_2 <- mergeMinGDD(npn.min1950,tmps)
 
