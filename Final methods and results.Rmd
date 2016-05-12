@@ -167,7 +167,7 @@ seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
 bloom2 <- rbind(seinet.bind,colo.bind) 
 barplot(table(bloom2$Year))
 
-length(unique(bloom2$scientificName)) #2303
+length(unique(bloom2$scientificName)) #2303 -> 2302
 unique(bloom2$Family.Name)[1:100]
 proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
 bloom2$Family.Name <- proper(bloom2$Family.Name)
@@ -198,14 +198,16 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 ```
 
 
-####Start here#####
-remove genus only.. although there are none, right? 
+remove genus only, 193 records of only genus
 ```{r}
-
-
+nrow(bloom2)
+nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,])
+nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) == 1,]) #193
+bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 ```
 
 #Check for synonyms   
+### START HERE #### after removing the genus only there are different results, check that it's all still correct
 ```{r,eval=TRUE}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
@@ -270,7 +272,7 @@ length(allmat) #679 switches
 
 
 
-```{r,eval=FALSE}
+```{r,eval=TRUE}
 multisub <- function(pattern,replacement,x){
   result <- x
   for(i in 1:length(pattern)){
@@ -286,13 +288,13 @@ str(bloomfoo)
 
 Doesn't seem to be changing the data frame types
 ```{r,eval=FALSE}
-tochar <- 1
+tochar <- 1:3
 bloomfoo[,tochar] <- sapply(bloomfoo[,tochar], function(ch){
   as.character(ch)
 })
 rm(tochar)
 
-tonumeric <- c(3:length(bloomfoo))
+tonumeric <- c(4:length(bloomfoo))
 bloomfoo[,tonumeric] <- sapply(bloomfoo[,tonumeric], function(s){
   as.numeric(as.character(s))
 })
@@ -324,7 +326,7 @@ bloom2 <- bloom.temp
 How many species have two species ID numbers?
 ```{r,eval=FALSE}
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-sort(table(foo$Var1[foo$Freq>0]))
+sort(table(foo$Var1[foo$Freq>0])) #19 throw them out!
 foo2 <- table(foo$Var1[foo$Freq>0])
 dups <- foo2[foo2>1]
 unique(bloom2[bloom2$scientificName %in% names(dups),c(1,2,8)])
@@ -332,6 +334,7 @@ unique(bloom2[bloom2$scientificName %in% names(dups),c(1,2,8)])
 dupids <- unique(bloom2$ID[bloom2$scientificName %in% names(dups)])
 
 ```
+# remove these from the database
 Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, Dasiphora fruticosa, Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, Senecio cymbalarioides     
 
 
