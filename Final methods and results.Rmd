@@ -395,17 +395,12 @@ bloom2[bloom2$scientificName %in% grep("Salix arctophila", bloom2$scientificName
 # Remove the errant names from the synonym list so connections can be made by species name without author. Author adds too much error with different abreviations. 
 ```{r}
 head(synonyms) # too big!
-synfoo <- data.frame(table(synonyms$SYNONYMS[1001:10000],synonyms$ID[1001:10000]))
-sort(table(synfoo$Var1[synfoo$Freq>0]))
-synfoo2 <- table(synfoo$Var1[synfoo$Freq>0])
-synfoodups <- synfoo2[synfoo2>1]
-unique(synonyms[synonyms$SYNONYMS %in% names(synfoodups),])
 
 unique(synonyms[synonyms$SYNONYMS %in% names(dups),])
 unique(bloom2[bloom2$ID %in% dupids,c(1,2,8)])
 
-unique(colo$Authority[grep("non", colo$Authority)]) #Desfontaines, non L.
-colo[grep("non", colo$Authority),c(1:5)]
+unique(colo[grep("non", colo$Authority),]) #Balsamita major Desfontaines, non L.
+
 unique(seinet[grep("non", seinet$scientificNameAuthorship),c(12,13,14)]) #auct. non (L.) Rydb. 
 #auct. non L.         
 #auct. p.p. non L.    (Scribn.) Wagnon     auct. non D. Don   
@@ -416,11 +411,50 @@ word(unique(synonyms$AUTH[synonyms$SYNONYMS %in% names(dups)]),start=3, end=-1)
 
 ```
 
-# Create bloom2 again after removing the problem names
+#Change synonyms to reflect the needed synonomy changes
+```{r}
+head(synonyms)
+
+#Agrostis variabilis: listed with Rydb. and Rydberg for 1197 and 1202, neither say auct. non Rydb which is  Agrostis rossiae Vasey; will remove 1197 auct. non Rydb., Also remove 1202 Agrostis rossiae acut. non Vasey 
+synonyms[synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis",]
+which(synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis") #2081
+synonyms[synonyms$ID == 1202,] #2101
+
+synonyms[c(2081,2101),]
+
+#START HERE # to remove, not sure, might want a which statement and then get all the which rows and do one remove
+
+  
+  
+
+
+
+```
+
+# Create bloom2 again after removing the problem names   
+########START HERE###############
+From methods: "Looking for ‘auct. non’ authorities in the herbarium collections. Seven names appear on herbarium collections in this dataset with inappropriate uses of the name (‘auct. non”). These will cause problems with synonymy by scientific name without including the author. Authority has problems when matching R verbatim due to spelling and abbreviation errors."
 ```{r}
 bloom2 <- rbind(seinet.bind,colo.bind) 
+bloom2[bloom2$scientificName %in% grep("major", bloom2$scientificName, value=TRUE),] # no Balsamita major?!
 
+bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
 
+bloom2$scientificName[bloom2$scientificName %in% grep("Gentiana aquatica", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non L."] <- "Gentiana fremontii"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Carex atrata", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. p.p. non L."] <- "Carex heteroneura var. epapillosa"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non L."] <- "Noccaea fendleri ssp. glauca"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Gentiana amarella", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. p.p. non L."] <- "Gentiana amarella ssp. acuta"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Saxifraga arguta", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non D. Don"] <- "Saxifraga odontoloma"
 ```
 
 
