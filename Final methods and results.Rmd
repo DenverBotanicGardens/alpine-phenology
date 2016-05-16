@@ -206,13 +206,12 @@ nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) 
 bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 ```
 
-#Check for synonyms   
-### START HERE #### after removing the genus only there are different results, check that it's all still correct
+#Check for synonyms  
 ```{r,eval=TRUE}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
 
-length(grep("ssp.",bloom2$scientificName)) #1577 (75)
+length(grep("ssp.",bloom2$scientificName)) #1577 (75) -> 1375 after genus removed
 length(grep("subsp.",bloom2$scientificName)) #1502 (0)
 length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
 length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
@@ -223,8 +222,19 @@ bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$s
 
 # names before the merge from our dataset
 namebloom2 <- unique(bloom2$scientificName)
-length(namebloom2) #2284
+length(namebloom2) #2284 -> 1960
 
+# remove the auct non (wrong use of name) from synonym list
+nrow(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),]) #163
+unique(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),])
+
+nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),]) #827
+nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE, invert=TRUE),]) #90737
+nrow(synonyms)
+
+###START HERE### after removing some of the synonyms that caused troubles later. 
+
+  
 # ID links synonyms
 # to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join)
 bloom.lo <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS", all.x = TRUE)
@@ -337,7 +347,52 @@ dupids <- unique(bloom2$ID[bloom2$scientificName %in% names(dups)])
 # remove these from the database
 Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, Dasiphora fruticosa, Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, Senecio cymbalarioides     
 
+```{r}
+issues.bloom2 <- bloom2[bloom2$scientificName %in% unique(grep(paste(names(dups), collapse="|"),
+                                              bloom2$scientificName, value = TRUE)),]
 
+unique(issues.bloom2[,c(1,2,3,length(issues.bloom2))])
+
+issues.synonyms <- synonyms[synonyms$ID %in% grep(paste(dupids, collapse="|"),
+                            synonyms$ID, value = TRUE),]
+issues.synonyms[,c(1,3)]
+
+plantinfo[plantinfo$Symbol %in% grep("AGVA",plantinfo$Symbol,value=TRUE),]
+plantinfo[plantinfo$Symbol %in% grep("DAFR",plantinfo$Symbol,value=TRUE),]
+# impliment on synonyms before applying IDs
+
+#synonyms <- synonyms$ID[synonyms$ID != 1197]
+
+
+bloom2[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName,value=TRUE),]
+#All are auct. non (L.) Rydb. Will change all to Potentilla fruiticosa L. (although they will still say the wrong authority)
+bloom2[bloom2$scientificName == "Dasiphora fruticosa",]
+bloom2$scientificName[bloom2$scientificName == "Dasiphora fruticosa"] <- "Potentilla fruticosa"
+
+# None are auct. non L. p.p. which would be Erigeron acris ssp. debilis
+bloom2[bloom2$scientificName %in% grep("Erigeron acris", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Festuca ovina", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Galium boreale", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Linum lewisii", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Oxytropis deflexa", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Paronychia pulvinata", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Rorippa teres", bloom2$scientificName,value=TRUE),]
+
+bloom2[bloom2$scientificName %in% grep("Salix anglorum", bloom2$scientificName,value=TRUE),]
+bloom2[bloom2$scientificName %in% grep("Salix arctica", bloom2$scientificName,value=TRUE),]
+bloom2[bloom2$scientificName %in% grep("Salix arctophila", bloom2$scientificName,value=TRUE),]
+
+#remove the wrong ones then go back to merging 
+```
+
+
+# Remove the errant names from the synonym list so connections can be made by species name without author. Author adds too much error with different abreviations. 
 ```{r}
 head(synonyms) # too big!
 synfoo <- data.frame(table(synonyms$SYNONYMS[1001:10000],synonyms$ID[1001:10000]))
@@ -361,53 +416,11 @@ word(unique(synonyms$AUTH[synonyms$SYNONYMS %in% names(dups)]),start=3, end=-1)
 
 ```
 
+# Create bloom2 again after removing the problem names
+```{r}
+bloom2 <- rbind(seinet.bind,colo.bind) 
 
 
-#Check for synonyms with 
-#link by symbol instead of ID - no, no synonyms are listed
-###Nope! go back to lumping#####
-```{r, eval= TRUE}
-plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",")
-names(plantsyn)
-
-
-bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
-length(grep("ssp.",bloom2$scientificName)) #1577 (75)
-length(grep("subsp.",bloom2$scientificName)) #0 (1502)
-
-length(grep("ssp.", plantsyn$Scientific.Name)) #1463
-length(grep("subsp.", plantsyn$Scientific.Name)) #0
-
-unique(plantsyn$Genera.Binomial.Author)
-# select the first not in parentheses authority to comapare grep
-plantsyn$Genera.Binomial.Author[1:10]
-# remove anything in parentheses
-sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Author, perl=TRUE)[1:10]
-# strsplit to get first word, or use library(stringr)
-library(stringr)
-word(sub("^\\s+", "",sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Author, perl=TRUE)),1)[1:10]
-#just the last author?
-word(plantsyn$Genera.Binomial.Author,-1)[1:10]
-
-plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
-                       grep("auct",plantsyn$Genera.Binomial.Author,value=TRUE,invert = TRUE),]
-
-length(unique(plantsyn$Scientific.Name)) #15204 (15353)
-length(unique(plantsyn$Accepted.Symbol)) #5513
-length(unique(plantsyn$Synonym.Symbol)) #9719 (9883)
-
-bloom.o1 <- merge(bloom2, plantsyn[,c(4,1,2,25,26,27,28,29)], by.x = "scientificName", by.y = "Scientific.Name")
-
-badnames.o1 <- setdiff(
-  word(bloom2$scientificName,1,end=2)[1:30]
-                       ,
-                       unique(bloom.o1$scientificName))
-head(badnames.o1)
-length(badnames.o1) #671 -> 505 -> 516
-
-length(unique(bloom.o1$Accepted.Symbol)) #1429
-length(unique(bloom.o1$Synonym.Symbol)) #445
 ```
 
 
@@ -1392,3 +1405,53 @@ head(plantinfo)
 gtyr <- merge(yr.1950_2, plantinfo, by.x = "Species", by.y = "Scientific.Name")
 
 ```
+
+
+
+#Check for synonyms with 
+#link by symbol instead of ID - no, no synonyms are listed
+###Nope! go back to lumping#####
+```{r, eval= TRUE}
+plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
+                        header=TRUE, sep = ",")
+names(plantsyn)
+
+
+bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
+length(grep("ssp.",bloom2$scientificName)) #1577 (75)
+length(grep("subsp.",bloom2$scientificName)) #0 (1502)
+
+length(grep("ssp.", plantsyn$Scientific.Name)) #1463
+length(grep("subsp.", plantsyn$Scientific.Name)) #0
+
+unique(plantsyn$Genera.Binomial.Author)
+# select the first not in parentheses authority to comapare grep
+plantsyn$Genera.Binomial.Author[1:10]
+# remove anything in parentheses
+sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Author, perl=TRUE)[1:10]
+# strsplit to get first word, or use library(stringr)
+library(stringr)
+word(sub("^\\s+", "",sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Author, perl=TRUE)),1)[1:10]
+#just the last author?
+word(plantsyn$Genera.Binomial.Author,-1)[1:10]
+
+plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
+                       grep("auct",plantsyn$Genera.Binomial.Author,value=TRUE,invert = TRUE),]
+
+length(unique(plantsyn$Scientific.Name)) #15204 (15353)
+length(unique(plantsyn$Accepted.Symbol)) #5513
+length(unique(plantsyn$Synonym.Symbol)) #9719 (9883)
+
+bloom.o1 <- merge(bloom2, plantsyn[,c(4,1,2,25,26,27,28,29)], by.x = "scientificName", by.y = "Scientific.Name")
+
+badnames.o1 <- setdiff(
+  word(bloom2$scientificName,1,end=2)[1:30]
+                       ,
+                       unique(bloom.o1$scientificName))
+head(badnames.o1)
+length(badnames.o1) #671 -> 505 -> 516
+
+length(unique(bloom.o1$Accepted.Symbol)) #1429
+length(unique(bloom.o1$Synonym.Symbol)) #445
+```
+
