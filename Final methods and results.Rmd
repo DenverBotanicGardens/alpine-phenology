@@ -487,22 +487,24 @@ bloom2[bloom2$scientificName=="",]
 bloom2[bloom2$Year=="",]
 bloom2[bloom2$ID=="",]
 
+bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+
+
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2299
-length(unique(bloom2$ID)) # 1661 grouped by synonyms
+length(unique(bloom.o$scientificName)) #2299 -> 1835
+length(unique(bloom.o$ID)) # 1563 grouped by synonyms
 
 # how many years collected per species
-sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
+sp.yr <- as.data.frame(table(bloom.o$Year,bloom.o$ID))
 nrow(sp.yr[sp.yr$Var2=="",])
 
-nrow(sp.yr[sp.yr$Freq>0,]) #16685 -> 16666 -> 14498 after synonyms -> 15121
-mean(sp.yr$Freq)
-mean(sp.yr$Freq[sp.yr$Freq > 0])
+nrow(sp.yr[sp.yr$Freq>0,]) #14369
+mean(sp.yr$Freq[sp.yr$Freq > 0]) 
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
-head(sp.yr)
+tail(sp.yr)
 
 # How many vouchers per species per year
-colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
+colpyear <- data.frame(table(bloom.o$ID,bloom.o$Year))
 colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)),
                                    function(x) x[which.max(x$Freq),]))
 
@@ -517,7 +519,7 @@ sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
 
 sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
 bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
-names(bysp[1])
+names(bysp[1]) #will need to change to names from ID number USDA later....
 
 spyears <- do.call(rbind,lapply(bysp, function(x){
   data.frame(DataYrs = sum(x$Freq),ID = unique(x$Var2))
@@ -525,8 +527,8 @@ spyears <- do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
-nrow(spyears[spyears$DataYrs>=10,]) #544 -> 479 -> 498
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.65553
+nrow(spyears[spyears$DataYrs>=10,]) #473
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.65751
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
 ```
@@ -535,10 +537,10 @@ sp.10plus <- spyears[spyears$DataYrs>=10,]
 Pull only the species that have 10 or more years of data for analyses   
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
-tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-length(unique(sp.10plus$ID)) # 498
-length(unique(tenyearplus$scientificName)) #545 -> 544 -> 449 -> 741
-length(unique(tenyearplus$ID)) # 498
+tenyearplus <- merge(bloom.o,sp.10plus,by = "ID")
+length(unique(sp.10plus$ID)) # 498 -> 473
+length(unique(tenyearplus$scientificName)) #654
+length(unique(tenyearplus$ID)) #473
 
 synlist <- lapply(split(tenyearplus, tenyearplus$ID), function(x){
   data.frame(Names = unique(x$scientificName), ID = unique(x$ID))
@@ -552,7 +554,8 @@ synlist[1:30,]
 
 Pull out earliest collection   
 ```{r}
-x<- unique(tenyearplus$ID)[100]
+#x<- unique(tenyearplus$ID)[100]
+rm(x)
 
 minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
   this.species <- tenyearplus[tenyearplus$ID == x,]
@@ -564,11 +567,7 @@ minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
-length(unique(min1950_2$ID)) #498 ! Yay!
-length(unique(min1950_2$Family.Name)) #51
-length(unique(min1950_2$ID))
-
-
+length(unique(min1950_2$ID)) #473
 ```
 
 ```{r}
@@ -576,8 +575,17 @@ length(unique(min1950_2$ID))
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
+
+# Before linking one name with the IDs that have 10 or more years of data, link the names with plantsyn traits. 
+plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
+                        header=TRUE, sep = ",")
+names(plantsyn)
+
+
+
 # add back the first species name (not the synonyms) for each data ID
-onename <- bloom2[!duplicated(bloom2$ID),]
+# The first one isn't the accepted name... 
+onename <- bloom.o[!duplicated(bloom.o$ID),]
 
 foo <- data.frame(table(min1950_2$scientificName,min1950_2$ID))
 foo[foo$Freq>1,]
