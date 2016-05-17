@@ -420,15 +420,37 @@ synonyms[synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis",]
 which(synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis") #2081
 synonyms[synonyms$ID == 1202,] #2101
 
-synonyms[c(2081,2101),]
+synonyms[synonyms$ID == 37415 & synonyms$SYNONYMS == "Anemone multifida",]
+which(synonyms$ID == 37415 & synonyms$SYNONYMS == "Anemone multifida")
 
-#START HERE # to remove, not sure, might want a which statement and then get all the which rows and do one remove
+synonyms[as.numeric(c(25940,25944)),]
+synonyms[60030,]
 
-  
-  
+removerows <- c(which(synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis"),
+                2101,
+                which(synonyms$ID == 37415 & synonyms$SYNONYMS == "Anemone multifida"),
+                which(synonyms$ID == 2380 & synonyms$SYNONYMS == "Antennaria parvifolia"),
+                which(synonyms$ID == 2399 & synonyms$SYNONYMS == "Antennaria umbrinella"),
+                which(synonyms$ID == 6434 & synonyms$SYNONYMS == "Bromus anomalus"),
+                which(synonyms$ID == 8326 & synonyms$SYNONYMS == "Carex atrata"),
+                which(synonyms$ID == 8505 & synonyms$SYNONYMS == "Carex hallii"),
+                which(synonyms$ID == 14111 & synonyms$SYNONYMS == "Dasiphora fruticosa"),
+                which(synonyms$ID == 17028 & synonyms$SYNONYMS == "Erigeron acris"),
+                which(synonyms$ID == 19023 & synonyms$SYNONYMS == "Festuca ovina"),
+                which(synonyms$ID == 19802 & synonyms$SYNONYMS == "Galium boreale"),
+                which(synonyms$ID == 26389 & synonyms$SYNONYMS == "Linum lewisii"),
+                which(synonyms$ID == 31730 & synonyms$SYNONYMS == "Oxytropis deflexa"),
+                which(synonyms$ID == 32230 & synonyms$SYNONYMS == "Paronychia pulvinata"),
+                which(synonyms$ID == 39088 & synonyms$SYNONYMS == "Rorippa teres"),
+                which(synonyms$ID == 39918 & synonyms$SYNONYMS == "Salix anglorum"),
+                which(synonyms$ID == 39919 & synonyms$SYNONYMS == "Salix arctica"),
+                which(synonyms$ID == 31847 & synonyms$SYNONYMS == "Senecio cymbalarioides"))
 
+nrow(synonyms[-c(removerows),])
+nrow(synonyms[c(removerows),])
+nrow(synonyms)
 
-
+synonyms <- synonyms[-c(removerows),]
 ```
 
 # Create bloom2 again after removing the problem names   
@@ -466,7 +488,7 @@ bloom2[bloom2$Year=="",]
 bloom2[bloom2$ID=="",]
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2294 -> 1828 -> 2207 -> 2018
+length(unique(bloom2$scientificName)) #2299
 length(unique(bloom2$ID)) # 1661 grouped by synonyms
 
 # how many years collected per species
