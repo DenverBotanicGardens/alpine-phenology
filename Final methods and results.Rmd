@@ -200,9 +200,9 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 
 remove genus only, 193 records of only genus
 ```{r}
-nrow(bloom2)
-nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,])
-nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) == 1,]) #193
+nrow(bloom2) #44300
+nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]) #44059
+nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) == 1,]) #241
 bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 ```
 
@@ -211,7 +211,7 @@ bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), functio
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
 
-length(grep("ssp.",bloom2$scientificName)) #1577 (75) -> 1375 after genus removed
+length(grep("ssp.",bloom2$scientificName)) #1577 (75) -> 1375 after genus removed 
 length(grep("subsp.",bloom2$scientificName)) #1502 (0)
 length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
 length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
@@ -222,34 +222,30 @@ bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$s
 
 # names before the merge from our dataset
 namebloom2 <- unique(bloom2$scientificName)
-length(namebloom2) #2284 -> 1960
+length(namebloom2) #2284 -> 1960 -> 2219
 
 # remove the auct non (wrong use of name) from synonym list
-nrow(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),]) #163
+nrow(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),]) #163 -> 87
 unique(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),])
 
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),]) #827
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE, invert=TRUE),]) #90737
 nrow(synonyms)
 
-###START HERE### after removing some of the synonyms that caused troubles later. 
-
-  
 # ID links synonyms
 # to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join)
-bloom.lo <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS", all.x = TRUE)
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand - 2 were repeated?)
 length(unique(synonyms$ID)) #48,141 unique taxa
-length(unique(bloom.lo$scientificName)) #2284
+length(unique(bloom.lo$scientificName)) #2284 --> 1960 before adding ones by hand
 length(unique(bloom.o$scientificName)) #1986 -> 1996 after adding ones by hand
 length(unique(bloom2$scientificName)) #(2284) 2299 different names in bloom2 before merge - then 1986 after; 2284
 
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames.o <- setdiff(namebloom2,bloom.o$scientificName)
 head(badnames.o)
-length(badnames.o) #288
+length(badnames.o) #288 -> 281
 
 badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
 length(badnames2) #471
@@ -454,10 +450,9 @@ synonyms <- synonyms[-c(removerows),]
 ```
 
 # Create bloom2 again after removing the problem names   
-########START HERE###############
 From methods: "Looking for ‘auct. non’ authorities in the herbarium collections. Seven names appear on herbarium collections in this dataset with inappropriate uses of the name (‘auct. non”). These will cause problems with synonymy by scientific name without including the author. Authority has problems when matching R verbatim due to spelling and abbreviation errors."
 ```{r}
-bloom2 <- rbind(seinet.bind,colo.bind) 
+# bloom2 <- rbind(seinet.bind,colo.bind) This is the problem, if I create it again here then miss other fixes, go back to top!
 bloom2[bloom2$scientificName %in% grep("major", bloom2$scientificName, value=TRUE),] # no Balsamita major?!
 
 bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
@@ -491,14 +486,14 @@ bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYM
 
 
 #how many species in dataset
-length(unique(bloom.o$scientificName)) #2299 -> 1835
-length(unique(bloom.o$ID)) # 1563 grouped by synonyms
+length(unique(bloom.o$scientificName)) #2299 -> 1835 -> 1934
+length(unique(bloom.o$ID)) # 1563 grouped by synonyms -> 1575
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom.o$Year,bloom.o$ID))
 nrow(sp.yr[sp.yr$Var2=="",])
 
-nrow(sp.yr[sp.yr$Freq>0,]) #14369
+nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14807
 mean(sp.yr$Freq[sp.yr$Freq > 0]) 
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 tail(sp.yr)
@@ -527,8 +522,8 @@ spyears <- do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
-nrow(spyears[spyears$DataYrs>=10,]) #473
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.65751
+nrow(spyears[spyears$DataYrs>=10,]) #473 -> 488
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.78484
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
 ```
@@ -538,9 +533,9 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom.o,sp.10plus,by = "ID")
-length(unique(sp.10plus$ID)) # 498 -> 473
-length(unique(tenyearplus$scientificName)) #654
-length(unique(tenyearplus$ID)) #473
+length(unique(sp.10plus$ID)) # 498 -> 473 -> 488
+length(unique(tenyearplus$scientificName)) #654 -> 725
+length(unique(tenyearplus$ID)) #473 -> 488
 
 synlist <- lapply(split(tenyearplus, tenyearplus$ID), function(x){
   data.frame(Names = unique(x$scientificName), ID = unique(x$ID))
@@ -555,7 +550,6 @@ synlist[1:30,]
 Pull out earliest collection   
 ```{r}
 #x<- unique(tenyearplus$ID)[100]
-rm(x)
 
 minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
   this.species <- tenyearplus[tenyearplus$ID == x,]
@@ -567,7 +561,7 @@ minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
-length(unique(min1950_2$ID)) #473
+length(unique(min1950_2$ID)) #473 -> 488
 ```
 
 ```{r}
@@ -582,30 +576,29 @@ plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510
 names(plantsyn)
 
 
+merge.1 <- merge(bloom.o[,-c(4:8)],plantsyn, by.x = "scientificName", by.y = "Scientific.Name", all.x =TRUE)
+head(merge.1)
+merge.1[merge.1$ID == 21,]
 
-# add back the first species name (not the synonyms) for each data ID
-# The first one isn't the accepted name... 
-onename <- bloom.o[!duplicated(bloom.o$ID),]
+#Instead of the first one, the one where Synonym.Symbol (or the first for that) is missing would be the accepted name!
+acpted <- merge.1[which(merge.1$Synonym.Symbol==""),]
+onename <- acpted[!duplicated(acpted$ID),]
 
-foo <- data.frame(table(min1950_2$scientificName,min1950_2$ID))
-foo[foo$Freq>1,]
+length(unique(onename$ID)) #1216 -> 1269
 
-foo <- data.frame(table(onename$scientificName,onename$ID))
-table(foo$Var1,foo$var2)
-
-min1950_2.foo <- merge(min1950_2, onename[,c("scientificName","Family.Name","ID")], by="ID")
+min1950_2.foo <- merge(min1950_2, onename, by="ID", all.x = TRUE)
 head(min1950_2.foo)
-length(unique(min1950_2.foo$ID)) #498! Yay!
+length(unique(min1950_2.foo$ID)) #498! Yay! -> 473, but what does that mean for missing names? 
 min1950_2 <- min1950_2.foo
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
 
-length(unique(min1950_2$ID)) #498 species
-mean(min1950_2$DataYrs[!duplicated(min1950_2$ID)]) #23.665 years
+length(unique(min1950_2$ID)) #473 species -> 488
+mean(min1950_2$DataYrs[!duplicated(min1950_2$ID)]) #23.78484 years
 
-nrow(min1950_2) #11673
+nrow(min1950_2) #11083 -> 11498
 write.table(min1950_2, file="P:/hackathon/alpine-phenology/datasets/min1950_2.csv", sep=",")
 ```
 
@@ -616,6 +609,31 @@ min1950_2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBot
 
 ```
 
+# How many forbs vs. grasses vs. tree? How many 
+###START HERE#### need to fix min1950_2 merged, got x and y when shouldn't be there!
+```{r}
+unique(min1950_2$scientificName[min1950_2$Growth.Habit == "" & !is.na(min1950_2$Growth.Habit)])
+
+unique(min1950_2$Growth.Habit)
+unique(min1950_2$Bloom.Period)
+unique(min1950_2$Duration)
+
+GH <- data.frame(table(min1950_2$Growth.Habit[!duplicated(min1950_2$ID)]))
+GH[GH$Freq>0,]
+
+sum(GH$Freq) # 434 - is a subset that has this information on it! what to do?! -> 468
+
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #335 Forb/herbs
+sum(  GH$Freq[GH$Var1 %in% grep("Vine", GH$Var1, value=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #1 vine put it with shrub
+sum(  GH$Freq[GH$Var1 %in% grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #31 shrubs/subshrubs
+sum(  GH$Freq[GH$Var1 %in% grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE) & 
+                GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE, ignore.case=TRUE) &
+                GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11 trees
+
+
+
+```
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
@@ -627,13 +645,13 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #191.36
+mean(earcol$Collections) #182.9508
 
 ```
-        Year    Collections    
-1998    1998            416    
+     Year Collections
+1998 1998         394  
 
-
+###START HERE### and put them into the results document!
 #Figure 1A
 ```{r}
 ggplot(earcol, aes(Year, Collections))+
