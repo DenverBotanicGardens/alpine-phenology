@@ -71,13 +71,27 @@ colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="
                                                                 value=TRUE)),]
 
 colo.sm <- colo[,c(1,5,40,12,13,31,32,21,22,23,24)] #added 5 = Authority
+names(colo.sm)
 
 #Year
 colo.sm$Year <- (sub('.*(\\d{4}).*', '\\1', as.character(colo.sm$Date..dd.month.yyyy.)))
 
 # Removing any with dates that aren't entered correctly or are missing year, not exact date
-colo.sm <- colo.sm[grep("[[:digit:]]", colo.sm$Year),]
-colo.sm <- colo.sm[colo.sm$Year>=1950,]
+colo.sm$Year[nchar(colo.sm$Year)!=4]
+colo.sm$Year[nchar(colo.sm$Year)!=4 & grepl("^[A-Za-z]+$",colo.sm$Year)]
+colo.sm$Year[nchar(colo.sm$Year)==4 & grepl("^[A-Za-z]+$",colo.sm$Year)]
+
+colo.sm$Year[(nchar(colo.sm$Year)==4 & grepl("^[A-Za-z]+$",colo.sm$Year)) | nchar(colo.sm$Year)!=4]
+
+#these are all the ones to get rid of
+table(colo.sm$Year[(nchar(colo.sm$Year)==4 & grepl("^[A-Za-z]+$",colo.sm$Year)) | nchar(colo.sm$Year)!=4  | colo.sm$Year > 2012])
+
+table(colo.sm$Year[(nchar(colo.sm$Year)==4 & !grepl("^[A-Za-z]+$",colo.sm$Year)) | nchar(colo.sm$Year)==4  | colo.sm$Year < 2012])
+
+
+colo.sm <- colo.sm[nchar(colo.sm$Year)==4,]
+colo.sm <- colo.sm[colo.sm$Year>=1950,] #only years 1950 and beyond, before 2011
+table(colo.sm$Year)
 
 length(unique(colo.sm$scientificName)) #2999
 
