@@ -441,23 +441,11 @@ nrow(synonyms)
 synonyms <- synonyms[-c(removerows),]
 ```
 
-### THIS SHOULD BE AFTER FIXING SYNONYM LIST
-```{r, eval=FALSE}
-# Ok, do it!
-bloom2 <- bloomfoo
-
-# Now merge with synonyms
-bloom.temp <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
-
-str(bloom.temp)
-bloom2 <- bloom.temp
-
-```
-
 # Create bloom2 again after removing the problem names   
 From methods: "Looking for ‘auct. non’ authorities in the herbarium collections. Seven names appear on herbarium collections in this dataset with inappropriate uses of the name (‘auct. non”). These will cause problems with synonymy by scientific name without including the author. Authority has problems when matching R verbatim due to spelling and abbreviation errors."
 ```{r}
-# bloom2 <- rbind(seinet.bind,colo.bind) This is the problem, if I create it again here then miss other fixes, go back to top!
+bloom2 <- bloomfoo
+
 bloom2[bloom2$scientificName %in% grep("major", bloom2$scientificName, value=TRUE),] # no Balsamita major?!
 
 bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
@@ -480,25 +468,27 @@ bloom2$scientificName[bloom2$scientificName %in% grep("Saxifraga arguta", bloom2
 ```
 
 
+### THIS SHOULD BE AFTER FIXING SYNONYM LIST
+```{r, eval=FALSE}
+# Now merge with synonyms
+bloom.temp <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+
+str(bloom.temp)
+bloom2 <- bloom.temp
+
+```
+
+
 After combining datasets, find species with at least 10 years of data
 ```{r}
-# all important data is there
-bloom2[bloom2$scientificName=="",]
-bloom2[bloom2$Year=="",]
-bloom2[bloom2$ID=="",]
-
-#bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
-
-
 #how many species in dataset
 length(unique(bloom.o$scientificName)) #2299 -> 1835 -> 1938
 length(unique(bloom.o$ID)) # 1563 grouped by synonyms -> 1582
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
-nrow(sp.yr[sp.yr$Var2=="",])
 
-nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14840
+nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14837
 mean(sp.yr$Freq[sp.yr$Freq > 0]) 
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 tail(sp.yr)
@@ -528,7 +518,7 @@ spyears <- do.call(rbind,lapply(bysp, function(x){
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
 nrow(spyears[spyears$DataYrs>=10,]) #473 -> 490
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.7102
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.71429
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
 ```
@@ -539,7 +529,7 @@ Not earliest but does tell me if one per species per year to tell how many speci
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
 length(unique(sp.10plus$ID)) # 498 -> 473 -> 490
-length(unique(tenyearplus$scientificName)) #654 -> 734
+length(unique(tenyearplus$scientificName)) #654 -> 730
 length(unique(tenyearplus$ID)) #473 -> 490
 
 synlist <- lapply(split(tenyearplus, tenyearplus$ID), function(x){
@@ -566,9 +556,10 @@ minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
-length(unique(min1950_2$ID)) #473 -> 488
+length(unique(min1950_2$ID)) #473 -> 490
 ```
 
+###START HERE#### can't figure out which names don't have growth habit info - to fill it in!
 ```{r}
 # check that none have more than one a year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
@@ -578,32 +569,56 @@ nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 # Before linking one name with the IDs that have 10 or more years of data, link the names with plantsyn traits. 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
                         header=TRUE, sep = ",")
+
 names(plantsyn)
+table(plantsyn$Growth.Habit)
+#plantsyn[plantsyn$Growth.Habit!="",]
+length(unique(plantsyn$Accepted.Symbol)) #4635
 
-
-merge.1 <- merge(bloom.o[,-c(4:8)],plantsyn, by.x = "scientificName", by.y = "Scientific.Name", all.x =TRUE)
+###START HERE####
+# Should do this before getting to species with 10 years or more to have the accepted name! or could do this just to get the accepted name after... 
+#Need to link the ID with the names used 
+merge.1 <- merge(unique(bloom2[,-c(4:8)]),
+                 unique(plantsyn[,c(1:4,19,26:31)]), 
+                 by.x = "scientificName", by.y = "Scientific.Name", all.x =TRUE)
 head(merge.1)
 merge.1[merge.1$ID == 21,]
 
 #Instead of the first one, the one where Synonym.Symbol (or the first for that) is missing would be the accepted name!
+## min1950_2 has just ID, need to pick which name (and info) to go with each ID number
+## bloom2 has all the names and ID. Make something from bloom2 to pick the one accepted name then use that to link the 
+# one accepted name to the number in min1950_2. Just need to make sure that all the IDs in new thing are in min1950_2
 acpted <- merge.1[which(merge.1$Synonym.Symbol==""),]
+length(unique(merge.1$ID))
+length(unique(merge.1$scientificName))
 onename <- acpted[!duplicated(acpted$ID),]
 
-length(unique(onename$ID)) #1216 -> 1269
+onename[onename$Duration=="",] #Potentilla
+onename[onename$Growth.Habit=="",] #Potentilla
+
+length(unique(onename$ID)) #1216 -> 1276
+setdiff(unique(min1950_2$ID),unique(onename$ID))
+length(setdiff(unique(min1950_2$ID),unique(onename$ID))) #20 numbers that are in min1950_2 but not in onename
+unique(bloom2$scientificName[bloom2$ID %in% grep(paste(setdiff(unique(min1950_2$ID),
+                                                               unique(onename$ID)),collapse ="|"),
+                                                 bloom2$ID, value=TRUE)])
+unique(bloom2[bloom2$ID %in% grep(paste(setdiff(unique(min1950_2$ID),unique(onename$ID)),collapse ="|"),
+                                  bloom2$ID, value=TRUE),])
+
 
 min1950_2.foo <- merge(min1950_2, onename, by="ID", all.x = TRUE)
 head(min1950_2.foo)
-length(unique(min1950_2.foo$ID)) #498! Yay! -> 473, but what does that mean for missing names? 488
+length(unique(min1950_2.foo$ID)) #498! Yay! -> 473, but what does that mean for missing names? 490
 min1950_2 <- min1950_2.foo
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
 
-length(unique(min1950_2$ID)) #473 species -> 488
-mean(min1950_2$DataYrs[!duplicated(min1950_2$ID)]) #23.78484 years
+length(unique(min1950_2$ID)) #473 species -> 490
+mean(min1950_2$DataYrs[!duplicated(min1950_2$ID)]) #23.71429 years
 
-nrow(min1950_2) #11083 -> 11498
+nrow(min1950_2) #11083 -> 11511
 write.table(min1950_2, file="P:/hackathon/alpine-phenology/datasets/min1950_2.csv", sep=",")
 ```
 
@@ -615,6 +630,7 @@ min1950_2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBot
 ```
 
 # How many forbs vs. grasses vs. tree? How many 
+######START HERE#######
 ```{r}
 unique(min1950_2$scientificName[min1950_2$Growth.Habit == "" & !is.na(min1950_2$Growth.Habit)])
 
@@ -624,10 +640,15 @@ unique(min1950_2$Duration)
 
 GH <- data.frame(table(min1950_2$Growth.Habit[!duplicated(min1950_2$ID)]))
 GH[GH$Freq>0,]
+sum(GH$Freq)#470
 
-min1950_2[min1950_2$Growth.Habit == "" & !is.na(min1950_2$scientificName),]
+whaa <- unique(min1950_2$ID[is.na(min1950_2$Growth.Habit)])
+min1950_2[min1950_2$ID==whaa[1],]
+ns <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(whaa[1],"|"),bloom2$ID,value=TRUE)])
+
+
 table(unique(min1950_2$Growth.Habit))
-sum(table(unique(min1950_2$scientificName)))
+sum(table(unique(min1950_2$scientificName))) #470
 
 sum(GH$Freq) # 434 - is a subset that has this information on it! what to do?! -> 468
 min1950_2$scientificName[is.null(min1950_2$Growth.Habit)&!is.na(min1950_2$ID)]
@@ -1498,9 +1519,7 @@ gtyr <- merge(yr.1950_2, plantinfo, by.x = "Species", by.y = "Scientific.Name")
 
 
 
-#Check for synonyms with 
-#link by symbol instead of ID - no, no synonyms are listed
-###Nope! go back to lumping#####
+#Check for synonyms 
 ```{r, eval= TRUE}
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
                         header=TRUE, sep = ",")
@@ -1525,9 +1544,6 @@ word(sub("^\\s+", "",sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Auth
 #just the last author?
 word(plantsyn$Genera.Binomial.Author,-1)[1:10]
 
-plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
-                       grep("auct",plantsyn$Genera.Binomial.Author,value=TRUE,invert = TRUE),]
-
 length(unique(plantsyn$Scientific.Name)) #15204 (15353)
 length(unique(plantsyn$Accepted.Symbol)) #5513
 length(unique(plantsyn$Synonym.Symbol)) #9719 (9883)
@@ -1541,7 +1557,7 @@ badnames.o1 <- setdiff(
 head(badnames.o1)
 length(badnames.o1) #671 -> 505 -> 516
 
-length(unique(bloom.o1$Accepted.Symbol)) #1429
-length(unique(bloom.o1$Synonym.Symbol)) #445
+length(unique(bloom.o1$Accepted.Symbol)) #1429 -> 1384
+length(unique(bloom.o1$Synonym.Symbol)) #445 -> 461
 ```
 
