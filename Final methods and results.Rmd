@@ -212,7 +212,7 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 ```
 
 
-remove genus only, 193 records of only genus
+remove genus only, 241 records of only genus
 ```{r}
 nrow(bloom2) #44300
 nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]) #44059
@@ -221,11 +221,12 @@ bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), functio
 ```
 
 #Check for synonyms  
+#What did I do now to synonym_list_byhand2.txt? I think I added a few synonyms at the end that weren't in there. Must have looked on SEINet and Weber and Hartman to find what ID those names (from Herbarium specimens) should be assigned to. 
 ```{r,eval=TRUE}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
 
-length(grep("ssp.",bloom2$scientificName)) #1577 (75) -> 1375 after genus removed 
+length(grep("ssp.",bloom2$scientificName)) #1577 (75) -> 1375 after genus removed ?? 1577
 length(grep("subsp.",bloom2$scientificName)) #1502 (0)
 length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
 length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
@@ -238,29 +239,45 @@ bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$s
 namebloom2 <- unique(bloom2$scientificName)
 length(namebloom2) #2284 -> 1960 -> 2219
 
-# remove the auct non (wrong use of name) from synonym list
+# deal with the auct non (wrong use of name) from synonym list
 nrow(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),]) #163 -> 87
 unique(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),])
+
+unique(bloom2$scientificName[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE)])
 
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),]) #827
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE, invert=TRUE),]) #90737
 nrow(synonyms)
 
+# change the four species, "Dasiphora fruticosa" "Gentiana aquatica"   "Thlaspi alpestre"    "Saxifraga arguta", that when used with auct. non will cause synonomy problems
+bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Gentiana aquatica", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non L."] <- "Gentiana fremontii"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Saxifraga arguta", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non D. Don"] <- "Saxifraga odontoloma"
+
+bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2$scientificName, value=TRUE)&
+        bloom2$Authority == "auct. non L."] <- "Noccaea fendleri ssp. glauca"
+
+
+
 # ID links synonyms
 # to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join)
-### NEED TO DO THE synonym changes first!
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
-length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand - 2 were repeated?)
+length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand to 'byhand2')
 length(unique(synonyms$ID)) #48,141 unique taxa
 length(unique(bloom.lo$scientificName)) #2284 --> 1960 before adding ones by hand
-length(unique(bloom.o$scientificName)) #1986 -> 1996 after adding ones by hand
-length(unique(bloom2$scientificName)) #(2284) 2299 different names in bloom2 before merge - then 1986 after; 2284
+length(unique(bloom.o$scientificName)) #1986 -> 1934
+length(unique(bloom2$scientificName)) #(2284) 2215
 
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames.o <- setdiff(namebloom2,bloom.o$scientificName)
 head(badnames.o)
-length(badnames.o) #288 -> 281
+length(badnames.o) #288 -> 281 -> 285
 
 badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
 length(badnames2) #471
@@ -565,7 +582,11 @@ length(unique(min1950_2$ID)) #473 -> 490
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
+```
 
+
+What if I go through all the data, then worry about finding the accepted name and associated plant informaiton at the end?
+```{r}
 # Before linking one name with the IDs that have 10 or more years of data, link the names with plantsyn traits. 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
                         header=TRUE, sep = ",")
@@ -603,7 +624,7 @@ unique(bloom2$scientificName[bloom2$ID %in% grep(paste(setdiff(unique(min1950_2$
                                                                unique(onename$ID)),collapse ="|"),
                                                  bloom2$ID, value=TRUE)])
 unique(bloom2[bloom2$ID %in% grep(paste(setdiff(unique(min1950_2$ID),unique(onename$ID)),collapse ="|"),
-                                  bloom2$ID, value=TRUE),])
+                                  bloom2$ID, value=TRUE),c(1,)])
 
 
 min1950_2.foo <- merge(min1950_2, onename, by="ID", all.x = TRUE)
