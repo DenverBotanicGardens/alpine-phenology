@@ -61,9 +61,9 @@ seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotani
 Manipulate dates and names to be consistant before rbind databases
 ```{r}
 colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,sep=" ")
-names(colo[,c(1,5,40,12,13,31,32,21,22,23,24)])
-# [1] "Family.Name"          "Authority"            "scientificName"       "Country"              "State"                "Decimal.Latitude"    
-# [7] "Decimal.Longitude"    "Elevation..feet."     "Elevation..meters."   "Date..dd.month.yyyy." "Reproductive.Status" 
+names(colo[,c(1,5,40,13,31,32,21,22,23,24)])
+# [1] "Family.Name"          "Authority"            "scientificName"       "State"                "Decimal.Latitude"     "Decimal.Longitude"   
+# [7] "Elevation..feet."     "Elevation..meters."   "Date..dd.month.yyyy." "Reproductive.Status" 
 
 colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
@@ -73,7 +73,7 @@ colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="
                                                                 colo$Reproductive.Status,
                                                                 value=TRUE)),]
 
-colo.sm <- colo[,c(1,5,40,12,13,31,32,21,22,23,24)] #added 5 = Authority
+colo.sm <- colo[,c(1,5,40,13,31,32,21,22,23,24)] #added 5 = Authority
 names(colo.sm)
 
 #Year
@@ -85,11 +85,11 @@ length(colo.sm$Year[nchar(colo.sm$Year)==4 & grepl("^[A-Za-z]+$",colo.sm$Year)])
 length(colo.sm$Year[nchar(colo.sm$Year)==4 & !grepl("^[A-Za-z]+$",colo.sm$Year)])
 length(colo.sm$Year[nchar(colo.sm$Year)==4])
 
-colo.sm$Year[(nchar(colo.sm$Year)==4 & grepl("^[A-Za-z]+$",colo.sm$Year)) | nchar(colo.sm$Year)!=4]
+colo.sm$Year[(nchar(colo.sm$Year)==4 & grepl("^[A-Za-z]+$",colo.sm$Year)) | nchar(colo.sm$Year)!=4] #all the bad ones
 
 #these are all the ones to get rid of.
-colo.sm <- colo.sm[nchar(colo.sm$Year)==4,]
-colo.sm <- colo.sm[nchar(colo.sm$Year)==4 & !grepl("^[A-Za-z]+$",colo.sm$Year),]
+colo.sm <- colo.sm[nchar(colo.sm$Year)==4,] #keep years with 4 digits 
+colo.sm <- colo.sm[nchar(colo.sm$Year)==4 & !grepl("^[A-Za-z]+$",colo.sm$Year),] #keep ones that are 4 digits but all numeric
 colo.sm <- colo.sm[colo.sm$Year>=1950,] #only years 1950 and beyond, before 2011
 colo.sm <- colo.sm[colo.sm$Year<2012,] #only years 1950 and beyond, before 2012
 
@@ -123,30 +123,30 @@ table(wrongdates)
 
 colo.sm$startDayOfYear<-as.numeric(format(
     as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format="%d %B %Y")    ,"%j"))
-```
 
-
-#Need to use authority and name to match synonyms and species together
-```{r}
-unique(colo.sm$Authority)
-unique(colo.sm$Authority[colo.sm$Authority %in% grep("Gray", colo.sm$Authority, value=TRUE)])
-unique(colo.sm$Authority[colo.sm$Authority %in% grep("Hooker", colo.sm$Authority, value=TRUE)])
-unique(colo.sm$Authority[colo.sm$Authority %in% grep("auct", colo.sm$Authority, value=TRUE)])
+table(colo.sm$startDayOfYear)
+barplot(table(colo.sm$startDayOfYear))
 ```
 
 SEInet  
 pull out names to match colo.sm and have data needed to subset   
- [1] "Family.Name"     author     "scientificName"       "Country"              "State"                "Decimal.Latitude"      
- [6] "Decimal.Longitude"    "Elevation..feet."     "Elevation..meters."   "Date..dd.month.yyyy." "Reproductive.Status"   
-[11] "Year"                 "elevation"            "startDayOfYear"   
+ [1] "family"                   "scientificNameAuthorship" "scientificName"          
+ [4] "stateProvince"            "decimalLatitude"          "decimalLongitude"        
+ [7] "year"                     "minimumElevationInMeters" "startDayOfYear"          
+[10] "reproductiveCondition"
 ```{r}
-head(seinet[seinet$scientificName=="",])
+nrow(seinet[seinet$scientificName=="",]) #81
 seinet <- seinet[seinet$scientificName!="",]
 
-head(seinet[,c(12,14,13,56,63:64,31,73,34)])
+names(seinet[,c(12,14,13,56,63:64,31,73,34,46)])
 seinet$reproductiveCondition <- as.character(seinet$reproductiveCondition)
+table(seinet$reproductiveCondition)
 
-repro <- c("Fl","fr","Fert")
+repro <- c("Fl","fr","Fert","fl","Fr")
+sort(table(seinet$reproductiveCondition[seinet$reproductiveCondition %in%unique(grep(paste(repro,collapse="|"),seinet$reproductiveCondition,value=TRUE))]))
+sort(table(seinet$reproductiveCondition[seinet$reproductiveCondition %in%unique(grep(paste(repro,collapse="|"),seinet$reproductiveCondition,value=TRUE, invert=TRUE))]))
+      
+      
 seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
                                                              seinet$reproductiveCondition,
                                                              value=TRUE)),]
@@ -163,6 +163,7 @@ seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
 nrow(seinet.sm[is.na(seinet.sm$minimumElevationInMeters),]) #498
 seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
 identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters >=3200,])
+boxplot(table(seinet.sm$startDayOfYear))
 ```
 
 Combine datasets to create bloom2   
