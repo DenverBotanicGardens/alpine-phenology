@@ -163,14 +163,16 @@ seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
 nrow(seinet.sm[is.na(seinet.sm$minimumElevationInMeters),]) #498
 seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
 identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters >=3200,])
-boxplot(table(seinet.sm$startDayOfYear))
+barplot(table(seinet.sm$startDayOfYear))
 ```
 
 Combine datasets to create bloom2   
+[1] "Family.Name"       "Authority"         "scientificName"    "Decimal.Latitude"  "Decimal.Longitude"
+[6] "Year"              "elevation"         "startDayOfYear" 
 ```{r}
-names <- names(colo.sm[,c(1:3,6:7,12:14)]) #shoot, added aurthority as 2
+names <- names(colo.sm[,c(1:3,5:6,11:13)]) 
 #names(seinet.sm[,c(1:4,7,5,8)])
-colo.bind <- colo.sm[,c(1:3,6:7,12:14)]
+colo.bind <- colo.sm[,c(1:3,5:6,11:13)]
 seinet.bind <- seinet.sm[,-4] #take out state
 names(seinet.bind) <- names
 
@@ -184,6 +186,7 @@ seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
 
 bloom2 <- rbind(seinet.bind,colo.bind) 
 barplot(table(bloom2$Year))
+barplot(table(bloom2$startDayOfYear))
 
 length(unique(bloom2$scientificName)) #2303 -> 2302
 unique(bloom2$Family.Name)[1:100]
@@ -216,6 +219,7 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 ```
 
 
+## 3. Remove any herbarium specimens with Genus only
 remove genus only, 241 records of only genus
 ```{r}
 nrow(bloom2) #44300
@@ -224,13 +228,14 @@ nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) 
 bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 ```
 
-#Check for synonyms  
-#What did I do now to synonym_list_byhand2.txt? I think I added a few synonyms at the end that weren't in there. Must have looked on SEINet and Weber and Hartman to find what ID those names (from Herbarium specimens) should be assigned to. 
+## 4. found herbarium sheets where name was not in database. 
+Check for synonyms - Add ID numbers for unique taxa (link synonyms)    
+What did I do now to synonym_list_byhand2.txt? I think I added a few synonyms at the end that weren't in there. Must have looked on SEINet and Weber and Hartman to find what ID those names (from Herbarium specimens) should be assigned to. 
 ```{r,eval=TRUE}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
 
 
-length(grep("ssp.",bloom2$scientificName)) #1577 (75) -> 1375 after genus removed ?? 1577
+length(grep("ssp.",bloom2$scientificName)) #75 -> 1577 after subsp. -> ssp.
 length(grep("subsp.",bloom2$scientificName)) #1502 (0)
 length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
 length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
@@ -241,19 +246,21 @@ bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$s
 
 # names before the merge from our dataset
 namebloom2 <- unique(bloom2$scientificName)
-length(namebloom2) #2284 -> 1960 -> 2219
+length(namebloom2) #2219
 
 # deal with the auct non (wrong use of name) from synonym list
 nrow(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),]) #163 -> 87
 unique(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),])
-
 unique(bloom2$scientificName[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE)])
 
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),]) #827
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE, invert=TRUE),]) #90737
 nrow(synonyms)
+```
 
-# change the four species, "Dasiphora fruticosa" "Gentiana aquatica"   "Thlaspi alpestre"    "Saxifraga arguta", that when used with auct. non will cause synonomy problems
+
+## 4a. change the four species, "Dasiphora fruticosa" "Gentiana aquatica"   "Thlaspi alpestre"    "Saxifraga arguta", that when used with auct. non will cause synonomy problems
+```{r}
 bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
 
@@ -265,35 +272,33 @@ bloom2$scientificName[bloom2$scientificName %in% grep("Saxifraga arguta", bloom2
 
 bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non L."] <- "Noccaea fendleri ssp. glauca"
+```
 
 
-
-# ID links synonyms
-# to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join)
+## 4 ID links synonyms
+### 4e. to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join), see which aren't in the original and assign those names the appropriate ID to link synonyms
+```{r}
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand to 'byhand2')
 length(unique(synonyms$ID)) #48,141 unique taxa
-length(unique(bloom.lo$scientificName)) #2284 --> 1960 before adding ones by hand
 length(unique(bloom.o$scientificName)) #1986 -> 1934
 length(unique(bloom2$scientificName)) #(2284) 2215
 
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames.o <- setdiff(namebloom2,bloom.o$scientificName)
 head(badnames.o)
-length(badnames.o) #288 -> 281 -> 285
+length(badnames.o) #285
 
-badnames2 <- namebloom2[!(namebloom2 %in% bloom2$scientificName)]
-length(badnames2) #471
-badnames3 <- bloom2$scientificName[!(bloom2$scientificName %in% namebloom2)]
-length(badnames3) #0
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
+```
 
-#Use these 'badnames' which are names in bloom2 not found in the USDA synonym list to correct errors
-# some are crosses, some misspellings. 
-# csv has $Wrong: list of bloom2 names with no UDSA match 
-#         $Replacement: corrected or NA if it should just be removed/ignored
-# Should just remove ssp. and var. to lump. 
+#########START HERE#############
+
+####Use these 'badnames.o' which are names in bloom2 not found in the USDA synonym list to correct errors some are crosses, some misspellings. 
+###### fixbloom2 csv has $Wrong: list of bloom2 names with no UDSA match 
+######                   $Replacement: corrected or NA if it should just be removed/ignored     
+```{r}
 fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections.csv"),
                       na.strings = c("NA", "", " "), colClasses = "character")
 
