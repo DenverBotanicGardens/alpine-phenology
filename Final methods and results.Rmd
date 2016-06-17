@@ -550,7 +550,7 @@ plantsyn$Scientific.Name <- gsub(pattern = "subsp.", replacement = "ssp.", plant
 
 # Should do this before getting to species with 10 years or more to have the accepted name! or could do this just to get the accepted name after... 
 #Need to link the ID with the names used 
-linknames <- merge(bloom2[,c(1,9)],plantsyn[,c(1:4,26:31)],by.x="scientificName",by.y="Scientific.Name")
+linknames <- merge(bloom2[,c(1,9)],plantsyn[,c(1:4,25:31)],by.x="scientificName",by.y="Scientific.Name")
 #should be the accepted name for each ID
 accpt <- unique(linknames[linknames$Synonym.Symbol=="",])
 
@@ -563,13 +563,6 @@ length(unique(merge.name$ID)) #469!
 missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
 missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
-min1950_2[min1950_2$ID==missingnums[1],]
-linknames[linknames$ID==missingnums[1],]
-plantsyn[plantsyn$Scientific.Name == "Artemisia borealis",]
-
-plantsyn[plantsyn$Scientific.Name == "Artemisia campestris ssp. borealis",]
-linknames[linknames$scientificName=="Artemisia borealis",]
-linknames[linknames$ID==3449,]
 
 #At least one doesn't have the Accepted.Symbol line! 
 syns <- linknames[!duplicated(linknames$ID) & linknames$ID %in% missingnums,]
@@ -588,26 +581,18 @@ missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
 missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
 
-bloom2[bloom2$scientificName == "Chlorocrepis tristis",]
-plantsyn[plantsyn$Scientific.Name == "Chlorocrepis tristis",]
-bloom2[bloom2$ID == "22207",]
 ```
-> names(accpt)
- [1] "scientificName"          "ID"                      "Accepted.Symbol"         "Synonym.Symbol"           
- [5] "Symbol"                  "Duration"                "Growth.Habit"            "Native.Status"           
- [9] "Bloom.Period"            "Fruit.Seed.Period.Begin" "Fruit.Seed.Period.End"   
+
 
 ```{r}
 min1950_2[min1950_2$ID == unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]),]
 unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]) #43988
 unique(bloom2$ID[bloom2$scientificName=="Carex atrata"]) #8105
 unique(bloom2$ID[bloom2$scientificName=="Carex micropoda"]) #8591
-unique(bloom2$ID[bloom2$scientificName=="Castilleja rhexifolia"]) #8950
 unique(bloom2$ID[bloom2$scientificName=="Chlorocrepis tristis"]) #22207
 unique(bloom2$ID[bloom2$scientificName=="Eutrema edwardsii"]) #18851
 unique(bloom2$ID[bloom2$scientificName=="Hieracium triste"]) #22205
 unique(bloom2$ID[bloom2$scientificName=="Ligularia bigelovii"]) # 41494
-unique(bloom2$ID[bloom2$scientificName=="Noccaea montana"]) # 30638
 unique(bloom2$ID[bloom2$scientificName=="Poa nervosa"]) # 35582
 unique(bloom2$ID[bloom2$scientificName=="Salix arctica"]) # 39918
 unique(bloom2$ID[bloom2$scientificName=="Senecio bigelovii var. bigelovii"]) # 41494
@@ -615,39 +600,100 @@ unique(bloom2$ID[bloom2$scientificName=="Symphyotrichum foliaceum var. foliaceum
 unique(bloom2$ID[bloom2$scientificName=="Valeriana capitata"]) # 46589
 unique(bloom2$ID[bloom2$scientificName=="Veratrum californicum"]) # 46683
 
-
+## Remove the following
 ## Two with the same ID?!?! Remove both of these!
 unique(bloom2$ID[bloom2$scientificName=="Eritrichium aretioides"]) #17897
 unique(bloom2$ID[bloom2$scientificName=="Eritrichium nanum var. aretioides"]) #17897
 
-merge.name[merge.name$ID == 43988,]
+## excluded?
+unique(bloom2$ID[bloom2$scientificName=="Noccaea montana"]) # 30638
+
+## spelling error
+unique(bloom2$ID[bloom2$scientificName=="Castilleja rhexifolia"]) #8950
 ```
 
 ```{r}
 ## Fill in data for missing names- add these to accpt
-accpt <- rbind(accpt,c("Symphyotrichum foliaceum var. foliaceum",))
+accpt <- rbind(accpt,c("Aster foliaceus","43988","","",
+                       "","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Carex atrata","8105","","",
+                       "","Perennial","Graminoid","GL (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Carex micropoda","8591","","",
+                       "","Perennial","Graminoid","AK (N), CAN (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Hieracium triste var. triste","22207","","",
+                       "","Perennial","Forb/herb","AK (N), CAN (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Eutrema edwardsii","18851","","",
+                       "","Perennial","Forb/herb","AK (N), CAN (N), GL (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Hieracium triste","22205","","",
+                       "","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Ligularia bigelovii","41494","","",
+                       "","Perennial","Forb/herb","L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Poa nervosa","35582","","",
+                       "","Perennial","Graminoid","CAN (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Salix arctica","39918","","",
+                       "","Perennial","Shrub, Subshrub","AK (N), CAN (N), GL (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Senecio bigelovii var. bigelovii","41494","","",
+                       "","Perennial","Forb/herb","L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Symphyotrichum foliaceum var. foliaceum","43988","","",
+                       "","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Valeriana capitata","46589","","",
+                       "VECA2","Perennial","Forb/herb","AK (N), CAN (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Veratrum californicum","46683","","",
+                       "VECA2","Perennial","Forb/herb","L48 (N)",
+                       "","",""))
 
 ```
+> names(accpt)
+ [1] "scientificName"          "ID"                      "Accepted.Symbol"         "Synonym.Symbol"       
+ [5] "Symbol"                  "Duration"                "Growth.Habit"            "Native.Status"      
+ [9] "Bloom.Period"            "Fruit.Seed.Period.Begin" "Fruit.Seed.Period.End"   
 
-#### START HERE #####   
-Wait, when linking to min1950_2, there might be multiple names for one ID, so want to get the one accepted name to go with ID!
+### One more time, make merge names
 ```{r}
-
+rm(merge.name)
+merge.name <- merge(accpt,min1950_2, by="ID")
+length(unique(min1950_2$ID)) #491
+length(unique(merge.name$ID)) #487
 
 #Check that there is only one species collection date per year
-singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
-nrow(singlefoo[singlefoo$Freq> 1,]) #11? -> 1?? -> 0
+singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
+nrow(singlefoo[singlefoo$Freq> 1,]) #26
 
-length(unique(min1950_2$ID)) #473 species -> 490
-mean(min1950_2$DataYrs[!duplicated(min1950_2$ID)]) #23.71429 years
+# for two species, repeated data for the synonym, get rid of the second set of data
+merge.name[merge.name$ID == 41494,] #just repeated for the synonym. 
+merge.name[merge.name$ID == 43988,] #just repeated for the synonym. 
 
-nrow(min1950_2) #11083 -> 11511
-write.table(min1950_2, file="P:/hackathon/alpine-phenology/datasets/min1950_2.csv", sep=",")
+removerows.41494 <- c(which(merge.name$ID == 41494 & merge.name$scientificName == "Ligularia bigelovii"))
+removerows.43988 <- c(which(merge.name$ID == 43988 & merge.name$scientificName == "Aster foliaceus"))
+
+merge.name <- merge.name[-c(removerows.41494,removerows.43988),]
+
+rm(singlefoo)
+singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
+nrow(singlefoo[singlefoo$Freq> 1,]) #0
+
+length(unique(merge.name$ID)) #487
+mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.66324 years
+
+nrow(merge.name) #11415
+write.table(merge.name, file="P:/hackathon/alpine-phenology/datasets/merge.name.csv", sep=",")
 ```
 
-min1950_2 from away
+merge.name from away
 ```{r}
-min1950_2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950_2.csv"))
+merge.name <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/merge.name.csv"))
 
 
 ```
@@ -655,26 +701,30 @@ min1950_2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBot
 # How many forbs vs. grasses vs. tree? How many 
 
 ```{r}
-unique(min1950_2$scientificName[min1950_2$Growth.Habit == "" & !is.na(min1950_2$Growth.Habit)])
+unique(merge.name$scientificName[merge.name$Growth.Habit == "" & !is.na(merge.name$Growth.Habit)])
 
-unique(min1950_2$Growth.Habit)
-unique(min1950_2$Bloom.Period)
-unique(min1950_2$Duration)
+unique(merge.name$Growth.Habit)
+unique(merge.name$Bloom.Period)
+unique(merge.name$Duration)
 
-GH <- data.frame(table(min1950_2$Growth.Habit[!duplicated(min1950_2$ID)]))
+GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
 GH[GH$Freq>0,]
-sum(GH$Freq)#470
+sum(GH$Freq)#487
 
-whaa <- unique(min1950_2$ID[is.na(min1950_2$Growth.Habit)])
-min1950_2[min1950_2$ID==whaa[1],]
-ns <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(whaa[1],"|"),bloom2$ID,value=TRUE)])
+table(unique(merge.name$Growth.Habit))
+length(unique(merge.name$ID))
+
+# Number of Families represented!
+length(table(merge.name$Family[!duplicated(merge.name$ID)]))
+
+###### START HERE ###########
+# Growth Habit numbers
+table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
 
 
-table(unique(min1950_2$Growth.Habit))
-sum(table(unique(min1950_2$scientificName))) #470
 
 sum(GH$Freq) # 434 - is a subset that has this information on it! what to do?! -> 468
-min1950_2$scientificName[is.null(min1950_2$Growth.Habit)&!is.na(min1950_2$ID)]
+merge.name$scientificName[is.null(merge.name$Growth.Habit)&!is.na(merge.name$ID)]
 
 sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #335 Forb/herbs
 sum(  GH$Freq[GH$Var1 %in% grep("Vine", GH$Var1, value=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #1 vine put it with shrub
@@ -692,8 +742,8 @@ sum(  GH$Freq[GH$Var1 %in% grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE) &
 ### START HERE ######
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
-earliestcollection <- data.frame(colSums(table(min1950_2$ID, #should be only one name now
-                                                min1950_2$Year)))
+earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
+                                                merge.name$Year)))
 
 earcol <- data.frame(Year = row.names(earliestcollection),
                      Collections = earliestcollection)
@@ -763,10 +813,10 @@ Take annual climate data from previous dataset
 ```{r}
 head(bloom)
 head(bloom[,c(19,20,21,23)])
-head(min1950_2)
-min1950_2 <- merge(min1950_2,unique(bloom[,c(19,20,21,23)]), by="Year")
+head(merge.name)
+merge.name <- merge(merge.name,unique(bloom[,c(19,20,21,23)]), by="Year")
 
-write.table(min1950_2, file="P:/hackathon/alpine-phenology/datasets/min1950_2.csv", sep=",")
+write.table(merge.name, file="P:/hackathon/alpine-phenology/datasets/merge.name.csv", sep=",")
 
 unbloom <- unique(bloom[,c(19,20,21,23)])
 ```
@@ -782,7 +832,7 @@ cor.test(unbloom[,3],unbloom[,4])
 
 #Figure 2 Year x Bloom date
 ```{r}
-ggplot(min1950_2, aes(Year, startDayOfYear)) +
+ggplot(merge.name, aes(Year, startDayOfYear)) +
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -790,7 +840,7 @@ ggplot(min1950_2, aes(Year, startDayOfYear)) +
   ylab("Ordinal date")+
   scale_x_continuous(breaks = seq(1950,2011,10))  
 
-summary(lm(startDayOfYear~Year, data=min1950_2))
+summary(lm(startDayOfYear~Year, data=merge.name))
 
 ```
 
@@ -845,7 +895,7 @@ summary(lm(Raw_Precip~Year, data = unbloom))
 
 #Figure 3A  
 ```{r}
-ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
+ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -853,14 +903,14 @@ ggplot(min1950_2, aes(Avg_Hi, startDayOfYear))+
   xlab(expression(~degree~C))+
   ylab("Ordinal Date")
 
-summary(lm(startDayOfYear~Avg_Hi, data=min1950_2))
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 
 ```
 
 
 #Figure 3B
 ```{r}
-ggplot(min1950_2, aes(Avg_Lo, startDayOfYear))+
+ggplot(merge.name, aes(Avg_Lo, startDayOfYear))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -868,12 +918,12 @@ ggplot(min1950_2, aes(Avg_Lo, startDayOfYear))+
   xlab(expression(~degree~C))+
   ylab("Ordinal Date")
 
-summary(lm(startDayOfYear~Avg_Lo, data = min1950_2))
+summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
 ```
 
 #Figure 3C
 ```{r}
-ggplot(min1950_2, aes(Raw_Precip, startDayOfYear))+
+ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
@@ -881,7 +931,7 @@ ggplot(min1950_2, aes(Raw_Precip, startDayOfYear))+
   xlab("Precipitation (mm)")+
   ylab("Ordinal Date")
 
-summary(lm(startDayOfYear~Raw_Precip, data = min1950_2))
+summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
 
 ```
 
@@ -953,12 +1003,12 @@ HDD.yrs <- lapply(HDD, function(x){
 HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
 
-nrow(min1950_2[min1950_2$Year > 1980,]) # 7737 -> 7730 -> 7447
+nrow(merge.name[merge.name$Year > 1980,]) # 7737 -> 7730 -> 7447
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
-min1950GDD_2 <- mergeMinGDD(min1950_2,tmps)
+min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
 length(unique(min1950GDD_2$day)) #1152 -> 1149
 length(unique(min1950GDD_2$scientificName)) #544 -> 493
@@ -1114,7 +1164,7 @@ npn.IDs <- bloom2$ID[bloom2$scientificName %in% npn.big]
 length(unique(npn.IDs)) #78
 
 # How many IDs that match have collections within 1950 to 2011
-npn.foo <- min1950_2[min1950_2$ID %in% npn.IDs,]
+npn.foo <- merge.name[merge.name$ID %in% npn.IDs,]
 nrow(npn.foo)
 length(unique(npn.foo$ID)) #29
 sort(unique(npn.foo$scientificName))
@@ -1146,7 +1196,7 @@ JulBloomDate.min1950 <- function(variable,dataset){
 
 Phenology summary tables    
 ```{r}
-yr.1950_2 <- JulBloomDate.min1950("Year",min1950_2)
+yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
 nrow(yr.1950_2)
 
@@ -1173,7 +1223,7 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 
 ###High Temperature     
 ```{r}
-high.1950_2 <- JulBloomDate.min1950("Avg_Hi", min1950_2)
+high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
 
 nrow(high.1950_2) #545 -> 498
 
@@ -1198,7 +1248,7 @@ nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2)
 ```
 
 ```{r}
-low.1950_2 <- JulBloomDate.min1950("Avg_Lo", min1950_2)
+low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name)
 
 nrow(low.1950_2) #545  -> 498
 
@@ -1220,7 +1270,7 @@ mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0])
 
 ### Precipitation
 ```{r}
-precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", min1950_2)
+precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name)
 
 nrow(precip.1950_2) #545  -> 498
 
