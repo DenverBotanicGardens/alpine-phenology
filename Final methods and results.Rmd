@@ -520,8 +520,7 @@ nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
 ```
 
-######START HERE#######
-## Still lots of problems with this list or use of this list... 
+
 ```{r}
 # Before linking one name with the IDs that have 10 or more years of data, link the names with plantsyn traits. 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
@@ -551,16 +550,83 @@ plantsyn$Scientific.Name <- gsub(pattern = "subsp.", replacement = "ssp.", plant
 
 # Should do this before getting to species with 10 years or more to have the accepted name! or could do this just to get the accepted name after... 
 #Need to link the ID with the names used 
-linknames <- merge(bloom2,plantsyn[,c(1:4,26:31)],by.x="scientificName",by.y="Scientific.Name")
+linknames <- merge(bloom2[,c(1,9)],plantsyn[,c(1:4,26:31)],by.x="scientificName",by.y="Scientific.Name")
+#should be the accepted name for each ID
+accpt <- unique(linknames[linknames$Synonym.Symbol=="",])
 
-merge.name <- merge(linknames,min1950_2, by="ID")
+length(unique(bloom2$ID)) #1583
+length(unique(accpt$ID)) #1273
+
+merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #476!
+length(unique(merge.name$ID)) #469!
 missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
 missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
+min1950_2[min1950_2$ID==missingnums[1],]
+linknames[linknames$ID==missingnums[1],]
+plantsyn[plantsyn$Scientific.Name == "Artemisia borealis",]
+
+plantsyn[plantsyn$Scientific.Name == "Artemisia campestris ssp. borealis",]
+linknames[linknames$scientificName=="Artemisia borealis",]
+linknames[linknames$ID==3449,]
+
+#At least one doesn't have the Accepted.Symbol line! 
+syns <- linknames[!duplicated(linknames$ID) & linknames$ID %in% missingnums,]
+
+#So add these to accpt
+rm(merge.name)
+accpt <- rbind(accpt,syns)
+
+merge.name <- merge(accpt,min1950_2, by="ID")
+length(unique(min1950_2$ID)) #491
+length(unique(merge.name$ID)) #476!
+
 bloom2[bloom2$scientificName%in%missingnames,]
 nrow(min1950_2[min1950_2$ID%in%missingnums,])
+missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
+missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
+                                                 bloom2$ID, value=TRUE)])
+
+bloom2[bloom2$scientificName == "Chlorocrepis tristis",]
+plantsyn[plantsyn$Scientific.Name == "Chlorocrepis tristis",]
+bloom2[bloom2$ID == "22207",]
+```
+> names(accpt)
+ [1] "scientificName"          "ID"                      "Accepted.Symbol"         "Synonym.Symbol"           
+ [5] "Symbol"                  "Duration"                "Growth.Habit"            "Native.Status"           
+ [9] "Bloom.Period"            "Fruit.Seed.Period.Begin" "Fruit.Seed.Period.End"   
+
+```{r}
+min1950_2[min1950_2$ID == unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]),]
+unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]) #43988
+unique(bloom2$ID[bloom2$scientificName=="Carex atrata"]) #8105
+unique(bloom2$ID[bloom2$scientificName=="Carex micropoda"]) #8591
+unique(bloom2$ID[bloom2$scientificName=="Castilleja rhexifolia"]) #8950
+unique(bloom2$ID[bloom2$scientificName=="Chlorocrepis tristis"]) #22207
+unique(bloom2$ID[bloom2$scientificName=="Eutrema edwardsii"]) #18851
+unique(bloom2$ID[bloom2$scientificName=="Hieracium triste"]) #22205
+unique(bloom2$ID[bloom2$scientificName=="Ligularia bigelovii"]) # 41494
+unique(bloom2$ID[bloom2$scientificName=="Noccaea montana"]) # 30638
+unique(bloom2$ID[bloom2$scientificName=="Poa nervosa"]) # 35582
+unique(bloom2$ID[bloom2$scientificName=="Salix arctica"]) # 39918
+unique(bloom2$ID[bloom2$scientificName=="Senecio bigelovii var. bigelovii"]) # 41494
+unique(bloom2$ID[bloom2$scientificName=="Symphyotrichum foliaceum var. foliaceum"]) # 43988
+unique(bloom2$ID[bloom2$scientificName=="Valeriana capitata"]) # 46589
+unique(bloom2$ID[bloom2$scientificName=="Veratrum californicum"]) # 46683
+
+
+## Two with the same ID?!?! Remove both of these!
+unique(bloom2$ID[bloom2$scientificName=="Eritrichium aretioides"]) #17897
+unique(bloom2$ID[bloom2$scientificName=="Eritrichium nanum var. aretioides"]) #17897
+
+merge.name[merge.name$ID == 43988,]
+```
+
+```{r}
+## Fill in data for missing names- add these to accpt
+accpt <- rbind(accpt,c("Symphyotrichum foliaceum var. foliaceum",))
+
 ```
 
 #### START HERE #####   
