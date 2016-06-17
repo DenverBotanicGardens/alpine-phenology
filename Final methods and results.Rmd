@@ -7,7 +7,6 @@ output: html_document
 
 load libraries   
 ```{r}
-
 library(RCurl)
 library(ggplot2)
 library(data.table)
@@ -166,6 +165,7 @@ identical(seinet.sm,seinet.sm[seinet.sm$minimumElevationInMeters >=3200,])
 barplot(table(seinet.sm$startDayOfYear))
 ```
 
+#Bloom2
 Combine datasets to create bloom2   
 [1] "Family.Name"       "Authority"         "scientificName"    "Decimal.Latitude"  "Decimal.Longitude"
 [6] "Year"              "elevation"         "startDayOfYear" 
@@ -194,6 +194,7 @@ proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
 bloom2$Family.Name <- proper(bloom2$Family.Name)
 ```
 
+#Bloom2 
 Fix spelling errors   
 <http://cumuseum-archive.colorado.edu/Research/Botany/Databases/vascular_plants.pdf>
 ```{r}
@@ -230,10 +231,10 @@ bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), functio
 
 ## 4. found herbarium sheets where name was not in database. 
 Check for synonyms - Add ID numbers for unique taxa (link synonyms)    
-What did I do now to synonym_list_byhand2.txt? I think I added a few synonyms at the end that weren't in there. Must have looked on SEINet and Weber and Hartman to find what ID those names (from Herbarium specimens) should be assigned to. 
+synonym_list_byhand2.txt? 
+added a few synonyms at the end that weren't in there. SEINet and Weber and Hartman to find what ID those names (from Herbarium specimens) should be assigned to. 
 ```{r,eval=TRUE}
 synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
-
 
 length(grep("ssp.",bloom2$scientificName)) #75 -> 1577 after subsp. -> ssp.
 length(grep("subsp.",bloom2$scientificName)) #1502 (0)
@@ -260,6 +261,7 @@ nrow(synonyms)
 
 
 ## 4a. change the four species, "Dasiphora fruticosa" "Gentiana aquatica"   "Thlaspi alpestre"    "Saxifraga arguta", that when used with auct. non will cause synonomy problems
+# bloom2 
 ```{r}
 bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
@@ -276,7 +278,7 @@ bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2
 
 
 ## 4 ID links synonyms
-### 4e. to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join), see which aren't in the original and assign those names the appropriate ID to link synonyms
+### 4d. to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join), see which aren't in the original and assign those names the appropriate ID to link synonyms
 ```{r}
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
@@ -293,13 +295,12 @@ length(badnames.o) #285
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
 ```
 
-#########START HERE#############
 
 ####Use these 'badnames.o' which are names in bloom2 not found in the USDA synonym list to correct errors some are crosses, some misspellings. 
 ###### fixbloom2 csv has $Wrong: list of bloom2 names with no UDSA match 
 ######                   $Replacement: corrected or NA if it should just be removed/ignored     
 ```{r}
-fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections.csv"),
+fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v2.csv"),
                       na.strings = c("NA", "", " "), colClasses = "character")
 
 #try again, first replace names with corrections, then do the merge for left outer again)
@@ -314,11 +315,11 @@ matches <- apply(fixbloom2.all,1,function(checknames){
   grep(checknames[1],bloomfoo$scientificName)
 })
 allmat <- do.call(c,matches)
-length(allmat) #679 switches
+length(allmat) #2240 switches
 ```
 
-
-
+#4e
+To change all the wrong column names to the 'replacement' column names, use the multisub function
 ```{r,eval=TRUE}
 multisub <- function(pattern,replacement,x){
   result <- x
@@ -346,87 +347,45 @@ bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca var.",]
 bloom2[bloom2$scientificName %in% "Agoseris aurantiaca var.",]
 ```
 
-
 How many species have two species ID numbers?
 ```{r,eval=FALSE}
+bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-sort(table(foo$Var1[foo$Freq>0])) #19 throw them out!
-foo2 <- table(foo$Var1[foo$Freq>0])
-dups <- foo2[foo2>1]
-unique(bloom2[bloom2$scientificName %in% names(dups),c(1,2,8)])
-
-dupids <- unique(bloom2$ID[bloom2$scientificName %in% names(dups)])
-
-```
-# remove these from the database
-Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, Dasiphora fruticosa, Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, Senecio cymbalarioides     
-
-```{r}
-issues.bloom2 <- bloom2[bloom2$scientificName %in% unique(grep(paste(names(dups), collapse="|"),
-                                              bloom2$scientificName, value = TRUE)),]
-
-unique(issues.bloom2[,c(1,2,3,length(issues.bloom2))])
-
-issues.synonyms <- synonyms[synonyms$ID %in% grep(paste(dupids, collapse="|"),
-                            synonyms$ID, value = TRUE),]
-issues.synonyms[,c(1,3)]
-
-plantinfo[plantinfo$Symbol %in% grep("AGVA",plantinfo$Symbol,value=TRUE),]
-plantinfo[plantinfo$Symbol %in% grep("DAFR",plantinfo$Symbol,value=TRUE),]
-# impliment on synonyms before applying IDs
-
-#synonyms <- synonyms$ID[synonyms$ID != 1197]
-
-
-bloom2[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName,value=TRUE),]
-#All are auct. non (L.) Rydb. Will change all to Potentilla fruiticosa L. (although they will still say the wrong authority)
-bloom2[bloom2$scientificName == "Dasiphora fruticosa",]
-bloom2$scientificName[bloom2$scientificName == "Dasiphora fruticosa"] <- "Potentilla fruticosa"
-
-# None are auct. non L. p.p. which would be Erigeron acris ssp. debilis
-bloom2[bloom2$scientificName %in% grep("Erigeron acris", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Festuca ovina", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Galium boreale", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Linum lewisii", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Oxytropis deflexa", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Paronychia pulvinata", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Rorippa teres", bloom2$scientificName,value=TRUE),]
-
-bloom2[bloom2$scientificName %in% grep("Salix anglorum", bloom2$scientificName,value=TRUE),]
-bloom2[bloom2$scientificName %in% grep("Salix arctica", bloom2$scientificName,value=TRUE),]
-bloom2[bloom2$scientificName %in% grep("Salix arctophila", bloom2$scientificName,value=TRUE),]
-
-#remove the wrong ones then go back to merging 
-```
-
-
-# Remove the errant names from the synonym list so connections can be made by species name without author. Author adds too much error with different abreviations. 
-```{r}
-head(synonyms) # too big!
-
-unique(synonyms[synonyms$SYNONYMS %in% names(dups),])
-unique(bloom2[bloom2$ID %in% dupids,c(1,2,8)])
-
-unique(colo[grep("non", colo$Authority),]) #Balsamita major Desfontaines, non L.
-
-unique(seinet[grep("non", seinet$scientificNameAuthorship),c(12,13,14)]) #auct. non (L.) Rydb. 
-#auct. non L.         
-#auct. p.p. non L.    (Scribn.) Wagnon     auct. non D. Don   
-
-
-library(stringr)
-word(unique(synonyms$AUTH[synonyms$SYNONYMS %in% names(dups)]),start=3, end=-1)
+sort(table(foo$Var1[foo$Freq>0])) #19
 
 ```
 
-#Change synonyms to reflect the needed synonomy changes
+
+### 4f. Remove auct. non records from the synonyms list. 
+######## remove these from the database
+Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, Dasiphora fruticosa, Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, Senecio cymbalarioides  
 ```{r}
+# Duplicate IDs
+synonyms["Agrostis variabilis" == synonyms$SYNONYMS,]
+
+# remove all auct. non
+synonyms <- synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value = TRUE, invert = TRUE),]
+
+rm(bloom2)
+bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
+sort(table(foo$Var1[foo$Freq>0])) #6
+
+synonyms["Anemone multifida" == synonyms$SYNONYMS,]
+
+# remove all " non "
+synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
+rm(bloom2)
+bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
+sort(table(foo$Var1[foo$Freq>0])) #6
+
+```
+
+
+# These were removed earlier with 'auct. non.'
+Change synonyms to reflect the needed synonomy changes
+```{r, eval=FALSE}
 head(synonyms)
 
 #Agrostis variabilis: listed with Rydb. and Rydberg for 1197 and 1202, neither say auct. non Rydb which is  Agrostis rossiae Vasey; will remove 1197 auct. non Rydb., Also remove 1202 Agrostis rossiae acut. non Vasey 
@@ -470,51 +429,19 @@ synonyms <- synonyms[-c(removerows),]
 # Create bloom2 again after removing the problem names   
 From methods: "Looking for ‘auct. non’ authorities in the herbarium collections. Seven names appear on herbarium collections in this dataset with inappropriate uses of the name (‘auct. non”). These will cause problems with synonymy by scientific name without including the author. Authority has problems when matching R verbatim due to spelling and abbreviation errors."
 ```{r}
-bloom2 <- bloomfoo
-
-bloom2[bloom2$scientificName %in% grep("major", bloom2$scientificName, value=TRUE),] # no Balsamita major?!
-
-bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
-
-bloom2$scientificName[bloom2$scientificName %in% grep("Gentiana aquatica", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. non L."] <- "Gentiana fremontii"
-
-bloom2$scientificName[bloom2$scientificName %in% grep("Carex atrata", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. p.p. non L."] <- "Carex heteroneura var. epapillosa"
-
-bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. non L."] <- "Noccaea fendleri ssp. glauca"
-
-bloom2$scientificName[bloom2$scientificName %in% grep("Gentiana amarella", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. p.p. non L."] <- "Gentiana amarella ssp. acuta"
-
-bloom2$scientificName[bloom2$scientificName %in% grep("Saxifraga arguta", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. non D. Don"] <- "Saxifraga odontoloma"
+bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 ```
-
-
-### THIS SHOULD BE AFTER FIXING SYNONYM LIST
-```{r, eval=FALSE}
-# Now merge with synonyms
-bloom.temp <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
-
-str(bloom.temp)
-bloom2 <- bloom.temp
-
-```
-
 
 After combining datasets, find species with at least 10 years of data
 ```{r}
 #how many species in dataset
-length(unique(bloom.o$scientificName)) #2299 -> 1835 -> 1938
-length(unique(bloom.o$ID)) # 1563 grouped by synonyms -> 1582
+length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1937
+length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
-nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14837
+nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14841
 mean(sp.yr$Freq[sp.yr$Freq > 0]) 
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 tail(sp.yr)
@@ -543,8 +470,8 @@ spyears <- do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
-nrow(spyears[spyears$DataYrs>=10,]) #473 -> 490
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.71429
+nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.70672
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
 ```
@@ -554,9 +481,9 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-length(unique(sp.10plus$ID)) # 498 -> 473 -> 490
-length(unique(tenyearplus$scientificName)) #654 -> 730
-length(unique(tenyearplus$ID)) #473 -> 490
+length(unique(sp.10plus$ID)) # 498 -> 473 -> 491
+length(unique(tenyearplus$scientificName)) #654 -> 725
+length(unique(tenyearplus$ID)) #473 -> 491
 
 synlist <- lapply(split(tenyearplus, tenyearplus$ID), function(x){
   data.frame(Names = unique(x$scientificName), ID = unique(x$ID))
@@ -582,10 +509,10 @@ minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
-length(unique(min1950_2$ID)) #473 -> 490
+length(unique(min1950_2$ID)) #473 -> 491
 ```
 
-###START HERE#### can't figure out which names don't have growth habit info - to fill it in!
+
 ```{r}
 # check that none have more than one a year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
@@ -593,8 +520,8 @@ nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 
 ```
 
-
-What if I go through all the data, then worry about finding the accepted name and associated plant informaiton at the end?
+######START HERE#######
+## Still lots of problems with this list or use of this list... 
 ```{r}
 # Before linking one name with the IDs that have 10 or more years of data, link the names with plantsyn traits. 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
@@ -602,44 +529,44 @@ plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510
 
 names(plantsyn)
 table(plantsyn$Growth.Habit)
-#plantsyn[plantsyn$Growth.Habit!="",]
-length(unique(plantsyn$Accepted.Symbol)) #4635
+length(unique(plantsyn$Accepted.Symbol)) #5513
 
-###START HERE####
+length(unique(plantsyn$Symbol[plantsyn$Genera.Binomial.Author %in% grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE)])) #161
+unique(plantsyn$Genera.Binomial.Author[plantsyn$Genera.Binomial.Author %in% grep(" non ", plantsyn$Genera.Binomial.Author, value = TRUE)])
+```
+
+#remove auct non only
+```{r}
+plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
+                       grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE, invert = TRUE),]
+str(plantsyn)
+
+```
+
+```{r}
+factnames <- names(Filter(is.factor,plantsyn))
+plantsyn[factnames] <- lapply(plantsyn[factnames], as.character)
+
+plantsyn$Scientific.Name <- gsub(pattern = "subsp.", replacement = "ssp.", plantsyn$Scientific.Name)
+
 # Should do this before getting to species with 10 years or more to have the accepted name! or could do this just to get the accepted name after... 
 #Need to link the ID with the names used 
-merge.1 <- merge(unique(bloom2[,-c(4:8)]),
-                 unique(plantsyn[,c(1:4,19,26:31)]), 
-                 by.x = "scientificName", by.y = "Scientific.Name", all.x =TRUE)
-head(merge.1)
-merge.1[merge.1$ID == 21,]
+linknames <- merge(bloom2,plantsyn[,c(1:4,26:31)],by.x="scientificName",by.y="Scientific.Name")
 
-#Instead of the first one, the one where Synonym.Symbol (or the first for that) is missing would be the accepted name!
-## min1950_2 has just ID, need to pick which name (and info) to go with each ID number
-## bloom2 has all the names and ID. Make something from bloom2 to pick the one accepted name then use that to link the 
-# one accepted name to the number in min1950_2. Just need to make sure that all the IDs in new thing are in min1950_2
-acpted <- merge.1[which(merge.1$Synonym.Symbol==""),]
-length(unique(merge.1$ID))
-length(unique(merge.1$scientificName))
-onename <- acpted[!duplicated(acpted$ID),]
-
-onename[onename$Duration=="",] #Potentilla
-onename[onename$Growth.Habit=="",] #Potentilla
-
-length(unique(onename$ID)) #1216 -> 1276
-setdiff(unique(min1950_2$ID),unique(onename$ID))
-length(setdiff(unique(min1950_2$ID),unique(onename$ID))) #20 numbers that are in min1950_2 but not in onename
-unique(bloom2$scientificName[bloom2$ID %in% grep(paste(setdiff(unique(min1950_2$ID),
-                                                               unique(onename$ID)),collapse ="|"),
+merge.name <- merge(linknames,min1950_2, by="ID")
+length(unique(min1950_2$ID)) #491
+length(unique(merge.name$ID)) #476!
+missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
+missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
-unique(bloom2[bloom2$ID %in% grep(paste(setdiff(unique(min1950_2$ID),unique(onename$ID)),collapse ="|"),
-                                  bloom2$ID, value=TRUE),c(1,)])
+bloom2[bloom2$scientificName%in%missingnames,]
+nrow(min1950_2[min1950_2$ID%in%missingnums,])
+```
 
+#### START HERE #####   
+Wait, when linking to min1950_2, there might be multiple names for one ID, so want to get the one accepted name to go with ID!
+```{r}
 
-min1950_2.foo <- merge(min1950_2, onename, by="ID", all.x = TRUE)
-head(min1950_2.foo)
-length(unique(min1950_2.foo$ID)) #498! Yay! -> 473, but what does that mean for missing names? 490
-min1950_2 <- min1950_2.foo
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
@@ -660,7 +587,7 @@ min1950_2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBot
 ```
 
 # How many forbs vs. grasses vs. tree? How many 
-######START HERE#######
+
 ```{r}
 unique(min1950_2$scientificName[min1950_2$Growth.Habit == "" & !is.na(min1950_2$Growth.Habit)])
 
@@ -694,9 +621,12 @@ sum(  GH$Freq[GH$Var1 %in% grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE) &
 
 ```
 
+
+#### Until the other information can be merged #####
+### START HERE ######
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
-earliestcollection <- data.frame(colSums(table(min1950_2$scientificName, #should be only one name now
+earliestcollection <- data.frame(colSums(table(min1950_2$ID, #should be only one name now
                                                 min1950_2$Year)))
 
 earcol <- data.frame(Year = row.names(earliestcollection),
@@ -704,13 +634,13 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #182.9508
+mean(earcol$Collections) #189
 
 ```
      Year Collections
-1998 1998         394  
+1998 1998         411 
 
-###START HERE### and put them into the results document!
+
 #Figure 1A
 ```{r}
 ggplot(earcol, aes(Year, Collections))+
