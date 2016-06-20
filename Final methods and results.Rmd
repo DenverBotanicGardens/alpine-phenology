@@ -722,9 +722,46 @@ merge.name <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBo
 ```
 
 # How many forbs vs. grasses vs. tree? How many 
-
+Names without growth habit (and some other infomraiton, often because not accepted name, switch to accepted name)
 ```{r}
 unique(merge.name$scientificName[merge.name$Growth.Habit == "" & !is.na(merge.name$Growth.Habit)])
+
+merge.name[merge.name$scientificName %in% grep("Gentianella amarelle ssp. heterosepala", merge.name$scientificName,value=TRUE),]
+
+merge.name$scientificName[merge.name$scientificName == "Potentilla fruticosa"] <- "Dasiphora fruticosa"
+merge.name$Growth.Habit[merge.name$scientificName == "Dasiphora fruticosa"] <- "Shrub"
+merge.name$Family[merge.name$scientificName == "Dasiphora fruticosa"] <- "Rosaceae"
+merge.name$Duration[merge.name$scientificName == "Dasiphora fruticosa"] <- "Perennial"
+
+merge.name$scientificName[merge.name$scientificName == "Dasiphora floribunda"] <- "Dasiphora fruticosa ssp. floribunda"
+merge.name$Growth.Habit[merge.name$scientificName == "Dasiphora fruticosa ssp. floribunda"] <- "Shrub"
+merge.name$Family[merge.name$scientificName == "Dasiphora fruticosa ssp. floribunda"] <- "Rosaceae"
+merge.name$Duration[merge.name$scientificName == "Dasiphora fruticosa ssp. floribunda"] <- "Perennial"
+
+merge.name$scientificName[merge.name$scientificName == "Gentiana heterosepala"] <- "Gentianella amarelle ssp. heterosepala"
+merge.name$Growth.Habit[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Forb/herb"
+merge.name$Family[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Gentianaceae"
+merge.name$Duration[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Annual, Biennial"
+
+merge.name$scientificName[merge.name$scientificName == "Boechera lemmonii"] <- "Arabis lemmonii var. lemmonii"
+merge.name$Growth.Habit[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "Forb/herb"
+merge.name$Family[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "Brassicaceae"
+merge.name$Duration[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "Perennial"
+
+
+merge.name$Growth.Habit[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Forb/herb"
+merge.name$Family[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Fabaceae"
+merge.name$Duration[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Perennial"
+
+merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. borealis"
+merge.name$Growth.Habit[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Forb/herb"
+merge.name$Family[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Asteraceae"
+merge.name$Duration[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Biennial, Perennial"
+
+merge.name$scientificName[merge.name$scientificName == "Silene hitchguirei"] <- "Silene uralensis ssp. montana"
+merge.name$Growth.Habit[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Forb/herb"
+merge.name$Family[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Caryophyllaceae"
+merge.name$Duration[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Perennial"
 
 unique(merge.name$Growth.Habit)
 unique(merge.name$Bloom.Period)
@@ -732,37 +769,23 @@ unique(merge.name$Duration)
 
 GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
 GH[GH$Freq>0,]
-sum(GH$Freq)#487
-
-table(unique(merge.name$Growth.Habit))
-length(unique(merge.name$ID))
+sum(GH$Freq)#488
 
 # Number of Families represented!
 length(table(merge.name$Family[!duplicated(merge.name$ID)]))
 
-###### START HERE ###########
 # Growth Habit numbers
 table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
 
-
-
-sum(GH$Freq) # 434 - is a subset that has this information on it! what to do?! -> 468
-merge.name$scientificName[is.null(merge.name$Growth.Habit)&!is.na(merge.name$ID)]
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #335 Forb/herbs
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #349 Forb/herbs
 sum(  GH$Freq[GH$Var1 %in% grep("Vine", GH$Var1, value=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #1 vine put it with shrub
-sum(  GH$Freq[GH$Var1 %in% grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #31 shrubs/subshrubs
+sum(  GH$Freq[GH$Var1 %in% grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
 sum(  GH$Freq[GH$Var1 %in% grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE) & 
                 GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE, ignore.case=TRUE) &
                 GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11 trees
 
-
-
 ```
 
-
-#### Until the other information can be merged #####
-### START HERE ######
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
 earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
@@ -777,7 +800,7 @@ mean(earcol$Collections) #189
 
 ```
      Year Collections
-1998 1998         411 
+1998 1998         408
 
 
 #Figure 1A
