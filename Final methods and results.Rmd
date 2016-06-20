@@ -586,8 +586,16 @@ missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnu
 
 ```{r}
 min1950_2[min1950_2$ID == unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]),]
+plantsyn[plantsyn$Scientific.Name %in% grep("Symphyotrichum foliaceum",plantsyn$Scientific.Name, value=TRUE), ]
+plantsyn[plantsyn$Scientific.Name %in% grep("Aster foliaceus",plantsyn$Scientific.Name, value=TRUE), ]
+bloom2[bloom2$scientificName %in% grep("Symphyotrichum foliaceum var. foliaceum",bloom2$scientificName, value=TRUE), ]
+bloom2[bloom2$ID==43988,]
+
 unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]) #43988
+
 unique(bloom2$ID[bloom2$scientificName=="Carex atrata"]) #8105
+bloom2[bloom2$ID==8105,]
+
 unique(bloom2$ID[bloom2$scientificName=="Carex micropoda"]) #8591
 unique(bloom2$ID[bloom2$scientificName=="Chlorocrepis tristis"]) #22207
 unique(bloom2$ID[bloom2$scientificName=="Eutrema edwardsii"]) #18851
@@ -610,73 +618,88 @@ unique(bloom2$ID[bloom2$scientificName=="Noccaea montana"]) # 30638
 
 ## spelling error
 unique(bloom2$ID[bloom2$scientificName=="Castilleja rhexifolia"]) #8950
+bloom2[bloom2$ID==8950,]
+plantsyn$Scientific.Name[plantsyn$Scientific.Name %in% grep("Castilleja",plantsyn$Scientific.Name, value=TRUE)]
+unique(bloom2$scientificName[bloom2$scientificName %in% grep("Castilleja",bloom2$scientificName, value=TRUE)])
+unique(bloom2$ID[bloom2$scientificName %in% grep("Castilleja rhexiifolia",bloom2$scientificName, value=TRUE)]) #9086
+
+plantsyn$Scientific.Name[plantsyn$Scientific.Name %in% grep("Poa nervosa",plantsyn$Scientific.Name, value=TRUE)]
+unique(bloom2$scientificName[bloom2$scientificName %in% grep("Poa nervosa",bloom2$scientificName, value=TRUE)])
+unique(bloom2$ID[bloom2$scientificName %in% grep("Poa nervosa",bloom2$scientificName, value=TRUE)]) 
+bloom2[bloom2$ID==35582,]
+
+ 
+
 ```
 
+ [1] "scientificName"          "ID"                      "Accepted.Symbol"         "Synonym.Symbol"         
+ [5] "Symbol"                  "Family"                  "Duration"                "Growth.Habit"           
+ [9] "Native.Status"           "Bloom.Period"            "Fruit.Seed.Period.Begin" "Fruit.Seed.Period.End" 
 ```{r}
 ## Fill in data for missing names- add these to accpt
-accpt <- rbind(accpt,c("Aster foliaceus","43988","","",
-                       "","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
-                       "","",""))
+accpt <- rbind(accpt,c("Symphyotrichum foliaceum var. foliaceum","43988","","",
+                       "","Asteraceae","Perennial","Forb/herb",
+                       "AK (N), CAN (N), L48 (N)","","",""))
 accpt <- rbind(accpt,c("Carex atrata","8105","","",
-                       "","Perennial","Graminoid","GL (N)",
+                       "","Cyperaceae", "Perennial","Graminoid","GL (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Carex micropoda","8591","","",
-                       "","Perennial","Graminoid","AK (N), CAN (N), L48 (N)",
+                       "","Cyperaceae","Perennial","Graminoid","AK (N), CAN (N), L48 (N)",
                        "","",""))
-accpt <- rbind(accpt,c("Hieracium triste var. triste","22207","","",
-                       "","Perennial","Forb/herb","AK (N), CAN (N)",
+accpt <- rbind(accpt,c("Hieracium triste ","22207","","",
+                       "", "Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Eutrema edwardsii","18851","","",
-                       "","Perennial","Forb/herb","AK (N), CAN (N), GL (N)",
+                       "","Brassicaceae","Perennial","Forb/herb","AK (N), CAN (N), GL (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Hieracium triste","22205","","",
-                       "","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
-                       "","",""))
-accpt <- rbind(accpt,c("Ligularia bigelovii","41494","","",
-                       "","Perennial","Forb/herb","L48 (N)",
-                       "","",""))
-accpt <- rbind(accpt,c("Poa nervosa","35582","","",
-                       "","Perennial","Graminoid","CAN (N), L48 (N)",
-                       "","",""))
-accpt <- rbind(accpt,c("Salix arctica","39918","","",
-                       "","Perennial","Shrub, Subshrub","AK (N), CAN (N), GL (N), L48 (N)",
+                       "","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Senecio bigelovii var. bigelovii","41494","","",
-                       "","Perennial","Forb/herb","L48 (N)",
+                       "","Asteraceae","Perennial","Forb/herb","L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Noccaea fendleri ssp. glauca","30638","","",
+                       "","Brassicaceae","Perennial","Forb/herb","L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Poa nervosa","35582","","",
+                       "","Poaceae","Perennial","Graminoid","CAN (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Salix arctica","39918","","",
+                       "","Salicaceae","Perennial","Shrub, Subshrub","AK (N), CAN (N), GL (N), L48 (N)",
+                       "","",""))
+accpt <- rbind(accpt,c("Senecio bigelovii var. bigelovii","41494","","",
+                       "","Asteraceae","Perennial","Forb/herb","L48 (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Symphyotrichum foliaceum var. foliaceum","43988","","",
-                       "","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
+                       "","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N), L48 (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Valeriana capitata","46589","","",
-                       "VECA2","Perennial","Forb/herb","AK (N), CAN (N)",
+                       "VECA2","Valerianaceae","Perennial","Forb/herb","AK (N), CAN (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Veratrum californicum","46683","","",
-                       "VECA2","Perennial","Forb/herb","L48 (N)",
+                       "VECA2","Liliaceae","Perennial","Forb/herb","L48 (N)",
                        "","",""))
 
 ```
-> names(accpt)
- [1] "scientificName"          "ID"                      "Accepted.Symbol"         "Synonym.Symbol"       
- [5] "Symbol"                  "Duration"                "Growth.Habit"            "Native.Status"      
- [9] "Bloom.Period"            "Fruit.Seed.Period.Begin" "Fruit.Seed.Period.End"   
 
 ### One more time, make merge names
 ```{r}
 rm(merge.name)
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #487
+length(unique(merge.name$ID)) #488
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #26
 
 # for two species, repeated data for the synonym, get rid of the second set of data
-merge.name[merge.name$ID == 41494,] #just repeated for the synonym. 
-merge.name[merge.name$ID == 43988,] #just repeated for the synonym. 
+merge.name[merge.name$ID == 41494,] #just repeated for what was the synonym. 
+merge.name[merge.name$ID == 43988,] #just repeated for what was the synonym. 
 
-removerows.41494 <- c(which(merge.name$ID == 41494 & merge.name$scientificName == "Ligularia bigelovii"))
-removerows.43988 <- c(which(merge.name$ID == 43988 & merge.name$scientificName == "Aster foliaceus"))
+#Need to get rid of the second half, !duplicate or something since I now used the accepted names
+removerows.41494 <- c(which(merge.name$ID== 41494))[12:22] #11 long
+removerows.43988 <- c(which(merge.name$ID == 43988))[16:30]
 
 merge.name <- merge.name[-c(removerows.41494,removerows.43988),]
 
@@ -684,10 +707,10 @@ rm(singlefoo)
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #0
 
-length(unique(merge.name$ID)) #487
-mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.66324 years
+length(unique(merge.name$ID)) #488
+mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.69467 years
 
-nrow(merge.name) #11415
+nrow(merge.name) #11454
 write.table(merge.name, file="P:/hackathon/alpine-phenology/datasets/merge.name.csv", sep=",")
 ```
 
