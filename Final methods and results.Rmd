@@ -1062,7 +1062,7 @@ length(unique(min1950GDD_2$scientificName)) #487
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$scientificName))
 yrspsp <- aggregate(gdddatayrs[,3], by = list(gdddatayrs$Var2), FUN=sum)
-nrow(yrspsp[yrspsp$x>=10,]) #407 -> 376
+nrow(yrspsp[yrspsp$x>=10,]) #372
 
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
@@ -1335,7 +1335,8 @@ mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0
 ```
 
 
-Figure 4C ??? 
+Figure 4C ???    
+Growing Degree Days at time of earliest collection
 ```{r}
 ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
   geom_point()+
@@ -1352,7 +1353,7 @@ ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
 npn.min1950 <- npn.foo
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
-nrow(yr.npn_2) #29 
+nrow(yr.npn_2) #28 
 
 write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
 
@@ -1375,7 +1376,7 @@ mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
 ```{r}
 high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
 
-nrow(high.npn_2) #27 -> 29
+nrow(high.npn_2) #29
 
 write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
 
@@ -1442,7 +1443,7 @@ results <- lapply(unique(min1950GDD_2_10$ID), function(x){
                           t(foo1$fstatistic),
                           ID = x,
                           unique(min1950GDD_2_10$scientificName[min1950GDD_2_10$ID == x])[1],
-                          unique(min1950GDD_2_10$Family.Name[min1950GDD_2_10$ID == x])[1],
+                          unique(min1950GDD_2_10$Family[min1950GDD_2_10$ID == x])[1],
                           foo1$adj.r.squared,
                           N = nrow(min1950GDD_2_10[min1950GDD_2_10$scientificName==x,])))
   colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
@@ -1500,7 +1501,7 @@ rst.npn <- do.call(rbind,results.npn)
 head(rst.npn)
 
 
-nrow(rst.npn) #22
+nrow(rst.npn) #23
 rst[rst.npn$p.value<0.05,]
 nrow(rst.npn[rst.npn$p.value<0.05,])
 
@@ -1515,8 +1516,6 @@ mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0])
 mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
 
 rst.npn$genus <- gsub(" .*$", "", rst.npn$Species)
-m9 <- merge(rst.npn,asuFams,by="genus")
-nrow(m9)  
 
 write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a.csv", sep=",")
 
@@ -1545,6 +1544,7 @@ names(snow)<-paste(header,header2,sep="_")
 head(snow)
 ```
 
+### START HERE #####
 Average of snow over all stations per month over the years
 ```{r}
 #average over all stations per year
