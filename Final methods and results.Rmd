@@ -184,6 +184,7 @@ seinet.bind[i]<-lapply(seinet.bind[i],as.character)
 i<-sapply(seinet.bind, is.integer)
 seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
 
+####### BLOOM2 ##########
 bloom2 <- rbind(seinet.bind,colo.bind) 
 barplot(table(bloom2$Year))
 barplot(table(bloom2$startDayOfYear))
@@ -378,53 +379,10 @@ synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRU
 rm(bloom2)
 bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-sort(table(foo$Var1[foo$Freq>0])) #6
+sort(table(foo$Var1[foo$Freq>0])) #0
 
 ```
 
-
-# These were removed earlier with 'auct. non.'
-Change synonyms to reflect the needed synonomy changes
-```{r, eval=FALSE}
-head(synonyms)
-
-#Agrostis variabilis: listed with Rydb. and Rydberg for 1197 and 1202, neither say auct. non Rydb which is  Agrostis rossiae Vasey; will remove 1197 auct. non Rydb., Also remove 1202 Agrostis rossiae acut. non Vasey 
-synonyms[synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis",]
-which(synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis") #2081
-synonyms[synonyms$ID == 1202,] #2101
-
-synonyms[synonyms$ID == 37415 & synonyms$SYNONYMS == "Anemone multifida",]
-which(synonyms$ID == 37415 & synonyms$SYNONYMS == "Anemone multifida")
-
-synonyms[as.numeric(c(25940,25944)),]
-synonyms[60030,]
-
-removerows <- c(which(synonyms$ID == 1197 & synonyms$SYNONYMS == "Agrostis variabilis"),
-                2101,
-                which(synonyms$ID == 37415 & synonyms$SYNONYMS == "Anemone multifida"),
-                which(synonyms$ID == 2380 & synonyms$SYNONYMS == "Antennaria parvifolia"),
-                which(synonyms$ID == 2399 & synonyms$SYNONYMS == "Antennaria umbrinella"),
-                which(synonyms$ID == 6434 & synonyms$SYNONYMS == "Bromus anomalus"),
-                which(synonyms$ID == 8326 & synonyms$SYNONYMS == "Carex atrata"),
-                which(synonyms$ID == 8505 & synonyms$SYNONYMS == "Carex hallii"),
-                which(synonyms$ID == 14111 & synonyms$SYNONYMS == "Dasiphora fruticosa"),
-                which(synonyms$ID == 17028 & synonyms$SYNONYMS == "Erigeron acris"),
-                which(synonyms$ID == 19023 & synonyms$SYNONYMS == "Festuca ovina"),
-                which(synonyms$ID == 19802 & synonyms$SYNONYMS == "Galium boreale"),
-                which(synonyms$ID == 26389 & synonyms$SYNONYMS == "Linum lewisii"),
-                which(synonyms$ID == 31730 & synonyms$SYNONYMS == "Oxytropis deflexa"),
-                which(synonyms$ID == 32230 & synonyms$SYNONYMS == "Paronychia pulvinata"),
-                which(synonyms$ID == 39088 & synonyms$SYNONYMS == "Rorippa teres"),
-                which(synonyms$ID == 39918 & synonyms$SYNONYMS == "Salix anglorum"),
-                which(synonyms$ID == 39919 & synonyms$SYNONYMS == "Salix arctica"),
-                which(synonyms$ID == 31847 & synonyms$SYNONYMS == "Senecio cymbalarioides"))
-
-nrow(synonyms[-c(removerows),])
-nrow(synonyms[c(removerows),])
-nrow(synonyms)
-
-synonyms <- synonyms[-c(removerows),]
-```
 
 # Create bloom2 again after removing the problem names   
 From methods: "Looking for ‘auct. non’ authorities in the herbarium collections. Seven names appear on herbarium collections in this dataset with inappropriate uses of the name (‘auct. non”). These will cause problems with synonymy by scientific name without including the author. Authority has problems when matching R verbatim due to spelling and abbreviation errors."
@@ -453,6 +411,8 @@ colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)),
 
 colpyear.2[with(colpyear.2, order(colpyear.2$Freq)),]
 
+colpyear.2[with(colpyear.2, order(colpyear.2$Var2)),]
+
 # change all values above 0 to 1 from number of collections for that species a year
 # finding which years have any data, not the minimum date
 sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
@@ -470,10 +430,12 @@ spyears <- do.call(rbind,lapply(bysp, function(x){
 
 spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
+spyears[which.min(spyears$DataYrs),] # 1
 nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.70672
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
+min1950_2_10plus <- min1950_2[min1950_2$DataYrs>9,]
 ```
 
 
@@ -481,24 +443,17 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
+
+length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #491
 length(unique(sp.10plus$ID)) # 498 -> 473 -> 491
 length(unique(tenyearplus$scientificName)) #654 -> 725
 length(unique(tenyearplus$ID)) #473 -> 491
-
-synlist <- lapply(split(tenyearplus, tenyearplus$ID), function(x){
-  data.frame(Names = unique(x$scientificName), ID = unique(x$ID))
-})
-
-synlist <- do.call(rbind,synlist)
-synlist[1:30,]
 ```
 
 
 
 Pull out earliest collection   
 ```{r}
-#x<- unique(tenyearplus$ID)[100]
-
 minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
   this.species <- tenyearplus[tenyearplus$ID == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
@@ -753,10 +708,17 @@ merge.name$Growth.Habit[merge.name$scientificName == "Lupinus argenteus var. rub
 merge.name$Family[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Fabaceae"
 merge.name$Duration[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Perennial"
 
-merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. borealis"
-merge.name$Growth.Habit[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Forb/herb"
-merge.name$Family[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Asteraceae"
-merge.name$Duration[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Biennial, Perennial"
+
+# USDA is where I got A. campestris var. borealis
+# Poop, ThePlantList says synonym of Artemisia campestris ssp. borealis
+# Snow checklist says synonym of Artemisia campestris var. purshii
+# merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. borealis"
+# now going to swap to Artemisia borealis
+# merge.name$scientificName[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Artemisia campestris var. purshii"
+merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. purshii"
+merge.name$Growth.Habit[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Forb/herb"
+merge.name$Family[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Asteraceae"
+merge.name$Duration[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Biennial, Perennial"
 
 merge.name$scientificName[merge.name$scientificName == "Silene hitchguirei"] <- "Silene uralensis ssp. montana"
 merge.name$Growth.Habit[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Forb/herb"
