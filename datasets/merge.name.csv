@@ -138,7 +138,7 @@
 "137",1951,"40051","Salix petrophila","SAPE18","","SAPE18","Salicaceae","Perennial","Shrub","L48 (N), CAN (N)","","","",213,32,85914,7.68,-7.34
 "138",1951,"41484","Senecio amplectens var. holmii","SEAMH","","SEAMH","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",220,41,85914,7.68,-7.34
 "139",1951,"44285","Taraxacum officinale ssp. ceratophorum","TAOFC","","TAOFC","Asteraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",188,29,85914,7.68,-7.34
-"140",1951,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",188,23,85914,7.68,-7.34
+"140",1951,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",188,23,85914,7.68,-7.34
 "141",1951,"15450","Draba grayana","DRGR3","","DRGR3","Brassicaceae","Perennial","Forb/herb","L48 (N)","","","",220,30,85914,7.68,-7.34
 "142",1951,"44524","Tetraneuris acaulis","TEAC","","TEAC","Asteraceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",188,28,85914,7.68,-7.34
 "143",1951,"35627","Poa wheeleri","POWH2","","POWH2","Poaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",227,17,85914,7.68,-7.34
@@ -305,10 +305,10 @@
 "304",1953,"27632","Luzula subcapitata","LUSU9","","LUSU9","Juncaceae","Perennial","Graminoid","L48 (N)","","","",212,22,70903,8.36,-6.56
 "305",1953,"8496","Carex nigricans","CANI2","","CANI2","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",202,43,70903,8.36,-6.56
 "306",1953,"8160","Carex capillaris","CACA12","","CACA12","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","Late Spring","Summer","Summer",202,24,70903,8.36,-6.56
-"307",1953,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",211,23,70903,8.36,-6.56
+"307",1953,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",211,23,70903,8.36,-6.56
 "308",1953,"40025","Salix monticola","SAMO2","","SAMO2","Salicaceae","Perennial","Tree, Shrub","L48 (N)","Late Spring","Summer","Summer",176,21,70903,8.36,-6.56
 "309",1954,"10059","Chamerion angustifolium ssp. circumvagum","CHANC","","CHANC","Onagraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), SPM (N)","","","",197,23,62793,9.62,-5.53
-"310",1954,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",231,23,62793,9.62,-5.53
+"310",1954,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",231,23,62793,9.62,-5.53
 "311",1954,"9759","Chaenactis douglasii var. alpina","CHDOA2","","CHDOA2","Asteraceae","Biennial, Perennial","Forb/herb","L48 (N)","","","",227,38,62793,9.62,-5.53
 "312",1954,"35580","Poa nemoralis ssp. interior","PONEI2","","PONEI2","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",193,29,62793,9.62,-5.53
 "313",1954,"32981","Penstemon harbourii","PEHA10","","PEHA10","Scrophulariaceae","Perennial","Forb/herb","L48 (N)","","","",227,38,62793,9.62,-5.53
@@ -530,7 +530,7 @@
 "529",1955,"22807","Hymenoxys hoopesii","HYHO","","HYHO","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",207,27,69149,7.96,-7.28
 "530",1955,"8592","Carex pyrenaica ssp. pyrenaica","CAPYP","","CAPYP","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N)","","","",203,31,69149,7.96,-7.28
 "531",1955,"21435","Helianthella quinquenervis","HEQU2","","HEQU2","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",207,24,69149,7.96,-7.28
-"532",1955,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",206,23,69149,7.96,-7.28
+"532",1955,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",206,23,69149,7.96,-7.28
 "533",1955,"36578","Primula angustifolia","PRAN","","PRAN","Primulaceae","Perennial","Forb/herb","L48 (N)","","","",203,37,69149,7.96,-7.28
 "534",1955,"16383","Elymus trachycaulus ssp. trachycaulus","ELTRT","","ELTRT","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), SPM (N)","Late Spring","Spring","Summer",235,17,69149,7.96,-7.28
 "535",1955,"17996","Erysimum capitatum var. purshii","ERCAP3","","ERCAP3","Brassicaceae","Biennial, Perennial","Forb/herb","L48 (N)","","","",192,23,69149,7.96,-7.28
@@ -830,7 +830,7 @@
 "829",1959,"36494","Potentilla subjuga","POSU5","","POSU5","Rosaceae","Perennial","Subshrub, Forb/herb","L48 (N), CAN (N)","","","",191,33,78992,8.28,-6.36
 "830",1959,"46563","Vaccinium myrtillus","VAMY2","","VAMY2","Ericaceae","Perennial","Subshrub, Shrub","L48 (N), CAN (N), GL (I)","","","",187,33,78992,8.28,-6.36
 "831",1959,"24096","Juniperus communis var. depressa","JUCOD","","JUCOD","Cupressaceae","Perennial","Tree, Shrub","L48 (N), AK (N), CAN (N), SPM (N)","","","",183,11,78992,8.28,-6.36
-"832",1959,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",220,23,78992,8.28,-6.36
+"832",1959,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",220,23,78992,8.28,-6.36
 "833",1959,"15622","Dryas octopetala ssp. hookeriana","DROCH","","DROCH","Rosaceae","Perennial","Subshrub, Shrub, Forb/herb","L48 (N), CAN (N)","","","",179,27,78992,8.28,-6.36
 "834",1959,"33746","Phacelia sericea ssp. sericea","PHSES","","PHSES","Hydrophyllaceae","Biennial, Perennial","Subshrub, Forb/herb","L48 (N), AK (N), CAN (N)","","","",203,25,78992,8.28,-6.36
 "835",1959,"40581","Saxifraga oregana","SAOR2","","SAOR2","Saxifragaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",198,24,78992,8.28,-6.36
@@ -1117,8 +1117,8 @@
 "1116",1961,"29013","Mertensia lanceolata","MELA3","","MELA3","Boraginaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",175,42,85358,7.6,-6.83
 "1117",1961,"47994","Zigadenus elegans","ZIEL2","","ZIEL2","Liliaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",188,34,85358,7.6,-6.83
 "1118",1961,"8590","Carex pyrenaica","CAPY3","","CAPY3","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",238,22,85358,7.6,-6.83
-"1119",1961,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",225,13,85358,7.6,-6.83
-"1120",1961,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",196,23,85358,7.6,-6.83
+"1119",1961,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",225,13,85358,7.6,-6.83
+"1120",1961,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",196,23,85358,7.6,-6.83
 "1121",1961,"35756","Polemonium pulcherrimum","POPU3","","POPU3","Polemoniaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",208,20,85358,7.6,-6.83
 "1122",1961,"40532","Saxifraga flagellaris","SAFL6","","SAFL6","Saxifragaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",189,18,85358,7.6,-6.83
 "1123",1961,"2396","Antennaria rosea","ANRO2","","ANRO2","Asteraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",191,32,85358,7.6,-6.83
@@ -1469,7 +1469,7 @@
 "1468",1962,"19020","Festuca brachyphylla","FEBR","","FEBR","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N)","","","",210,37,64986,8.43,-6.55
 "1469",1962,"22004","Heuchera parvifolia","HEPA11","","HEPA11","Saxifragaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",210,33,64986,8.43,-6.55
 "1470",1962,"8550","Carex pelocarpa","CAPE5","","CAPE5","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",206,13,64986,8.43,-6.55
-"1471",1962,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",222,13,64986,8.43,-6.55
+"1471",1962,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",222,13,64986,8.43,-6.55
 "1472",1962,"16369","Elymus scribneri","ELSC4","","ELSC4","Poaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",199,34,64986,8.43,-6.55
 "1473",1962,"15395","Draba albertina","DRAL4","","DRAL4","Brassicaceae","Annual, Biennial, Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",208,23,64986,8.43,-6.55
 "1474",1962,"31715","Oxytropis borealis var. viscida","OXBOV","","OXBOV","Fabaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",188,12,64986,8.43,-6.55
@@ -1492,7 +1492,7 @@
 "1491",1962,"31802","Packera dimorphophylla var. dimorphophylla","PADID3","","PADID3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",225,20,64986,8.43,-6.55
 "1492",1962,"35547","Poa glauca ssp. rupicola","POGLR2","","POGLR2","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",182,30,64986,8.43,-6.55
 "1493",1962,"15622","Dryas octopetala ssp. hookeriana","DROCH","","DROCH","Rosaceae","Perennial","Subshrub, Shrub, Forb/herb","L48 (N), CAN (N)","","","",181,27,64986,8.43,-6.55
-"1494",1962,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",189,23,64986,8.43,-6.55
+"1494",1962,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",189,23,64986,8.43,-6.55
 "1495",1962,"21435","Helianthella quinquenervis","HEQU2","","HEQU2","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",192,24,64986,8.43,-6.55
 "1496",1962,"41517","Senecio fremontii var. blitoides","SEFRB","","SEFRB","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",220,38,64986,8.43,-6.55
 "1497",1962,"9086","Castilleja rhexiifolia","CARH4","","CARH4","Scrophulariaceae","Perennial","Subshrub, Forb/herb","L48 (N), CAN (N)","","","",221,19,64986,8.43,-6.55
@@ -1533,7 +1533,7 @@
 "1532",1963,"31366","Oreochrysum parryi","ORPA3","","ORPA3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",239,27,67301,8.89,-6.07
 "1533",1963,"33191","Penstemon whippleanus","PEWH","","PEWH","Scrophulariaceae","Perennial","Subshrub, Forb/herb","L48 (N)","Late Summer","Fall","Fall",193,49,67301,8.89,-6.07
 "1534",1963,"9054","Castilleja occidentalis","CAOC4","","CAOC4","Scrophulariaceae","Perennial","Subshrub, Forb/herb","L48 (N), CAN (N)","","","",222,49,67301,8.89,-6.07
-"1535",1963,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",227,13,67301,8.89,-6.07
+"1535",1963,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",227,13,67301,8.89,-6.07
 "1536",1963,"42090","Silene scouleri","SISC7","","SISC7","Caryophyllaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",212,12,67301,8.89,-6.07
 "1537",1963,"29011","Mertensia franciscana","MEFR2","","MEFR2","Boraginaceae","Perennial","Forb/herb","L48 (N)","","","",205,16,67301,8.89,-6.07
 "1538",1963,"36478","Potentilla pulcherrima","POPU9","","POPU9","Rosaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",238,33,67301,8.89,-6.07
@@ -2110,7 +2110,7 @@
 "2109",1967,"29461","Minuartia stricta","MIST5","","MIST5","Caryophyllaceae","Annual","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",193,16,77050,7.91,-6.53
 "2110",1967,"20252","Geum rossii","GERO2","","GERO2","Rosaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",184,24,77050,7.91,-6.53
 "2111",1967,"40576","Saxifraga odontoloma","SAOD2","","SAOD2","Saxifragaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",196,37,77050,7.91,-6.53
-"2112",1967,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",193,23,77050,7.91,-6.53
+"2112",1967,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",193,23,77050,7.91,-6.53
 "2113",1967,"11098","Claytonia megarhiza","CLME","","CLME","Portulacaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",174,40,77050,7.91,-6.53
 "2114",1967,"8637","Carex scirpoidea","CASC10","","CASC10","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","Early Summer","Summer","Summer",193,20,77050,7.91,-6.53
 "2115",1967,"40524","Saxifraga cernua","SACE2","","SACE2","Saxifragaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",209,25,77050,7.91,-6.53
@@ -2441,7 +2441,7 @@
 "2440",1968,"2389","Antennaria parvifolia","ANPA4","","ANPA4","Asteraceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",202,18,67487,7.32,-7.17
 "2441",1968,"17186","Erigeron melanocephalus","ERME2","","ERME2","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",203,42,67487,7.32,-7.17
 "2442",1968,"31673","Oxyria digyna","OXDI3","","OXDI3","Polygonaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","Mid Summer","Summer","Summer",203,40,67487,7.32,-7.17
-"2443",1968,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",224,23,67487,7.32,-7.17
+"2443",1968,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",224,23,67487,7.32,-7.17
 "2444",1968,"31802","Packera dimorphophylla var. dimorphophylla","PADID3","","PADID3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",203,20,67487,7.32,-7.17
 "2445",1968,"29007","Mertensia ciliata","MECI3","","MECI3","Boraginaceae","Perennial","Forb/herb","L48 (N)","Late Spring","Summer","Fall",182,28,67487,7.32,-7.17
 "2446",1968,"45854","Trifolium parryi ssp. parryi","TRPAP","","TRPAP","Fabaceae","Perennial","Subshrub, Forb/herb","L48 (N)","","","",189,25,67487,7.32,-7.17
@@ -2681,7 +2681,7 @@
 "2680",1970,"7415","Caltha leptosepala","CALE4","","CALE4","Ranunculaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Late Spring","Summer","Summer",182,42,79247,7.39,-6.86
 "2681",1970,"832","Adoxa moschatellina","ADMO","","ADMO","Adoxaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",202,22,79247,7.39,-6.86
 "2682",1970,"24279","Kobresia sibirica","KOSI","","KOSI","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",192,15,79247,7.39,-6.86
-"2683",1970,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",217,23,79247,7.39,-6.86
+"2683",1970,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",217,23,79247,7.39,-6.86
 "2684",1970,"15449","Draba graminea","DRGR2","","DRGR2","Brassicaceae","Perennial","Forb/herb","L48 (N)","","","",186,16,79247,7.39,-6.86
 "2685",1970,"2380","Antennaria microphylla","ANMI3","","ANMI3","Asteraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Mid Spring","Spring","Summer",181,13,79247,7.39,-6.86
 "2686",1970,"8105","Carex atrata","","","","Cyperaceae","Perennial","Graminoid","GL (N)","","","",197,12,79247,7.39,-6.86
@@ -3043,7 +3043,7 @@
 "3042",1972,"32545","Pedicularis bracteosa var. paysoniana","PEBRP2","","PEBRP2","Scrophulariaceae","Perennial","Forb/herb","L48 (N)","","","",196,29,74014,7.86,-6.5
 "3043",1972,"20095","Gentiana prostrata","GEPR3","","GEPR3","Gentianaceae","Annual, Biennial, Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",204,26,74014,7.86,-6.5
 "3044",1972,"8091","Carex arapahoensis","CAAR13","","CAAR13","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",204,21,74014,7.86,-6.5
-"3045",1972,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",214,13,74014,7.86,-6.5
+"3045",1972,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",214,13,74014,7.86,-6.5
 "3046",1972,"10697","Cirsium scopulorum","CISC3","","CISC3","Asteraceae","Biennial","Forb/herb","L48 (N)","","","",215,23,74014,7.86,-6.5
 "3047",1972,"8488","Carex nelsonii","CANE3","","CANE3","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",197,28,74014,7.86,-6.5
 "3048",1972,"8577","Carex praeceptorum","CAPR22","","CAPR22","Cyperaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",232,20,74014,7.86,-6.5
@@ -3464,7 +3464,7 @@
 "3463",1976,"8616","Carex rupestris","CARU3","","CARU3","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N)","","","",211,26,61649,8.13,-7.38
 "3464",1976,"31852","Packera werneriifolia","PAWE4","","PAWE4","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",209,50,61649,8.13,-7.38
 "3465",1976,"17432","Eriogonum coloradense","ERCO11","","ERCO11","Polygonaceae","Perennial","Subshrub, Forb/herb","L48 (N)","","","",215,12,61649,8.13,-7.38
-"3466",1976,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",188,23,61649,8.13,-7.38
+"3466",1976,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",188,23,61649,8.13,-7.38
 "3467",1976,"39918","Salix arctica","","","","Salicaceae","Perennial","Shrub, Subshrub","AK (N), CAN (N), GL (N), L48 (N)","","","",205,19,61649,8.13,-7.38
 "3468",1976,"25615","Leptosiphon nuttallii ssp. nuttallii","LENUN","","LENUN","Polemoniaceae","Perennial","Forb/herb, Subshrub","L48 (N)","","","",194,10,61649,8.13,-7.38
 "3469",1976,"15432","Draba crassifolia","DRCR2","","DRCR2","Brassicaceae","Annual, Biennial, Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",193,40,61649,8.13,-7.38
@@ -4064,7 +4064,7 @@
 "4063",1980,"38758","Ribes laxiflorum","RILA3","","RILA3","Grossulariaceae","Perennial","Vine, Shrub","L48 (N), AK (N), CAN (N)","","","",180,20,82678,8.57,-6.44
 "4064",1980,"32204","Parnassia fimbriata var. fimbriata","PAFIF","","PAFIF","Saxifragaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",231,16,82678,8.57,-6.44
 "4065",1980,"44524","Tetraneuris acaulis","TEAC","","TEAC","Asteraceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",190,28,82678,8.57,-6.44
-"4066",1980,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",190,23,82678,8.57,-6.44
+"4066",1980,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",190,23,82678,8.57,-6.44
 "4067",1980,"23994","Juncus mertensianus","JUME3","","JUME3","Juncaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","Late Spring","Summer","Summer",215,31,82678,8.57,-6.44
 "4068",1980,"29013","Mertensia lanceolata","MELA3","","MELA3","Boraginaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",183,42,82678,8.57,-6.44
 "4069",1980,"44532","Tetraneuris grandiflora","TEGR3","","TEGR3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",183,51,82678,8.57,-6.44
@@ -4527,7 +4527,7 @@
 "4526",1982,"39835","Sagina saginoides","SASA","","SASA","Caryophyllaceae","Biennial, Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","Early Spring","Summer","Fall",200,25,86498,6.99,-6.76
 "4527",1982,"7985","Cardamine cordifolia","CACO6","","CACO6","Brassicaceae","Perennial","Forb/herb","L48 (N), CAN (N)","Late Spring","Summer","Summer",215,27,86498,6.99,-6.76
 "4528",1982,"40498","Saxifraga adscendens ssp. oregonensis","SAADO2","","SAADO2","Saxifragaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",195,10,86498,6.99,-6.76
-"4529",1982,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",225,13,86498,6.99,-6.76
+"4529",1982,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",225,13,86498,6.99,-6.76
 "4530",1982,"33744","Phacelia sericea","PHSE","","PHSE","Hydrophyllaceae","Biennial, Perennial","Subshrub, Forb/herb","L48 (N), AK (N), CAN (N)","","","",218,36,86498,6.99,-6.76
 "4531",1982,"17186","Erigeron melanocephalus","ERME2","","ERME2","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",201,42,86498,6.99,-6.76
 "4532",1982,"47272","Viola labradorica","VILA10","","VILA10","Violaceae","Perennial","Forb/herb","L48 (N), CAN (N), GL (N), SPM (N)","","","",216,21,86498,6.99,-6.76
@@ -4586,7 +4586,7 @@
 "4585",1983,"8488","Carex nelsonii","CANE3","","CANE3","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",200,28,103386,7.29,-6.36
 "4586",1983,"17265","Erigeron simplex","ERSI3","","ERSI3","Asteraceae","Perennial","Subshrub, Forb/herb","L48 (N)","","","",190,49,103386,7.29,-6.36
 "4587",1983,"8484","Carex nardina","CANA2","","CANA2","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N)","","","",265,11,103386,7.29,-6.36
-"4588",1983,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",199,23,103386,7.29,-6.36
+"4588",1983,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",199,23,103386,7.29,-6.36
 "4589",1983,"29011","Mertensia franciscana","MEFR2","","MEFR2","Boraginaceae","Perennial","Forb/herb","L48 (N)","","","",199,16,103386,7.29,-6.36
 "4590",1983,"36601","Primula parryi","PRPA","","PRPA","Primulaceae","Perennial","Forb/herb","L48 (N)","","","",230,45,103386,7.29,-6.36
 "4591",1983,"38074","Ranunculus eschscholtzii","RAES","","RAES","Ranunculaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Early Summer","Summer","Summer",214,20,103386,7.29,-6.36
@@ -4868,7 +4868,7 @@
 "4867",1984,"8346","Carex illota","CAIL","","CAIL","Cyperaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",223,34,96541,6.84,-7.31
 "4868",1984,"38120","Ranunculus macauleyi","RAMA","","RAMA","Ranunculaceae","Perennial","Forb/herb","L48 (N)","","","",175,34,96541,6.84,-7.31
 "4869",1984,"579","Achnatherum lettermanii","ACLE9","","ACLE9","Poaceae","Perennial","Graminoid","L48 (N)","Summer","Summer","Fall",223,16,96541,6.84,-7.31
-"4870",1984,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",188,23,96541,6.84,-7.31
+"4870",1984,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",188,23,96541,6.84,-7.31
 "4871",1984,"40035","Salix nivalis","SANI8","","SANI8","Salicaceae","Perennial","Subshrub, Shrub","L48 (N), CAN (N)","","","",182,37,96541,6.84,-7.31
 "4872",1984,"8315","Carex haydeniana","CAHA6","","CAHA6","Cyperaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",196,38,96541,6.84,-7.31
 "4873",1984,"41484","Senecio amplectens var. holmii","SEAMH","","SEAMH","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",223,41,96541,6.84,-7.31
@@ -5083,7 +5083,7 @@
 "5082",1985,"11098","Claytonia megarhiza","CLME","","CLME","Portulacaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",186,40,94037,7.15,-6.85
 "5083",1985,"8484","Carex nardina","CANA2","","CANA2","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N)","","","",198,11,94037,7.15,-6.85
 "5084",1985,"2143","Androsace septentrionalis","ANSE4","","ANSE4","Primulaceae","Annual, Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",181,40,94037,7.15,-6.85
-"5085",1985,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",186,23,94037,7.15,-6.85
+"5085",1985,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",186,23,94037,7.15,-6.85
 "5086",1985,"17900","Eritrichium nanum var. elongatum","ERNAE","","ERNAE","Boraginaceae","Perennial","Forb/herb","L48 (N)","","","",181,31,94037,7.15,-6.85
 "5087",1985,"32565","Pedicularis groenlandica","PEGR2","","PEGR2","Scrophulariaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","Late Spring","Spring","Summer",201,40,94037,7.15,-6.85
 "5088",1985,"44609","Thalictrum alpinum","THAL","","THAL","Ranunculaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",187,32,94037,7.15,-6.85
@@ -5402,7 +5402,7 @@
 "5401",1986,"39936","Salix brachycarpa","SABR","","SABR","Salicaceae","Perennial","Shrub","L48 (N), CAN (N)","","","",190,27,91333,7.6,-6.28
 "5402",1986,"29350","Mimulus guttatus","MIGU","","MIGU","Scrophulariaceae","Annual, Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Mid Spring","Summer","Summer",199,28,91333,7.6,-6.28
 "5403",1986,"16723","Epilobium saximontanum","EPSA","","EPSA","Onagraceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",232,18,91333,7.6,-6.28
-"5404",1986,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",222,13,91333,7.6,-6.28
+"5404",1986,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",222,13,91333,7.6,-6.28
 "5405",1986,"1423","Allium geyeri","ALGE","","ALGE","Liliaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",199,36,91333,7.6,-6.28
 "5406",1986,"3515","Artemisia scopulorum","ARSC","","ARSC","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",203,52,91333,7.6,-6.28
 "5407",1986,"34071","Phlox condensata","PHCO11","","PHCO11","Polemoniaceae","Perennial","Forb/herb","L48 (N)","","","",218,25,91333,7.6,-6.28
@@ -5866,7 +5866,7 @@
 "5865",1987,"33191","Penstemon whippleanus","PEWH","","PEWH","Scrophulariaceae","Perennial","Subshrub, Forb/herb","L48 (N)","Late Summer","Fall","Fall",180,49,74396,7.53,-7.01
 "5866",1987,"45739","Trifolium dasyphyllum","TRDA2","","TRDA2","Fabaceae","Perennial","Forb/herb","L48 (N)","","","",168,41,74396,7.53,-7.01
 "5867",1988,"2143","Androsace septentrionalis","ANSE4","","ANSE4","Primulaceae","Annual, Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",178,40,77053,7.42,-7.18
-"5868",1988,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",230,13,77053,7.42,-7.18
+"5868",1988,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",230,13,77053,7.42,-7.18
 "5869",1988,"15417","Draba breweri","DRBR2","","DRBR2","Brassicaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",203,16,77053,7.42,-7.18
 "5870",1988,"29008","Mertensia ciliata var. ciliata","MECIC2","","MECIC2","Boraginaceae","Perennial","Forb/herb","L48 (N)","","","",178,24,77053,7.42,-7.18
 "5871",1988,"31664","Oxypolis fendleri","OXFE","","OXFE","Apiaceae","Perennial","Forb/herb","L48 (N)","","","",189,36,77053,7.42,-7.18
@@ -6151,7 +6151,7 @@
 "6150",1989,"42090","Silene scouleri","SISC7","","SISC7","Caryophyllaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",215,12,65313,7.95,-6.58
 "6151",1989,"36405","Potentilla diversifolia var. diversifolia","PODID","","PODID","Rosaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",189,36,65313,7.95,-6.58
 "6152",1989,"42285","Smelowskia calycina","SMCA","","SMCA","Brassicaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",177,36,65313,7.95,-6.58
-"6153",1989,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",212,13,65313,7.95,-6.58
+"6153",1989,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",212,13,65313,7.95,-6.58
 "6154",1989,"38460","Rhodiola rhodantha","RHRH4","","RHRH4","Crassulaceae","Perennial","Forb/herb","L48 (N)","","","",187,43,65313,7.95,-6.58
 "6155",1989,"29013","Mertensia lanceolata","MELA3","","MELA3","Boraginaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",177,42,65313,7.95,-6.58
 "6156",1989,"8616","Carex rupestris","CARU3","","CARU3","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N)","","","",194,26,65313,7.95,-6.58
@@ -6173,7 +6173,7 @@
 "6172",1989,"8073","Carex albonigra","CAAL6","","CAAL6","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",206,39,65313,7.95,-6.58
 "6173",1989,"27628","Luzula parviflora","LUPA4","","LUPA4","Juncaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","Mid Summer","Summer","Fall",191,35,65313,7.95,-6.58
 "6174",1989,"2396","Antennaria rosea","ANRO2","","ANRO2","Asteraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",192,32,65313,7.95,-6.58
-"6175",1989,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",194,23,65313,7.95,-6.58
+"6175",1989,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",194,23,65313,7.95,-6.58
 "6176",1989,"32255","Paronychia pulvinata","PAPU2","","PAPU2","Caryophyllaceae","Perennial","Subshrub, Forb/herb","L48 (N)","","","",177,27,65313,7.95,-6.58
 "6177",1989,"26555","Lloydia serotina var. serotina","LLSES2","","LLSES2","Liliaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",189,27,65313,7.95,-6.58
 "6178",1989,"7415","Caltha leptosepala","CALE4","","CALE4","Ranunculaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Late Spring","Summer","Summer",173,42,65313,7.95,-6.58
@@ -6351,7 +6351,7 @@
 "6350",1990,"20108","Gentianella amarella ssp. acuta","GEAMA","","GEAMA","Gentianaceae","Annual, Biennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","","","",209,26,87532,7.81,-6.45
 "6351",1990,"39937","Salix brachycarpa var. brachycarpa","SABRB7","","SABRB7","Salicaceae","Perennial","Shrub","L48 (N), CAN (N)","","","",178,31,87532,7.81,-6.45
 "6352",1990,"41974","Silene acaulis","SIAC","","SIAC","Caryophyllaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","","","",203,42,87532,7.81,-6.45
-"6353",1990,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",213,13,87532,7.81,-6.45
+"6353",1990,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",213,13,87532,7.81,-6.45
 "6354",1990,"35237","Plantago tweedyi","PLTW","","PLTW","Plantaginaceae","Perennial","Forb/herb","L48 (N)","","","",205,10,87532,7.81,-6.45
 "6355",1990,"35580","Poa nemoralis ssp. interior","PONEI2","","PONEI2","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",193,29,87532,7.81,-6.45
 "6356",1990,"40025","Salix monticola","SAMO2","","SAMO2","Salicaceae","Perennial","Tree, Shrub","L48 (N)","Late Spring","Summer","Summer",178,21,87532,7.81,-6.45
@@ -6434,7 +6434,7 @@
 "6433",1990,"32565","Pedicularis groenlandica","PEGR2","","PEGR2","Scrophulariaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","Late Spring","Spring","Summer",194,40,87532,7.81,-6.45
 "6434",1990,"2188","Anemone multifida","ANMU","","ANMU","Ranunculaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Early Summer","Summer","Fall",171,17,87532,7.81,-6.45
 "6435",1990,"8577","Carex praeceptorum","CAPR22","","CAPR22","Cyperaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",224,20,87532,7.81,-6.45
-"6436",1990,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",216,23,87532,7.81,-6.45
+"6436",1990,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",216,23,87532,7.81,-6.45
 "6437",1990,"45739","Trifolium dasyphyllum","TRDA2","","TRDA2","Fabaceae","Perennial","Forb/herb","L48 (N)","","","",177,41,87532,7.81,-6.45
 "6438",1990,"46595","Valeriana edulis var. edulis","VAEDE","","VAEDE","Valerianaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",193,23,87532,7.81,-6.45
 "6439",1990,"33191","Penstemon whippleanus","PEWH","","PEWH","Scrophulariaceae","Perennial","Subshrub, Forb/herb","L48 (N)","Late Summer","Fall","Fall",203,49,87532,7.81,-6.45
@@ -6685,7 +6685,7 @@
 "6684",1991,"2406","Antennaria umbrinella","ANUM","","ANUM","Asteraceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",219,31,80755,7.59,-6.85
 "6685",1991,"15412","Draba aurea","DRAU","","DRAU","Brassicaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",193,43,80755,7.59,-6.85
 "6686",1991,"17102","Erigeron coulteri","ERCO6","","ERCO6","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",218,36,80755,7.59,-6.85
-"6687",1991,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",234,13,80755,7.59,-6.85
+"6687",1991,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",234,13,80755,7.59,-6.85
 "6688",1991,"17265","Erigeron simplex","ERSI3","","ERSI3","Asteraceae","Perennial","Subshrub, Forb/herb","L48 (N)","","","",194,49,80755,7.59,-6.85
 "6689",1991,"31366","Oreochrysum parryi","ORPA3","","ORPA3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",233,27,80755,7.59,-6.85
 "6690",1991,"46683","Veratrum californicum","","","VECA2","Liliaceae","Perennial","Forb/herb","L48 (N)","","","",236,12,80755,7.59,-6.85
@@ -6982,7 +6982,7 @@
 "6981",1993,"7741","Campanula rotundifolia","CARO2","","CARO2","Campanulaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","","","",213,33,87853,6.8,-7.03
 "6982",1993,"31379","Oreoxis alpina","ORAL","","ORAL","Apiaceae","Perennial","Forb/herb","L48 (N)","","","",189,31,87853,6.8,-7.03
 "6983",1993,"9608","Cerastium beeringianum","CEBE2","","CEBE2","Caryophyllaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",193,40,87853,6.8,-7.03
-"6984",1993,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",212,13,87853,6.8,-7.03
+"6984",1993,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",212,13,87853,6.8,-7.03
 "6985",1993,"35736","Polemonium confertum","POCO26","","POCO26","Polemoniaceae","Perennial","Forb/herb","L48 (N)","","","",189,18,87853,6.8,-7.03
 "6986",1993,"8488","Carex nelsonii","CANE3","","CANE3","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",229,28,87853,6.8,-7.03
 "6987",1993,"42285","Smelowskia calycina","SMCA","","SMCA","Brassicaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",197,36,87853,6.8,-7.03
@@ -7534,7 +7534,7 @@
 "7533",1995,"41303","Sedum lanceolatum","SELA","","SELA","Crassulaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",223,30,97904,7.57,-6.24
 "7534",1995,"19087","Festuca saximontana","FESA","","FESA","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N), GL (N)","","","",211,12,97904,7.57,-6.24
 "7535",1995,"18057","Erythronium grandiflorum","ERGR9","","ERGR9","Liliaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",192,16,97904,7.57,-6.24
-"7536",1995,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",225,13,97904,7.57,-6.24
+"7536",1995,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",225,13,97904,7.57,-6.24
 "7537",1995,"46584","Valeriana acutiloba","VAAC","","VAAC","Valerianaceae","Perennial","Forb/herb","L48 (N)","","","",205,19,97904,7.57,-6.24
 "7538",1995,"40053","Salix planifolia","SAPL2","","SAPL2","Salicaceae","Perennial","Tree, Subshrub, Shrub","L48 (N), AK (N), CAN (N), SPM (N)","Late Spring","Spring","Summer",196,33,97904,7.57,-6.24
 "7539",1995,"8091","Carex arapahoensis","CAAR13","","CAAR13","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",217,21,97904,7.57,-6.24
@@ -7745,7 +7745,7 @@
 "7744",1995,"46595","Valeriana edulis var. edulis","VAEDE","","VAEDE","Valerianaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",227,23,97904,7.57,-6.24
 "7745",1995,"8508","Carex obtusata","CAOB4","","CAOB4","Cyperaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",222,12,97904,7.57,-6.24
 "7746",1995,"40532","Saxifraga flagellaris","SAFL6","","SAFL6","Saxifragaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",203,18,97904,7.57,-6.24
-"7747",1995,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",221,23,97904,7.57,-6.24
+"7747",1995,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",221,23,97904,7.57,-6.24
 "7748",1995,"8243","Carex ebenea","CAEB","","CAEB","Cyperaceae","Perennial","Graminoid","L48 (N)","","","",212,48,97904,7.57,-6.24
 "7749",1995,"42286","Smelowskia calycina var. americana","SMCAA","","SMCAA","Brassicaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",207,30,97904,7.57,-6.24
 "7750",1995,"31851","Packera tridenticulata","PATR7","","PATR7","Asteraceae","Perennial","Forb/herb, Subshrub","L48 (N), CAN (N)","Late Summer","Spring","Summer",200,21,97904,7.57,-6.24
@@ -8250,7 +8250,7 @@
 "8249",1997,"11744","Conioselinum scopulorum","COSC2","","COSC2","Apiaceae","Perennial","Forb/herb","L48 (N)","","","",224,20,91837,8.27,-6.28
 "8250",1997,"41482","Senecio amplectens","SEAM","","SEAM","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",217,21,91837,8.27,-6.28
 "8251",1997,"42286","Smelowskia calycina var. americana","SMCAA","","SMCAA","Brassicaceae","Perennial","Forb/herb","L48 (N), CAN (N)","","","",200,30,91837,8.27,-6.28
-"8252",1997,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",193,23,91837,8.27,-6.28
+"8252",1997,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",193,23,91837,8.27,-6.28
 "8253",1997,"2189","Anemone multifida var. multifida","ANMUM3","","ANMUM3","Ranunculaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",196,28,91837,8.27,-6.28
 "8254",1997,"9086","Castilleja rhexiifolia","CARH4","","CARH4","Scrophulariaceae","Perennial","Subshrub, Forb/herb","L48 (N), CAN (N)","","","",215,19,91837,8.27,-6.28
 "8255",1997,"41571","Senecio triangularis","SETR","","SETR","Asteraceae","Perennial","Subshrub, Forb/herb","L48 (N), AK (N), CAN (N)","Mid Summer","Fall","Fall",207,32,91837,8.27,-6.28
@@ -8479,7 +8479,7 @@
 "8478",1998,"8346","Carex illota","CAIL","","CAIL","Cyperaceae","Perennial","Graminoid","L48 (N), CAN (N)","","","",197,34,79954,8.65,-5.55
 "8479",1998,"43335","Stellaria irrigua","STIR","","STIR","Caryophyllaceae","Perennial","Forb/herb","L48 (N)","","","",214,18,79954,8.65,-5.55
 "8480",1998,"31366","Oreochrysum parryi","ORPA3","","ORPA3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",221,27,79954,8.65,-5.55
-"8481",1998,"22207","Hieracium triste ","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",227,13,79954,8.65,-5.55
+"8481",1998,"22207","Hieracium triste var. triste","","","","Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)","","","",227,13,79954,8.65,-5.55
 "8482",1998,"37579","Pyrola minor","PYMI","","PYMI","Pyrolaceae","Perennial","Subshrub","L48 (N), AK (N), CAN (N), GL (N), SPM (N)","","","",191,10,79954,8.65,-5.55
 "8483",1998,"17993","Erysimum capitatum var. capitatum","ERCAC","","ERCAC","Brassicaceae","Biennial, Perennial","Forb/herb","L48 (N), AK (N)","Mid Spring","Summer","Summer",197,15,79954,8.65,-5.55
 "8484",1998,"46596","Valeriana occidentalis","VAOC2","","VAOC2","Valerianaceae","Perennial","Forb/herb","L48 (N)","Late Spring","Summer","Summer",177,12,79954,8.65,-5.55
@@ -8631,7 +8631,7 @@
 "8630",1998,"20067","Gentiana algida","GEAL2","","GEAL2","Gentianaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",221,41,79954,8.65,-5.55
 "8631",1998,"31379","Oreoxis alpina","ORAL","","ORAL","Apiaceae","Perennial","Forb/herb","L48 (N)","","","",178,31,79954,8.65,-5.55
 "8632",1998,"8281","Carex geyeri","CAGE2","","CAGE2","Cyperaceae","Perennial","Graminoid","L48 (N), CAN (N)","Late Spring","Spring","Summer",181,16,79954,8.65,-5.55
-"8633",1998,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",208,23,79954,8.65,-5.55
+"8633",1998,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",208,23,79954,8.65,-5.55
 "8634",1998,"25615","Leptosiphon nuttallii ssp. nuttallii","LENUN","","LENUN","Polemoniaceae","Perennial","Forb/herb, Subshrub","L48 (N)","","","",197,10,79954,8.65,-5.55
 "8635",1998,"17117","Erigeron elatior","EREL9","","EREL9","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",193,29,79954,8.65,-5.55
 "8636",1998,"1186","Agrostis humilis","AGHU","","AGHU","Poaceae","Perennial","Graminoid","L48 (N), AK (N), CAN (N)","","","",226,18,79954,8.65,-5.55
@@ -9998,7 +9998,7 @@
 "9997",2003,"34776","Pinus flexilis","PIFL2","","PIFL2","Pinaceae","Perennial","Tree","L48 (N), CAN (N)","Summer","Summer","Fall",219,10,77260,9.85,-4.97
 "9998",2003,"3074","Arenaria fendleri","ARFE3","","ARFE3","Caryophyllaceae","Perennial","Forb/herb","L48 (N)","","","",193,25,77260,9.85,-4.97
 "9999",2003,"4138","Astragalus alpinus var. alpinus","ASALA4","","ASALA4","Fabaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",194,26,77260,9.85,-4.97
-"10000",2003,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",193,23,77260,9.85,-4.97
+"10000",2003,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",193,23,77260,9.85,-4.97
 "10001",2003,"3515","Artemisia scopulorum","ARSC","","ARSC","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",177,52,77260,9.85,-4.97
 "10002",2003,"44618","Thalictrum fendleri","THFE","","THFE","Ranunculaceae","Perennial","Forb/herb","L48 (N)","","","",207,14,77260,9.85,-4.97
 "10003",2003,"3385","Arnica mollis","ARMO4","","ARMO4","Asteraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","Summer","Fall","Fall",190,39,77260,9.85,-4.97
@@ -10782,7 +10782,7 @@
 "10781",2007,"16702","Epilobium hornemannii ssp. hornemannii","EPHOH","","EPHOH","Onagraceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",202,12,85729,8.21,-4.22
 "10782",2007,"17300","Erigeron vagus","ERVA3","","ERVA3","Asteraceae","Perennial","Forb/herb","L48 (N)","","","",189,24,85729,8.21,-4.22
 "10783",2007,"2143","Androsace septentrionalis","ANSE4","","ANSE4","Primulaceae","Annual, Perennial","Forb/herb","L48 (N), AK (N), CAN (N), GL (N)","","","",175,40,85729,8.21,-4.22
-"10784",2007,"3449","Artemisia campestris var. borealis","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",189,23,85729,8.21,-4.22
+"10784",2007,"3449","Artemisia campestris var. purshii","ARCAB4","ARBO4","ARBO4","Asteraceae","Biennial, Perennial","Forb/herb","","","","",189,23,85729,8.21,-4.22
 "10785",2007,"26555","Lloydia serotina var. serotina","LLSES2","","LLSES2","Liliaceae","Perennial","Forb/herb","L48 (N), AK (N), CAN (N)","","","",175,27,85729,8.21,-4.22
 "10786",2007,"17996","Erysimum capitatum var. purshii","ERCAP3","","ERCAP3","Brassicaceae","Biennial, Perennial","Forb/herb","L48 (N)","","","",175,23,85729,8.21,-4.22
 "10787",2007,"20137","Gentianopsis thermalis","GETH","","GETH","Gentianaceae","Annual","Forb/herb","L48 (N)","","","",219,30,85729,8.21,-4.22

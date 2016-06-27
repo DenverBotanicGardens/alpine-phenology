@@ -93,6 +93,7 @@ colo.sm <- colo.sm[colo.sm$Year>=1950,] #only years 1950 and beyond, before 2011
 colo.sm <- colo.sm[colo.sm$Year<2012,] #only years 1950 and beyond, before 2012
 
 table(colo.sm$Year)
+barplot(table(colo.sm$Year))
 
 length(unique(colo.sm$scientificName)) #2992
 
@@ -183,8 +184,11 @@ i<-sapply(seinet.bind, is.factor)
 seinet.bind[i]<-lapply(seinet.bind[i],as.character)
 i<-sapply(seinet.bind, is.integer)
 seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
+```
+
 
 ####### BLOOM2 ##########
+```{r}
 bloom2 <- rbind(seinet.bind,colo.bind) 
 barplot(table(bloom2$Year))
 barplot(table(bloom2$startDayOfYear))
@@ -373,21 +377,20 @@ foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
 sort(table(foo$Var1[foo$Freq>0])) #6
 
 synonyms["Anemone multifida" == synonyms$SYNONYMS,]
+synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value=TRUE),]
 
 # remove all " non "
 synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
 rm(bloom2)
-bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
-foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-sort(table(foo$Var1[foo$Freq>0])) #0
-
 ```
 
-
-# Create bloom2 again after removing the problem names   
+# Created bloom2 again after removing the problem names   
 From methods: "Looking for ‘auct. non’ authorities in the herbarium collections. Seven names appear on herbarium collections in this dataset with inappropriate uses of the name (‘auct. non”). These will cause problems with synonymy by scientific name without including the author. Authority has problems when matching R verbatim due to spelling and abbreviation errors."
 ```{r}
 bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
+foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
+sort(table(foo$Var1[foo$Freq>0])) #0, no repeated IDs for a plant name (without the authority)
+
 ```
 
 After combining datasets, find species with at least 10 years of data
@@ -435,7 +438,7 @@ nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.70672
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-min1950_2_10plus <- min1950_2[min1950_2$DataYrs>9,]
+length(unique(sp.10plus$ID))
 ```
 
 
@@ -443,16 +446,14 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-
 length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #491
 length(unique(sp.10plus$ID)) # 498 -> 473 -> 491
-length(unique(tenyearplus$scientificName)) #654 -> 725
+length(unique(tenyearplus$scientificName)) #725
 length(unique(tenyearplus$ID)) #473 -> 491
 ```
 
 
-
-Pull out earliest collection   
+Pull out earliest collection rows   
 ```{r}
 minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
   this.species <- tenyearplus[tenyearplus$ID == x,]
@@ -472,7 +473,7 @@ length(unique(min1950_2$ID)) #473 -> 491
 # check that none have more than one a year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
-
+rm(singlefoo)
 ```
 
 
@@ -538,7 +539,7 @@ missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnu
 
 ```
 
-
+#### checking
 ```{r}
 min1950_2[min1950_2$ID == unique(bloom2$ID[bloom2$scientificName=="Aster foliaceus"]),]
 plantsyn[plantsyn$Scientific.Name %in% grep("Symphyotrichum foliaceum",plantsyn$Scientific.Name, value=TRUE), ]
@@ -601,7 +602,7 @@ accpt <- rbind(accpt,c("Carex atrata","8105","","",
 accpt <- rbind(accpt,c("Carex micropoda","8591","","",
                        "","Cyperaceae","Perennial","Graminoid","AK (N), CAN (N), L48 (N)",
                        "","",""))
-accpt <- rbind(accpt,c("Hieracium triste ","22207","","",
+accpt <- rbind(accpt,c("Hieracium triste var. triste","22207","","",
                        "", "Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)",
                        "","",""))
 accpt <- rbind(accpt,c("Eutrema edwardsii","18851","","",
@@ -642,7 +643,7 @@ accpt <- rbind(accpt,c("Veratrum californicum","46683","","",
 rm(merge.name)
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #488
+length(unique(merge.name$ID)) #488 
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
@@ -662,7 +663,7 @@ rm(singlefoo)
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #0
 
-length(unique(merge.name$ID)) #488
+length(unique(merge.name$ID)) #488, on 6/24/16 now I'm down to 481!
 mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.69467 years
 
 nrow(merge.name) #11454
@@ -740,13 +741,46 @@ length(table(merge.name$Family[!duplicated(merge.name$ID)]))
 table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
 
 sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #349 Forb/herbs
-sum(  GH$Freq[GH$Var1 %in% grep("Vine", GH$Var1, value=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #1 vine put it with shrub
-sum(  GH$Freq[GH$Var1 %in% grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE) & GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
-sum(  GH$Freq[GH$Var1 %in% grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE) & 
-                GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE, ignore.case=TRUE) &
-                GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11 trees
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11 trees
+
+
+GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
+GD[GH$Freq>0,]
+sum(GD$Freq)#488
+
+# Duration
+table(merge.name$Duration[!duplicated(merge.name$ID)])
+
+sum(GD$Freq[GH$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)])
+
+NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
+NAT[NAT$Freq>0,]
+sum(NAT$Freq)#488
+
+# Native status
+unique(merge.name$scientificName[merge.name$Native.Status == ""])
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"])
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"])
+
+merge.name$scientificName[!duplicated(merge.name$ID) & merge.name$Native.Status %in% grep("L48", merge.name$Native.Status, value=TRUE, invert=TRUE)]
+
 
 ```
+
+"Dasiphora fruticosa" - L48 (N)    
+"Dasiphora fruticosa ssp. floribunda" -  L48 (N)    
+"Eutrema edwardsii" - not from L48      
+"Gentianella amarelle ssp. heterosepala" - L48 (N)    
+"Hieracium triste var. triste" - not from L48         
+"Arabis lemmonii var. lemmonii" - L48 (N)     
+"Lupinus argenteus var. rubricaulis" - L48 (N)     
+"Artemisia campestris var. purshii" - L48 (N)      
+"Silene uralensis ssp. montana" - L48 (N)    
+"Valeriana capitata"  not in L48     
+"Carex atrata"  not in L48  
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
@@ -758,7 +792,7 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #189
+mean(earcol$Collections) #189 -> 187.7705
 
 ```
      Year Collections
@@ -1010,8 +1044,11 @@ HDD.yrs <- lapply(HDD, function(x){
 
 HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
+```
 
-nrow(merge.name[merge.name$Year > 1980,]) # 7737 -> 7730 -> 7447
+# Now merge GDD with min1950_2 or merge.name as it's now called
+```{r}
+nrow(merge.name[merge.name$Year > 1980,]) # 7737 -> 7730 -> 7447 -> 7316
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
