@@ -1543,7 +1543,6 @@ names(snow)<-paste(header,header2,sep="_")
 head(snow)
 ```
 
-### START HERE #####
 Average of snow over all stations per month over the years
 ```{r}
 #average over all stations per year
@@ -1636,47 +1635,18 @@ gtyr <- merge(yr.1950_2, plantinfo, by.x = "Species", by.y = "Scientific.Name")
 
 ```
 
-
-
-#Check for synonyms 
-```{r, eval= TRUE}
-plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",")
-names(plantsyn)
-
-
-bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
-length(grep("ssp.",bloom2$scientificName)) #1577 (75)
-length(grep("subsp.",bloom2$scientificName)) #0 (1502)
-
-length(grep("ssp.", plantsyn$Scientific.Name)) #1463
-length(grep("subsp.", plantsyn$Scientific.Name)) #0
-
-unique(plantsyn$Genera.Binomial.Author)
-# select the first not in parentheses authority to comapare grep
-plantsyn$Genera.Binomial.Author[1:10]
-# remove anything in parentheses
-sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Author, perl=TRUE)[1:10]
-# strsplit to get first word, or use library(stringr)
-library(stringr)
-word(sub("^\\s+", "",sub("(?=\\().*?(?<=\\))", "", plantsyn$Genera.Binomial.Author, perl=TRUE)),1)[1:10]
-#just the last author?
-word(plantsyn$Genera.Binomial.Author,-1)[1:10]
-
-length(unique(plantsyn$Scientific.Name)) #15204 (15353)
-length(unique(plantsyn$Accepted.Symbol)) #5513
-length(unique(plantsyn$Synonym.Symbol)) #9719 (9883)
-
-bloom.o1 <- merge(bloom2, plantsyn[,c(4,1,2,25,26,27,28,29)], by.x = "scientificName", by.y = "Scientific.Name")
-
-badnames.o1 <- setdiff(
-  word(bloom2$scientificName,1,end=2)[1:30]
-                       ,
-                       unique(bloom.o1$scientificName))
-head(badnames.o1)
-length(badnames.o1) #671 -> 505 -> 516
-
-length(unique(bloom.o1$Accepted.Symbol)) #1429 -> 1384
-length(unique(bloom.o1$Synonym.Symbol)) #445 -> 461
+## Streamflow
+```{r}
+streamflow <- read.delim(path.expand("C:/Users/deprengm/Downloads/dv.csv"),
+                       strip.white=TRUE,
+                       blank.lines.skip=TRUE,
+                       skipNul=TRUE,
+                       sep=c(",","\t","/"),
+                       comment.char = "#")
+head(streamflow)
+streamflow[2000:2030,]
+streamflow[1000:1500,]
 ```
+
+
 
