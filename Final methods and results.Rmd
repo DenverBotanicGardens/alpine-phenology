@@ -1093,7 +1093,7 @@ tmps$Year <- as.numeric(format(temps$day, "%Y"))
 
 
 Calculate Growing Degree Days
-```{r, eval=FALSE}
+```{r}
 tbase <- 0
 
 #method 1 from McMaster and Wilhelm 1997
@@ -1138,6 +1138,15 @@ min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="scientificName",by.y="Group.1")
 length(unique(min1950GDD_2_10$scientificName)) #372
 
+```
+
+```{r}
+avg.HDD.yrs <- lapply(HDD.yrs, function(x){
+  mean(x)
+})
+
+avg.yrs <- do.call(c, avg.HDD.yrs)
+hddyrs <- data.frame(Year=1981:2011, avgHDD = avg.yrs)
 ```
 
 correlations with GDD and climate factors
@@ -1185,7 +1194,7 @@ ggplot(unbloomGDD, aes(Year,avgHDD))+
   theme_bw()+
 #  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
-  ylab("cummulative GDD at collection date")
+  ylab("average annual GDD")
 
 summary(lm(avgHDD~Year, data=unbloomGDD))
 ```
@@ -1203,9 +1212,10 @@ ggplot(totalGDDyr, aes(Year,MaxGDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
-#  labs(title= expression("Maximum cumulative GDD (Tbase = 0"~degree*C~")"))+
-  xlab("Year")+
-  ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))
+  labs(title= expression(paste("Maximum cumulative GDD (T"[base] == 0, degree*C,")")))
+#  xlab("Year")+
+#  ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))
+
 summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 ```
@@ -1527,8 +1537,10 @@ mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 ```
 
 
-Growing Degree Days   
+Growing Degree Days - GDD at time of collection  
 ```{r}
+#reset between time of collection and next, max per year
+rm(results,rst)
 results <- lapply(unique(min1950GDD_2_10$ID), function(x){
   if(nrow(min1950GDD_2_10[min1950GDD_2_10$ID==x,])>=10){
   foo1 <- summary(lm(HDD~Year,data=min1950GDD_2_10[min1950GDD_2_10$ID==x,]))
@@ -1564,10 +1576,59 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0])
 
 #later
 nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) 
+rst$Species[rst$p.value<0.05 & rst$Slope >= 0]
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
 
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
+```
+
+#GDD high per year
+```{r}
+head(totalGDDyr)
+#Reset for time of collection and now max
+rm(results,rst,min1950GDDmax)
+min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
+results <- lapply(unique(min1950GDDmax$ID), function(x){
+  if(nrow(min1950GDDmax[min1950GDDmax$ID==x,])>=10){
+  foo1 <- summary(lm(startDayOfYear~MaxGDD,data=min1950GDDmax[min1950GDDmax$ID==x,]))
+  JYC <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                          foo1$coefficients[1,1],
+                          t(foo1$fstatistic),
+                          ID = x,
+                          unique(min1950GDDmax$scientificName[min1950GDDmax$ID == x])[1],
+                          unique(min1950GDDmax$Family[min1950GDDmax$ID == x])[1],
+                          foo1$adj.r.squared,
+                          N = nrow(min1950GDDmax[min1950GDDmax$ID==x,])))
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF",
+                   "ID", "Species","Family.Name","adj.r.squ","N")
+  JYC
+  }
+  })
+
+
+results[[1]]
+rst <- do.call(rbind,results)
+head(rst)
+
+
+nrow(rst) #406 -> 377 (373)
+rst[rst$p.value<0.05,]
+nrow(rst[rst$p.value<0.05,])
+
+#earlier
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,])
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) 
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) 
+
+#later
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) 
+rst[rst$p.value<0.05 & rst$Slope >= 0,]
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
+
+write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.csv", sep=",")
 ```
 
 ###NPN Growing Degree Days     
@@ -1628,6 +1689,23 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=scientificName))+
 
 ```{r}
 ggplot(minNPNGDD_2, aes(Year, HDD, group=Growth.Habit, colour=Growth.Habit))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5)+
+  theme_bw()+
+  ylab(expression(GDD))
+```
+
+#MaxGDD
+```{r}
+ggplot(min1950GDDmax, aes(startDayOfYear, MaxGDD, group=scientificName))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
+  theme_bw()+
+  ylab(expression(GDD))
+```
+
+```{r}
+ggplot(min1950GDDmax, aes(startDayOfYear, MaxGDD, group=Growth.Habit, colour=Growth.Habit))+
   geom_point()+
   geom_smooth(method="lm", level=0, lwd = .5)+
   theme_bw()+
