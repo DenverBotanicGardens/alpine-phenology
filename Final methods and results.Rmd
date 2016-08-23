@@ -803,6 +803,9 @@ Of the first bloom data of species that matched sampling critera, the hightest d
 earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
                                                 merge.name$Year)))
 
+length(unique(merge.name$ID))
+sort(unique(merge.name$DataYrs))
+
 earcol <- data.frame(Year = row.names(earliestcollection),
                      Collections = earliestcollection)
 colnames(earcol)[2] <- "Collections"
@@ -827,6 +830,11 @@ ggplot(earcol, aes(Year, Collections))+
 
 ```
 
+
+Average number of collections over the study period was XX species collected per year
+```{r}
+mean(earcol$Collections)
+```
  
 ```{r}
 allcollections <- data.frame(colSums(table(bloom2$scientificName,bloom2$Year)))
@@ -916,6 +924,18 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 
 ```
 
+Segmented test
+```{r}
+install.packages("segmented")
+library(segmented)
+segmented.start.year <- segmented(lm(startDayOfYear~Year, data=merge.name), 
+                                  seg.Z = ~Year, psi=1980)
+summary(segmented.start.year)
+slope(segmented.start.year)
+```
+U1.Year is the difference in slopes between the first and second segment. So if your coefficients are Year = 0.18110 and U1.x = -0.53408, then the slope of the second segment is -0.53408+0.18110 = -0.35298. Using the slope(segmented.mod) command will give you the slopes of each segment, which should match the above calculation.
+
+
 #Figure 2A  
 Using just the average temp per year, not repeated for everytime we have specimen data in a year
 ```{r}
@@ -932,7 +952,31 @@ ggplot(unbloom, aes(Year,Avg_Hi))+
 summary(lm(Avg_Hi~Year, data=unbloom))
 ```
 
+Segmented test
+```{r}
+segmented.Avg_Hi.year <- segmented(lm(Avg_Hi~Year, data=unbloom), 
+                                  seg.Z = ~Year, 
+                                  psi= list(Year = c(1985,2000)))
+summary(segmented.Avg_Hi.year)
+slope(segmented.Avg_Hi.year)
+segmented.Avg_Hi.year$psi #1994.5 and 2001.3
+#Fitted data
+seg.fit <- fitted(segmented.Avg_Hi.year)
+seg.model <- data.frame(Year = unbloom$Year, Avg_Hi = seg.fit)
 
+#plot fitted model
+ggplot(unbloom, aes(Year,Avg_Hi))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+#  stat_smooth(geom = "smooth")+
+  theme_bw()+
+#  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  geom_line(data = seg.model, aes(Year,Avg_Hi), colour = "tomato")
+```
+<https://rpubs.com/MarkusLoew/12164> 
 #Figure 2B
 ```{r}
 ggplot(unbloom, aes(Year,Avg_Lo))+
@@ -946,6 +990,31 @@ ggplot(unbloom, aes(Year,Avg_Lo))+
 
 summary(lm(Avg_Lo~Year, data = unbloom))
 
+```
+
+Segmented test
+```{r}
+segmented.Avg_Lo.year <- segmented(lm(Avg_Lo~Year, data=unbloom), 
+                                  seg.Z = ~Year, 
+                                  psi= 1980)
+summary(segmented.Avg_Lo.year)
+slope(segmented.Avg_Lo.year)
+segmented.Avg_Lo.year$psi #1988.3
+#Fitted data
+seg.fit <- fitted(segmented.Avg_Lo.year)
+seg.model <- data.frame(Year = unbloom$Year, Avg_Lo = seg.fit)
+
+#plot fitted model
+ggplot(unbloom, aes(Year,Avg_Lo))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+#  stat_smooth(geom = "smooth")+
+  theme_bw()+
+#  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  geom_line(data = seg.model, aes(Year,Avg_Lo), colour = "tomato")
 ```
 
 #Figure 2C   
@@ -964,6 +1033,30 @@ summary(lm(Raw_Precip~Year, data = unbloom))
 
 ```
 
+Segmented test
+```{r}
+segmented.Raw_Precip.year <- segmented(lm(Raw_Precip~Year, data=unbloom), 
+                                  seg.Z = ~Year, 
+                                  psi= 1980)
+summary(segmented.Raw_Precip.year)
+slope(segmented.Raw_Precip.year)
+segmented.Raw_Precip.year$psi #1988.3
+#Fitted data
+seg.fit <- fitted(segmented.Raw_Precip.year)
+seg.model <- data.frame(Year = unbloom$Year, Raw_Precip = seg.fit)
+
+#plot fitted model
+ggplot(unbloom, aes(Year,Raw_Precip))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm")+
+#  stat_smooth(geom = "smooth")+
+  theme_bw()+
+#  labs(title="Average High Temperature by Year")+
+  xlab("Year")+
+  ylab("Precipitation (mm)")+
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  geom_line(data = seg.model, aes(Year,Raw_Precip), colour = "tomato")
+```
 
 #Figure 3A  
 ```{r}
@@ -1160,7 +1253,7 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 ```
 
 #Figure 4A   
-Average GDD for the ealiest collection date did not change significantly over the study years 
+Average GDD for the ealiest collection date did! change significantly over the study years, just the r^2 is next to nothing
 ```{r}
 ggplot(min1950GDD_2_10, aes(Year,HDD))+
   geom_point()+
@@ -1567,21 +1660,23 @@ head(rst)
 
 nrow(rst) #406 -> 377
 rst[rst$p.value<0.05,]
-nrow(rst[rst$p.value<0.05,])
+nrow(rst[rst$p.value<0.05,]) #29
 
-#earlier
-nrow(rst[rst$p.value<0.05 & rst$Slope < 0,])
+#smaller HDD at time of collection
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #5
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) 
 
-#later
-nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) 
+#bigger HDD at time of collection
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,])  #24
 rst$Species[rst$p.value<0.05 & rst$Slope >= 0]
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
 
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 ```
+
+
 
 #GDD high per year
 ```{r}
@@ -1618,12 +1713,12 @@ rst[rst$p.value<0.05,]
 nrow(rst[rst$p.value<0.05,])
 
 #earlier
-nrow(rst[rst$p.value<0.05 & rst$Slope < 0,])
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #66
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) 
 
 #later
-nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) 
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #1
 rst[rst$p.value<0.05 & rst$Slope >= 0,]
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) 
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) 
