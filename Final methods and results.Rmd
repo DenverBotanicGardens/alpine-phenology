@@ -1375,7 +1375,8 @@ summary(lm(startDayOfYear~Secant+Growth.Habit.sm, data=min1950GDDsecant2))
 
 ```
 
-
+#SKIP this, not informative!
+Because of course the GDD of a certain day of the year will be very similar every year even if it's increasing over the years. 
 ```{r, eval=FALSE}
 ggplot(min1950GDD_2_10, aes(HDD,startDayOfYear))+
   geom_point()+
@@ -1676,8 +1677,21 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0])
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 ```
 
+,group=scientificName
+#Overall MaxGDD
+```{r}
+ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
+  theme_bw()+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
+
+```
 
 
+# Informative part, like average precip, temp per year, does the earliest collection date change as the MaxGDD (up through ordinal day 273) changes per year?
 #GDD high per year
 ```{r}
 head(totalGDDyr)
