@@ -836,25 +836,33 @@ length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
 length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
                                              invert=TRUE)])) #10 non-native
 
-IDxSpecies <- merge.name[!duplicated(merge.name$scientificName),c("ID","scientificName")]
-foo1 <- data.frame(table(IDxSpecies$ID,IDxSpecies$scientificName))
-foo1[foo1$Freq >0,]
-nrow(IDxSpecies)
-
-rm(IDxSpecies,foo1)
+table(merge.name$Native.Status) #109 missing status
+unique(merge.name$scientificName[merge.name$Native.Status == ""])
 ```
 
 "Dasiphora fruticosa" - L48 (N)    
 "Dasiphora fruticosa ssp. floribunda" -  L48 (N)    
-"Eutrema edwardsii" - not from L48      
+   "Eutrema edwardsii" - not from L48      
 "Gentianella amarelle ssp. heterosepala" - L48 (N)    
-"Hieracium triste var. triste" - not from L48         
+    "Hieracium triste var. triste" - not from L48         
 "Arabis lemmonii var. lemmonii" - L48 (N)     
 "Lupinus argenteus var. rubricaulis" - L48 (N)     
 "Artemisia campestris var. purshii" - L48 (N)      
 "Silene uralensis ssp. montana" - L48 (N)    
-"Valeriana capitata"  not in L48     
-"Carex atrata"  not in L48  
+    "Valeriana capitata"  not in L48     
+    "Carex atrata"  not in L48  
+    
+#Fix missing Native.Status
+```{r}
+merge.name$Native.Status[merge.name$scientificName == "Dasiphora fruticosa"] <- "L48 (N)"
+merge.name$Native.Status[merge.name$scientificName == "Dasiphora fruticosa ssp. floribunda"] <- "L48 (N)"
+merge.name$Native.Status[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "L48 (N)"
+merge.name$Native.Status[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "L48 (N)"
+merge.name$Native.Status[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "L48 (N)"
+merge.name$Native.Status[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "L48 (N)"
+merge.name$Native.Status[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "L48 (N)"
+
+```
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
@@ -869,15 +877,18 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #189 -> 187.7705
+mean(earcol$Collections) #189 -> 187.5574
 
 ```
      Year Collections
-1998 1998         408
+1998 1998         407
 
 
 #Figure 1A
 ```{r}
+dpi = 1200
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+
 ggplot(earcol, aes(Year, Collections))+
   geom_bar(stat="identity")+
   xlab("Year")+
@@ -886,6 +897,7 @@ ggplot(earcol, aes(Year, Collections))+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
   scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
 
+dev.off()
 ```
 
 
