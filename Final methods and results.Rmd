@@ -990,7 +990,7 @@ cor.test(unbloom[,3],unbloom[,4])
 
 #Figure 2 Year x Bloom date
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. ordinalxyear.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
 
 
 ggplot(merge.name, aes(Year, startDayOfYear)) +
@@ -999,7 +999,9 @@ ggplot(merge.name, aes(Year, startDayOfYear)) +
   theme_bw()+
   xlab("Year")+
   ylab("Ordinal date")+
-  scale_x_continuous(breaks = seq(1950,2011,10))  
+  scale_x_continuous(breaks = seq(1950,2011,10)) +
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9)) 
 
 dev.off()
 
@@ -1009,8 +1011,6 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 
 Segmented test
 ```{r}
-install.packages("segmented")
-library(segmented)
 segmented.start.year <- segmented(lm(startDayOfYear~Year, data=merge.name), 
                                   seg.Z = ~Year, psi=1980)
 summary(segmented.start.year)
@@ -1019,9 +1019,11 @@ slope(segmented.start.year)
 U1.Year is the difference in slopes between the first and second segment. So if your coefficients are Year = 0.18110 and U1.x = -0.53408, then the slope of the second segment is -0.53408+0.18110 = -0.35298. Using the slope(segmented.mod) command will give you the slopes of each segment, which should match the above calculation.
 
 
-#Figure 2A  
+#Figure 3A  
 Using just the average temp per year, not repeated for everytime we have specimen data in a year
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 3a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(unbloom, aes(Year,Avg_Hi))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
@@ -1030,11 +1032,16 @@ ggplot(unbloom, aes(Year,Avg_Hi))+
 #  labs(title="Average High Temperature by Year")+
   xlab("Year")+
   ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
-  scale_x_continuous(breaks = seq(1950,2011,10))
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
 
 summary(lm(Avg_Hi~Year, data=unbloom))
 ```
 
+########START HERE#######
 Segmented test
 ```{r}
 segmented.Avg_Hi.year <- segmented(lm(Avg_Hi~Year, data=unbloom), 
