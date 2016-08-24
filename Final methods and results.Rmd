@@ -551,7 +551,7 @@ length(unique(accpt$ID)) #1273
 
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #469! (488)
+length(unique(merge.name$ID)) #469! (488) missing some names from merge.name
 missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
 missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
@@ -687,10 +687,11 @@ accpt <- rbind(accpt,c("Veratrum californicum","46683","","",
 rm(merge.name)
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #488 
+length(unique(merge.name$ID)) #488 (487 - means no more double Hieracium triste?!)
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
+singlefoo[singlefoo$Freq>1,]
 nrow(singlefoo[singlefoo$Freq> 1,]) #26
 
 # for two species, repeated data for the synonym, get rid of the second set of data
@@ -792,7 +793,7 @@ merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% grep("Shrub", grep("Tree
 ```{r}
 GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
 GH[GH$Freq>0,]
-sum(GH$Freq)#488
+sum(GH$Freq)#488 -> 487
 
 # Number of Families represented!
 length(table(merge.name$Family[!duplicated(merge.name$ID)]))
@@ -800,34 +801,47 @@ length(table(merge.name$Family[!duplicated(merge.name$ID)]))
 # Growth Habit numbers
 table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
 
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #349 Forb/herbs
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
 
 sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
 
-sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11 trees
+sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
 
 
 GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
 GD[GH$Freq>0,]
-sum(GD$Freq)#488
+sum(GD$Freq)#487
 
 # Duration
 table(merge.name$Duration[!duplicated(merge.name$ID)])
 
-sum(GD$Freq[GH$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)])
+sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #12
 
 NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
 NAT[NAT$Freq>0,]
-sum(NAT$Freq)#488
+sum(NAT$Freq)#487
 
 # Native status
 unique(merge.name$scientificName[merge.name$Native.Status == ""])
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"])
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"])
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #477
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #10
 
 merge.name$scientificName[!duplicated(merge.name$ID) & merge.name$Native.Status %in% grep("L48", merge.name$Native.Status, value=TRUE, invert=TRUE)]
 
+#which are missing a native status?
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #476
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #10 non-native
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #10 non-native
 
+IDxSpecies <- merge.name[!duplicated(merge.name$scientificName),c("ID","scientificName")]
+foo1 <- data.frame(table(IDxSpecies$ID,IDxSpecies$scientificName))
+foo1[foo1$Freq >0,]
+nrow(IDxSpecies)
+
+rm(IDxSpecies,foo1)
 ```
 
 "Dasiphora fruticosa" - L48 (N)    
