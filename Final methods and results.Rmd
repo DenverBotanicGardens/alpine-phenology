@@ -21,6 +21,27 @@ library(MASS)
 library(segmented)
 ```
 
+#Fresh start
+```{r, eval=FALSE}
+rm(accpt, acpted, allcol, allcollections, alltable, blnew, bloom, bloom.o, bloom2, bloomfoo,
+   collJ.sp, collJ.max, collmax, colo, colo.bind, colo.sm, colpyear, colpyear.2, dat, demo1, earcol,
+   earliestcollection, fams, fixbloom2, fixbloom2.all, foo, foo12, foo3, foo4, foo5, GD, GDD.1981, gdd.bl,
+   gdd.sig, gdd.sig.min, gdddatayrs, GH, gtyr, hdd.bl, hdd.f, hdd.foo, HDD.npn, HDD.0, HDD.0.all, 
+   HDD.npn.sig, hdd.snow, high.1950, high.npn_2, high.1950_2, linknames, lo.npn, lo.npn.Jul, low.1950,
+   low.1950_2, m15, m9, max.swe, Maxpyr, merge.name, min.dates, min.dates.snow, min1950_2,
+   min1950GDD_2, min1950GDDmax, minNPNGDD_2, mite, mite.log, mite.log.st, ml.JYC, mpy.df, NAT, npn, 
+   npn.all, npn.big, npn.big.m, npn.foo, npn.min1950, npn.only.1950, npn.specimens, npnHigh, 
+   npnonly, npnPrecip, npnYear, onename, plantinfo, plantsyn, precip.1950, precip.bl,
+   precip.npn, precip.1950_2, precip.sig, precip.npn.sig, pslope, rst, rst.npn, rst1, rsts, 
+   se.posno, secant1, secant2, seg.model, seinet, seinet.bind, seinet.sm, sig.in.merge, 
+   sig.interaction.JYC, sig.ml.JYC, sig.yr.1950, sig.yr.1950_2, singlefoo, sp.10plus, sp.yr, sp.yr.sp,
+   spyears, spyears.snow, synonyms, syns, temps, tenyearplus, toplot, total.p.yr, total.p.yr.cc, 
+   total.snow, yr.1950_2, yr.npn_2, yr.sig, yr.sig.min, yrspsp)
+
+
+
+```
+
 ## load functions   
 ```{r}
 
@@ -356,14 +377,29 @@ How many species have two species ID numbers?
 ```{r,eval=FALSE}
 bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-sort(table(foo$Var1[foo$Freq>0])) #19
+sort(table(foo$Var1[foo$Freq>0])) #19 -> 16 with 2
 
 ```
-
+Agrostis variabilis
+Anemone multifida
+Antennaria parvifolia
+Antennaria umbrinella
+Bromus anomalus
+Carex atrata
+Carex hallii
+Erigeron acris
+Festuca ovina
+Galium boreale
+Linum lewisii
+Oxytropis deflexa
+Paronychia pulvinata   
+Rorippa teres  
+Salix anglorum  
+Salix arctica 
 
 ### 4f. Remove auct. non records from the synonyms list. 
 ######## remove these from the database
-Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, Dasiphora fruticosa, Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, Senecio cymbalarioides  
+Agrostis variabilis, Anemone multifida, Antennaria parvifolia, Antennaria umbrinella, Bromus anomalus, Carex atrata, Carex hallii, ?Dasiphora fruticosa, -Eleocharis, Erigeron acris, Festuca ovina, Galium boreale, Linum lewisii, Oxytropis deflexa, Paronychia pulvinata  (go with Caryophyllaceae instead of Alsinaceae??), Rorippa teres, Salix anglorum, Salix arctica, ?Senecio cymbalarioides  
 ```{r}
 # Duplicate IDs
 synonyms["Agrostis variabilis" == synonyms$SYNONYMS,]
@@ -534,8 +570,9 @@ length(unique(merge.name$ID)) #476! (488)
 bloom2[bloom2$scientificName%in%missingnames,]
 nrow(min1950_2[min1950_2$ID%in%missingnums,])
 missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
-missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
-                                                 bloom2$ID, value=TRUE)])
+missingnames <- unique(bloom2$scientificName[bloom2$ID %in%
+                                               grep(paste(missingnums,collapse="|"),
+                                                    bloom2$ID, value=TRUE)])
 
 ```
 
@@ -556,6 +593,11 @@ unique(bloom2$ID[bloom2$scientificName=="Carex micropoda"]) #8591
 unique(bloom2$ID[bloom2$scientificName=="Chlorocrepis tristis"]) #22207
 unique(bloom2$ID[bloom2$scientificName=="Eutrema edwardsii"]) #18851
 unique(bloom2$ID[bloom2$scientificName=="Hieracium triste"]) #22205
+
+#There are two 'Hieracium triste' in the tables, but bloom2 has only 22205
+unique(bloom2$ID[grep("Hieracium triste",bloom2$scientificName)])
+unique(bloom2[grep("Hieracium triste",bloom2$scientificName),])
+
 unique(bloom2$ID[bloom2$scientificName=="Ligularia bigelovii"]) # 41494
 unique(bloom2$ID[bloom2$scientificName=="Poa nervosa"]) # 35582
 unique(bloom2$ID[bloom2$scientificName=="Salix arctica"]) # 39918
@@ -602,9 +644,11 @@ accpt <- rbind(accpt,c("Carex atrata","8105","","",
 accpt <- rbind(accpt,c("Carex micropoda","8591","","",
                        "","Cyperaceae","Perennial","Graminoid","AK (N), CAN (N), L48 (N)",
                        "","",""))
-accpt <- rbind(accpt,c("Hieracium triste var. triste","22207","","",
-                       "", "Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)",
-                       "","",""))
+# The Plant List says Hieracium triste var. triste is a synonym of Hieracium triste
+#accpt <- rbind(accpt,c("Hieracium triste var. triste","22207","","",
+#                       "", "Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)",
+#                       "","",""))
+
 accpt <- rbind(accpt,c("Eutrema edwardsii","18851","","",
                        "","Brassicaceae","Perennial","Forb/herb","AK (N), CAN (N), GL (N)",
                        "","",""))
