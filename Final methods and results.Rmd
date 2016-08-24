@@ -887,7 +887,7 @@ mean(earcol$Collections) #189 -> 187.5574
 #Figure 1A
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(earcol, aes(Year, Collections))+
   geom_bar(stat="identity")+
@@ -895,13 +895,15 @@ ggplot(earcol, aes(Year, Collections))+
   ylab("Number of Study Species")+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
-  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10))
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10)) +
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
 
 dev.off()
 ```
 
 
-Average number of collections over the study period was XX species collected per year
+Average number of collections over the study period was 187.6 species collected per year
 ```{r}
 mean(earcol$Collections)
 ```
@@ -918,6 +920,9 @@ allcol[,1] <- as.numeric.factor(allcol[,1])
 
 #Figure 1B  
 ```{r}
+dpi = 1200
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 1b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(allcol,  aes(x = Year, y = collections))+
   geom_bar(stat="identity")+
   xlab("Year")+
@@ -925,7 +930,11 @@ ggplot(allcol,  aes(x = Year, y = collections))+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
   scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2011, by=10))+
-  scale_y_continuous(limits = c(0,4700),breaks = seq(0,4700, by=500))
+  scale_y_continuous(limits = c(0,4700),breaks = seq(0,4700, by=500)) +
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
 ```
 
 The day each year with the most collections has on average been Julian day 207 and the day with the most collections has not moved significantly over time from 1950 to 2011. The earliest peak collection day was Julian day 175 (June 30th) in 2007 and the latest peak collection day was Julian day 238 in 1957 (August 29th)   
@@ -959,7 +968,6 @@ head(bloom[,c(19,20,21,23)])
 # units for precip are: ppt (mm*100) (even though it just says mm on the main website you look at when reading about the variables). So, we need to divide our values by 100 for our figures. 
 bloom$Raw_Precip <- (bloom$Raw_Precip)/100
 
-#Yarg! Can't figure out why it's already in there, the precip and temps
 # merge.name$Raw_Precip <- (merge.name$Raw_Precip)/100
 
 # If already have precip and hi lo, don't merge again, don't want .x and .y!
@@ -982,6 +990,9 @@ cor.test(unbloom[,3],unbloom[,4])
 
 #Figure 2 Year x Bloom date
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+
+
 ggplot(merge.name, aes(Year, startDayOfYear)) +
   geom_point(shape=1)+
   stat_smooth(method="lm")+
@@ -989,6 +1000,8 @@ ggplot(merge.name, aes(Year, startDayOfYear)) +
   xlab("Year")+
   ylab("Ordinal date")+
   scale_x_continuous(breaks = seq(1950,2011,10))  
+
+dev.off()
 
 summary(lm(startDayOfYear~Year, data=merge.name))
 
