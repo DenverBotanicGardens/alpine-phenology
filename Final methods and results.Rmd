@@ -1041,7 +1041,6 @@ dev.off()
 summary(lm(Avg_Hi~Year, data=unbloom))
 ```
 
-########START HERE#######
 Segmented test
 ```{r}
 segmented.Avg_Hi.year <- segmented(lm(Avg_Hi~Year, data=unbloom), 
@@ -1067,8 +1066,12 @@ ggplot(unbloom, aes(Year,Avg_Hi))+
   geom_line(data = seg.model, aes(Year,Avg_Hi), colour = "tomato")
 ```
 <https://rpubs.com/MarkusLoew/12164> 
+
 #Figure 2B
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 3b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+
 ggplot(unbloom, aes(Year,Avg_Lo))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
@@ -1076,7 +1079,12 @@ ggplot(unbloom, aes(Year,Avg_Lo))+
 #  labs(title="Average Low Temperature by Year")+
   xlab("Year")+
   ylab(~degree~C)+
-  scale_x_continuous(breaks = seq(1950,2011,10))
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
+
 
 summary(lm(Avg_Lo~Year, data = unbloom))
 
@@ -1109,6 +1117,8 @@ ggplot(unbloom, aes(Year,Avg_Lo))+
 
 #Figure 2C   
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 3c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(unbloom, aes(Year,Raw_Precip))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
@@ -1116,7 +1126,11 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
 #  labs(title="Average Precipitation by Year")+
   xlab("Year")+
   ylab("Precipitation (mm)")+
-  scale_x_continuous(breaks = seq(1950,2011,10))
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
 
 
 summary(lm(Raw_Precip~Year, data = unbloom))
@@ -1127,10 +1141,10 @@ Segmented test
 ```{r}
 segmented.Raw_Precip.year <- segmented(lm(Raw_Precip~Year, data=unbloom), 
                                   seg.Z = ~Year, 
-                                  psi= 1980)
+                                  psi= 1965)
 summary(segmented.Raw_Precip.year)
 slope(segmented.Raw_Precip.year)
-segmented.Raw_Precip.year$psi #1988.3
+segmented.Raw_Precip.year$psi
 #Fitted data
 seg.fit <- fitted(segmented.Raw_Precip.year)
 seg.model <- data.frame(Year = unbloom$Year, Raw_Precip = seg.fit)
@@ -1150,13 +1164,20 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
 
 #Figure 3A  
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression(~degree~C))+
-  ylab("Ordinal Date")
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+
+dev.off()
 
 summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 
@@ -1179,13 +1200,19 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 
 #Figure 3B
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(merge.name, aes(Avg_Lo, startDayOfYear))+
   geom_point(shape=1)+
   stat_smooth(method="lm")+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
   xlab(expression(~degree~C))+
-  ylab("Ordinal Date")
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
 
 summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
 ```
@@ -1204,13 +1231,19 @@ summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
 
 #Figure 3C
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
   geom_point()+
   stat_smooth(method="lm")+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Precipitation") +
   xlab("Precipitation (mm)")+
-  ylab("Ordinal Date")
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
 
 summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
 
@@ -1298,7 +1331,7 @@ HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
 ```
 
-# Now merge GDD with min1950_2 or merge.name as it's now called
+# Now merge GDD with merge.name
 ```{r}
 nrow(merge.name[merge.name$Year > 1980,]) # 7737 -> 7730 -> 7447 -> 7316
 
@@ -1345,13 +1378,20 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 #Figure 4A   
 Average GDD for the ealiest collection date did! change significantly over the study years, just the r^2 is next to nothing
 ```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
 ggplot(min1950GDD_2_10, aes(Year,HDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
 #  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
-  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))
+  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
+
 
 summary(lm(HDD~Year, data=min1950GDD_2_10))
 ```
