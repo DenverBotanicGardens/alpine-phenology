@@ -1430,19 +1430,25 @@ totalGDD <- lapply(HDD.yrs, function(x){
 })
 totalGDDyr <- data.frame(Year=1981:2011,MaxGDD = do.call(rbind,totalGDD))
 head(totalGDDyr)
+```
+
+#5b
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(totalGDDyr, aes(Year,MaxGDD))+
   geom_point()+
   stat_smooth(method = "lm")+
   theme_bw()+
-  labs(title= expression(paste("Maximum cumulative GDD (T"[base] == 0, degree*C,")")))
-#  xlab("Year")+
-#  ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))
+  ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
 
 summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 ```
-
 
 #Figure 4C
 ```{r}
@@ -1570,15 +1576,15 @@ Phenology summary tables
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
-nrow(yr.1950_2) #488
+nrow(yr.1950_2) #488 -> 487
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
-nrow(yr.1950_2) #488
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #433
+nrow(yr.1950_2) #488 -> 487
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #433 -> 432
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #55
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1127049
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1129363
 
 #earlier
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #54
@@ -1597,7 +1603,7 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
 
-nrow(high.1950_2) #488
+nrow(high.1950_2) #487
 
 write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
 
@@ -1605,7 +1611,7 @@ nrow(high.1950_2[high.1950_2$p.value<0.05,]) #79
 nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2)
 
 #earlier
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,]) 
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #76
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) 
 mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0])
 
@@ -1626,7 +1632,7 @@ nrow(low.1950_2) #488
 
 write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
 
-nrow(low.1950_2[low.1950_2$p.value<0.05,]) #79
+nrow(low.1950_2[low.1950_2$p.value<0.05,]) #79 -> 74
 nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2)
 
 #earlier
@@ -1675,6 +1681,7 @@ ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
 
 ```
 
+###START HERE####
 # NPN only precip, high, low
 ###NPN year     
 ```{r}
