@@ -1234,14 +1234,14 @@ summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
-  geom_point()+
+  geom_point(size=0.25)+
   stat_smooth(method="lm")+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Precipitation") +
   xlab("Precipitation (mm)")+
   ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1381,14 +1381,14 @@ Average GDD for the ealiest collection date did! change significantly over the s
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(min1950GDD_2_10, aes(Year,HDD))+
-  geom_point()+
+  geom_point(size=0.25)+
   stat_smooth(method = "lm")+
   theme_bw()+
 #  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
   ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1437,12 +1437,12 @@ head(totalGDDyr)
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(totalGDDyr, aes(Year,MaxGDD))+
-  geom_point()+
+  geom_point(size=0.25)+
   stat_smooth(method = "lm")+
   theme_bw()+
   ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1766,7 +1766,7 @@ mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 
 ```
 
-
+### START HERE ### need to do NPN GDD at time of colleciton by year
 Growing Degree Days - GDD at time of collection  ~ Year
 ```{r}
 #reset between time of collection and next, max per year
@@ -1812,21 +1812,6 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0])
 
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 ```
-
-#START HERE###
-,group=scientificName
-#Overall MaxGDD
-```{r}
-ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
-  geom_point()+
-  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
-  theme_bw()+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
-
-```
-
 
 # Informative part, like average precip, temp per year, does the earliest collection date change as the MaxGDD (up through ordinal day 273) changes per year?
 #GDD high per year
@@ -1877,6 +1862,26 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0])
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.csv", sep=",")
 ```
 
+,group=scientificName
+#Overall MaxGDD
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. maxGDD by year.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
+  geom_point()+
+  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
+  theme_bw()+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
+
+summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
+
+```
+
+
 ###NPN Growing Degree Days     
 ```{r}
 minNPNGDD_2 <- mergeMinGDD(npn.min1950,tmps)
@@ -1906,12 +1911,12 @@ nrow(rst.npn) #23
 rst[rst.npn$p.value<0.05,]
 nrow(rst.npn[rst.npn$p.value<0.05,])
 
-#earlier
+#lower GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,])
 mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) 
 mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) 
 
-#later
+#bigger GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) 
 mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
 mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
@@ -1939,30 +1944,6 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=Growth.Habit, colour=Growth.Habit))+
   geom_smooth(method="lm", level=0, lwd = .5)+
   theme_bw()+
   ylab(expression(GDD))
-```
-
-#MaxGDD
-```{r}
-ggplot(min1950GDDmax, aes(startDayOfYear, MaxGDD, group=scientificName))+
-  geom_point()+
-  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
-  theme_bw()+
-  ylab(expression(GDD))
-```
-
-```{r}
-ggplot(min1950GDDmax, aes(startDayOfYear, MaxGDD, group=Growth.Habit, colour=Growth.Habit))+
-  geom_point()+
-  geom_smooth(method="lm", level=0, lwd = .5)+
-  theme_bw()+
-  ylab(expression(GDD))
-```
-
-
-#Growth habit trends?
-```{r}
-
-
 ```
 
 #Snow   
