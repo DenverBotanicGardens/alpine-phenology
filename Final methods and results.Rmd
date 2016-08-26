@@ -1628,7 +1628,7 @@ nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2)
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name)
 
-nrow(low.1950_2) #488
+nrow(low.1950_2) #487
 
 write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
 
@@ -1650,7 +1650,7 @@ mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0])
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name)
 
-nrow(precip.1950_2) #488
+nrow(precip.1950_2) #487
 
 write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.csv", sep=",")
 
@@ -1681,7 +1681,6 @@ ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
 
 ```
 
-###START HERE####
 # NPN only precip, high, low
 ###NPN year     
 ```{r}
@@ -1690,7 +1689,7 @@ yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
 nrow(yr.npn_2) #28 
 
-write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
+write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")∟
 
 nrow(yr.npn_2) 
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,])
@@ -1711,7 +1710,7 @@ mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
 ```{r}
 high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
 
-nrow(high.npn_2) #29
+nrow(high.npn_2) #28
 
 write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
 
@@ -1731,7 +1730,7 @@ mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0])
 ```{r}
 low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
 
-nrow(low.npn_2) #27 -> 29
+nrow(low.npn_2) #27 -> 28
 
 write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2.csv", sep=",")
 
@@ -1753,7 +1752,7 @@ mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0])
 ```{r}
 precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
 
-nrow(precip.NPN_2) #27 -> 29
+nrow(precip.NPN_2) #27 -> 28
 
 write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
 
@@ -1768,7 +1767,7 @@ mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0])
 ```
 
 
-Growing Degree Days - GDD at time of collection  
+Growing Degree Days - GDD at time of collection  ~ Year
 ```{r}
 #reset between time of collection and next, max per year
 rm(results,rst)
@@ -1796,7 +1795,7 @@ rst <- do.call(rbind,results)
 head(rst)
 
 
-nrow(rst) #406 -> 377
+nrow(rst) #406 -> 373
 rst[rst$p.value<0.05,]
 nrow(rst[rst$p.value<0.05,]) #29
 
@@ -1814,6 +1813,7 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0])
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 ```
 
+#START HERE###
 ,group=scientificName
 #Overall MaxGDD
 ```{r}
