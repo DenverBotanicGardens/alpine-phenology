@@ -24,7 +24,8 @@ library(segmented)
 #Fresh start
 ```{r, eval=FALSE}
 rm(accpt, acpted, allcol, allcollections, alltable, blnew, bloom, bloom.o, bloom2, bloomfoo,
-   collJ.sp, collJ.max, collmax, colo, colo.bind, colo.sm, colpyear, colpyear.2, dat, demo1, earcol,
+   collJ.sp, collJ.max, collmax, colo, colo.bind, colo.sm, colpyear, colpyear.2, 
+   col.hdd.yrs, dat, demo1, earcol,
    earliestcollection, fams, fixbloom2, fixbloom2.all, foo, foo12, foo3, foo4, foo5, GD, GDD.1981, gdd.bl,
    gdd.sig, gdd.sig.min, gdddatayrs, GH, gtyr, hdd.bl, hdd.f, hdd.foo, HDD.npn, HDD.0, HDD.0.all, 
    HDD.npn.sig, hdd.snow, high.1950, high.npn_2, high.1950_2, linknames, lo.npn, lo.npn.Jul, low.1950,
@@ -257,10 +258,13 @@ bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), functio
 
 #August 29, 2016: try Taxonstand to standardize names and remove orthographic erros using "The Plant List"
 ```{r}
-install.packages("Taxonstand")
+#install.packages("Taxonstand")
 library(Taxonstand)
 
-TPL.bloom2 <-  TPL(bloom2$scientificName)
+TPL.bloom2 <-  TPL(bloom2$scientificName) # lots 'have more than one valid synonym'
+TPL(unique(bloom2$scientificName[grep("auct", bloom2$Authority)]))
+# In TPLck(sp = d, corr = corr, diffchar = diffchar, max.distance = max.distance,  :
+#  Gentiana amarella has more than one valid synonym
 ```
 
 
@@ -289,6 +293,11 @@ nrow(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TR
 unique(bloom2[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE),])
 unique(bloom2$scientificName[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE)])
 
+#Check the auct. non names with The Plant List
+TPL(unique(bloom2$scientificName[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE)]))
+
+synonyms[grep("Dasiphora fruticosa", synonyms$SYNONYMS),]
+
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),]) #827
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE, invert=TRUE),]) #90737
 nrow(synonyms)
@@ -300,24 +309,29 @@ nrow(synonyms)
    We do have two rows for Noccaea fendleri ssp. glauca (30635)- accepted name for Thlaspi alpestre. 
   
 # bloom2 
+SKIPPING 8/30/216
 ```{r}
 bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
 
+#SEINet sysnonym
 bloom2$scientificName[bloom2$scientificName %in% grep("Gentiana aquatica", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non L."] <- "Gentiana fremontii"
 
 bloom2$scientificName[bloom2$scientificName %in% grep("Saxifraga arguta", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non D. Don"] <- "Saxifraga odontoloma"
 
-bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2$scientificName, value=TRUE)&
-        bloom2$Authority == "auct. non L."] <- "Noccaea fendleri ssp. glauca"
+#bloom2$scientificName[bloom2$scientificName %in% grep("Thlaspi alpestre", bloom2$scientificName, value=TRUE)&
+#        bloom2$Authority == "auct. non L."] <- "Noccaea fendleri ssp. glauca"
 ```
 
 
 ## 4 ID links synonyms
 ### 4d. to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join), see which aren't in the original and assign those names the appropriate ID to link synonyms
 ```{r}
+synonyms[grep("Thlaspi alpestre", synonyms$SYNONYMS),] #ID = 30635
+synonyms[grep("Noccaea fendleri", synonyms$SYNONYMS),] #ID = 30635
+
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand to 'byhand2')
@@ -331,6 +345,12 @@ head(badnames.o)
 length(badnames.o) #285
 
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
+
+#double check The Plant List against SEINet and TPL used in correcting SpellingErrorCorrestions_v2
+TPL.badnames <- TPL(badnames.o)
+TPL.badnames[order(TPL.badnames$Genus),c(1:4,10,12:13)]
+TPL.badnames[TPL.badnames$Genus == "Gentiana"& TPL.badnames$Species == "fremontii" ,]
+
 ```
 
 
@@ -353,7 +373,7 @@ matches <- apply(fixbloom2.all,1,function(checknames){
   grep(checknames[1],bloomfoo$scientificName)
 })
 allmat <- do.call(c,matches)
-length(allmat) #2240 switches
+length(allmat) #2240 switches (now 2333)
 ```
 
 #4e
@@ -444,14 +464,14 @@ sort(table(foo$Var1[foo$Freq>0])) #0, no repeated IDs for a plant name (without 
 After combining datasets, find species with at least 10 years of data
 ```{r}
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1937
+length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938
 length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
-nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14841
-mean(sp.yr$Freq[sp.yr$Freq > 0]) 
+nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14845
+mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.83
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 tail(sp.yr)
 
@@ -483,10 +503,10 @@ spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 52
 spyears[which.min(spyears$DataYrs),] # 1
 nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.70672
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.72301
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-length(unique(sp.10plus$ID))
+length(unique(sp.10plus$ID)) #491
 ```
 
 
@@ -496,7 +516,7 @@ Not earliest but does tell me if one per species per year to tell how many speci
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
 length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #491
 length(unique(sp.10plus$ID)) # 498 -> 473 -> 491
-length(unique(tenyearplus$scientificName)) #725
+length(unique(tenyearplus$scientificName)) #726
 length(unique(tenyearplus$ID)) #473 -> 491
 ```
 
@@ -720,10 +740,10 @@ rm(singlefoo)
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #0
 
-length(unique(merge.name$ID)) #488, on 6/24/16 now I'm down to 481!
-mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.69467 years
+length(unique(merge.name$ID)) #487
+mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.73306 years
 
-nrow(merge.name) #11454
+nrow(merge.name) #11449
 write.table(merge.name, file="P:/hackathon/alpine-phenology/datasets/merge.name.csv", sep=",")
 ```
 
@@ -741,6 +761,8 @@ unique(merge.name$scientificName[merge.name$Growth.Habit == "" & !is.na(merge.na
 
 merge.name[merge.name$scientificName %in% grep("Gentianella amarelle ssp. heterosepala", merge.name$scientificName,value=TRUE),]
 
+
+###START HERE, do I want to change it back to Dasiphora, didn't I just change it from Dasiphora?!
 merge.name$scientificName[merge.name$scientificName == "Potentilla fruticosa"] <- "Dasiphora fruticosa"
 merge.name$Growth.Habit[merge.name$scientificName == "Dasiphora fruticosa"] <- "Shrub"
 merge.name$Family[merge.name$scientificName == "Dasiphora fruticosa"] <- "Rosaceae"
