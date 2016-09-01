@@ -540,7 +540,7 @@ nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
 rm(singlefoo)
 ```
 
-
+#Select the accepted name per code
 ```{r}
 # Before linking one name with the IDs that have 10 or more years of data, link the names with plantsyn traits. 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
@@ -549,6 +549,9 @@ plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510
 names(plantsyn)
 table(plantsyn$Growth.Habit)
 length(unique(plantsyn$Accepted.Symbol)) #5513
+plantsyn[plantsyn$Scientific.Name == "Noccaea fendleri ssp. glauca",]
+plantsyn[plantsyn$Scientific.Name == "Thlaspi alpestre",]
+
 
 length(unique(plantsyn$Symbol[plantsyn$Genera.Binomial.Author %in% grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE)])) #161
 unique(plantsyn$Genera.Binomial.Author[plantsyn$Genera.Binomial.Author %in% grep(" non ", plantsyn$Genera.Binomial.Author, value = TRUE)])
@@ -715,20 +718,23 @@ accpt <- rbind(accpt,c("Veratrum californicum","46683","","",
 rm(merge.name)
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #488 (487 - means no more double Hieracium triste?!)
+length(unique(merge.name$ID)) #488 (487 - means no more double Hieracium triste?!) 486
 
 #Check that there is only one species collection date per year
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
 singlefoo[singlefoo$Freq>1,]
 nrow(singlefoo[singlefoo$Freq> 1,]) #26
 
+merge.name[grep(paste(unique(singlefoo$Var2[singlefoo$Freq>1]),
+                      collapse="|"),merge.name$ID),]
+
 # for two species, repeated data for the synonym, get rid of the second set of data
 merge.name[merge.name$ID == 41494,] #just repeated for what was the synonym. 
 merge.name[merge.name$ID == 43988,] #just repeated for what was the synonym. 
 
-#Need to get rid of the second half, !duplicate or something since I now used the accepted names
+#Need to get rid of the second half
 removerows.41494 <- c(which(merge.name$ID== 41494))[12:22] #11 long
-removerows.43988 <- c(which(merge.name$ID == 43988))[16:30]
+removerows.43988 <- c(which(merge.name$ID == 43988))[16:30] #15
 
 merge.name <- merge.name[-c(removerows.41494,removerows.43988),]
 
@@ -736,10 +742,10 @@ rm(singlefoo)
 singlefoo <- data.frame(table(merge.name$Year,merge.name$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #0
 
-length(unique(merge.name$ID)) #487
-mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.73306 years
+length(unique(merge.name$ID)) #486
+mean(merge.name$DataYrs[!duplicated(merge.name$ID)]) # 23.70165 years
 
-nrow(merge.name) #11449
+nrow(merge.name) #11410
 write.table(merge.name, file="P:/hackathon/alpine-phenology/datasets/merge.name.csv", sep=",")
 ```
 
