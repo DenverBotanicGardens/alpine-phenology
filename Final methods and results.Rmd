@@ -208,15 +208,16 @@ i<-sapply(seinet.bind, is.integer)
 seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
 ```
 
-
 ####### BLOOM2 ##########
 ```{r}
 bloom2 <- rbind(seinet.bind,colo.bind) 
 barplot(table(bloom2$Year))
 barplot(table(bloom2$startDayOfYear))
 
+ggplot(bloom2, aes(as.factor(Year),startDayOfYear))+
+  geom_boxplot(aes(fill=Year))
+
 length(unique(bloom2$scientificName)) #2303 -> 2302
-unique(bloom2$Family.Name)[1:100]
 proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
 bloom2$Family.Name <- proper(bloom2$Family.Name)
 ```
@@ -247,12 +248,15 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 ```
 
 
-## 3. Remove any herbarium specimens with Genus only
-remove genus only, 241 records of only genus
 ```{r}
 nrow(bloom2) #44300
 nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]) #44059
 nrow(bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) == 1,]) #241
+```
+
+## 3. Remove any herbarium specimens with Genus only
+remove genus only, 241 records of only genus
+```{r}
 bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 ```
 
@@ -309,8 +313,10 @@ nrow(synonyms)
    We do have two rows for Noccaea fendleri ssp. glauca (30635)- accepted name for Thlaspi alpestre. 
   
 # bloom2 
-SKIPPING 8/30/216
+SKIPPING all but Dasiphora 9/1/216
 ```{r}
+TPL(c("Dasiphora fruticosa","Potentilla fruticosa","Noccaea fendleri ssp. glauca","Thlaspi alpestre","Gentiana aquatica","Gentiana fremontii","Saxifraga arguta","Saxifraga odontoloma"))
+
 bloom2$scientificName[bloom2$scientificName %in% grep("Dasiphora fruticosa", bloom2$scientificName, value=TRUE)&
         bloom2$Authority == "auct. non (L.) Rydb."] <- "Potentilla fruticosa"
 
@@ -345,12 +351,13 @@ head(badnames.o)
 length(badnames.o) #285
 
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
+```
 
+```{r}
 #double check The Plant List against SEINet and TPL used in correcting SpellingErrorCorrestions_v2
 TPL.badnames <- TPL(badnames.o)
 TPL.badnames[order(TPL.badnames$Genus),c(1:4,10,12:13)]
 TPL.badnames[TPL.badnames$Genus == "Gentiana"& TPL.badnames$Species == "fremontii" ,]
-
 ```
 
 
@@ -390,19 +397,6 @@ multisub <- function(pattern,replacement,x){
 bloomfoo$scientificName <- multisub(fixbloom2.all$Wrong,fixbloom2.all$Replacement,bloomfoo$scientificName)
 
 str(bloomfoo)
-```
-
-
-Did it work?
-Sure looks like it did!!
-```{r,eval=FALSE}
-bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum",]
-bloomfoo[bloomfoo$scientificName %in% "Aconitum columbianum Nutt.",]
-bloom2[bloom2$scientificName %in% "Aconitum columbianum Nutt.",]
-
-bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca",]
-bloomfoo[bloomfoo$scientificName %in% "Agoseris aurantiaca var.",]
-bloom2[bloom2$scientificName %in% "Agoseris aurantiaca var.",]
 ```
 
 How many species have two species ID numbers?
@@ -466,6 +460,8 @@ After combining datasets, find species with at least 10 years of data
 #how many species in dataset
 length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938
 length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583
+
+unique(bloom2$ID[bloom2$scientificName == "Noccaea fendleri ssp. glauca"])
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
@@ -690,9 +686,9 @@ accpt <- rbind(accpt,c("Hieracium triste","22205","","",
 accpt <- rbind(accpt,c("Senecio bigelovii var. bigelovii","41494","","",
                        "","Asteraceae","Perennial","Forb/herb","L48 (N)",
                        "","",""))
-accpt <- rbind(accpt,c("Noccaea fendleri ssp. glauca","30638","","",
-                       "","Brassicaceae","Perennial","Forb/herb","L48 (N)",
-                       "","",""))
+#accpt <- rbind(accpt,c("Noccaea fendleri ssp. glauca","30638","","",
+#                       "","Brassicaceae","Perennial","Forb/herb","L48 (N)",
+#                       "","",""))
 accpt <- rbind(accpt,c("Poa nervosa","35582","","",
                        "","Poaceae","Perennial","Graminoid","CAN (N), L48 (N)",
                        "","",""))
@@ -911,11 +907,11 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #189 -> 187.5574
+mean(earcol$Collections) #189 -> 187.6885
 
 ```
      Year Collections
-1998 1998         407
+1998 1998         408
 
 
 #Figure 1A
@@ -936,6 +932,7 @@ ggplot(earcol, aes(Year, Collections))+
 dev.off()
 ```
 
+##OR start here if the rest seems fine###
 
 Average number of collections over the study period was 187.6 species collected per year
 ```{r}
@@ -1028,14 +1025,14 @@ tiff("Q:/Research/Projects/alpine-phenology/Fig. ordinalxyear.tiff", width = 174
 
 
 ggplot(merge.name, aes(Year, startDayOfYear)) +
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1)+
-  stat_smooth(method="lm")+
   theme_bw()+
   xlab("Year")+
   ylab("Ordinal date")+
   scale_x_continuous(breaks = seq(1950,2011,10)) +
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9)) 
+  theme(axis.text=element_text(size=9),
+        axis.title=element_text(size=12)) 
 
 dev.off()
 
@@ -1059,16 +1056,16 @@ Using just the average temp per year, not repeated for everytime we have specime
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 3a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(unbloom, aes(Year,Avg_Hi))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm", size = 0.75)+
+  geom_point(shape=1, size=0.5)+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
 #  labs(title="Average High Temperature by Year")+
   xlab("Year")+
   ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
   scale_x_continuous(breaks = seq(1950,2011,10))+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=8))
 
 dev.off()
 
@@ -1089,8 +1086,8 @@ seg.model <- data.frame(Year = unbloom$Year, Avg_Hi = seg.fit)
 
 #plot fitted model
 ggplot(unbloom, aes(Year,Avg_Hi))+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1)+
-  stat_smooth(method="lm")+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
 #  labs(title="Average High Temperature by Year")+
@@ -1107,15 +1104,15 @@ tiff("Q:/Research/Projects/alpine-phenology/Fig. 3b.tiff", width = 84, height = 
 
 
 ggplot(unbloom, aes(Year,Avg_Lo))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm", size = 0.5)+
+  geom_point(shape=1, size = 0.5)+
   theme_bw()+
 #  labs(title="Average Low Temperature by Year")+
   xlab("Year")+
   ylab(~degree~C)+
   scale_x_continuous(breaks = seq(1950,2011,10))+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1138,8 +1135,8 @@ seg.model <- data.frame(Year = unbloom$Year, Avg_Lo = seg.fit)
 
 #plot fitted model
 ggplot(unbloom, aes(Year,Avg_Lo))+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1)+
-  stat_smooth(method="lm")+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
 #  labs(title="Average High Temperature by Year")+
@@ -1154,15 +1151,15 @@ ggplot(unbloom, aes(Year,Avg_Lo))+
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 3c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(unbloom, aes(Year,Raw_Precip))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  geom_point(shape=1, size = 0.5)+
   theme_bw()+
 #  labs(title="Average Precipitation by Year")+
   xlab("Year")+
   ylab("Precipitation (mm)")+
   scale_x_continuous(breaks = seq(1950,2011,10))+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1186,7 +1183,7 @@ seg.model <- data.frame(Year = unbloom$Year, Raw_Precip = seg.fit)
 #plot fitted model
 ggplot(unbloom, aes(Year,Raw_Precip))+
   geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
 #  labs(title="Average High Temperature by Year")+
@@ -1196,19 +1193,19 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
   geom_line(data = seg.model, aes(Year,Raw_Precip), colour = "tomato")
 ```
 
-#Figure 3A  
+#Figure 4A  
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  geom_point(shape=1,size=0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression(~degree~C))+
   ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=7))
 
 
 dev.off()
@@ -1221,7 +1218,7 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 ```{r}
 ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
   geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression(~degree~C))+
@@ -1232,19 +1229,19 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 ```
 
 
-#Figure 3B
+#Figure 4B
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Avg_Lo, startDayOfYear))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  geom_point(shape=1, size= 0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
   xlab(expression(~degree~C))+
   ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1254,7 +1251,7 @@ summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
 ```{r}
 ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Growth.Habit.sm))+
   geom_point(shape=1)+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
   xlab(expression(~degree~C))+
@@ -1263,13 +1260,13 @@ ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Growth.Habit.sm))+
 summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
 ```
 
-#Figure 3C
+#Figure 4C
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
-  geom_point(size=0.25)+
-  stat_smooth(method="lm")+
+  geom_point(shape=1,size=0.25)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Precipitation") +
   xlab("Precipitation (mm)")+
@@ -1286,7 +1283,7 @@ summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
 ```{r}
 ggplot(merge.name, aes(Raw_Precip, startDayOfYear, colour = Growth.Habit.sm))+
   geom_point()+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Precipitation") +
   xlab("Precipitation (mm)")+
@@ -1386,7 +1383,7 @@ nrow(yrspsp[yrspsp$x>=10,]) #372
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="scientificName",by.y="Group.1")
-length(unique(min1950GDD_2_10$scientificName)) #372
+length(unique(min1950GDD_2_10$scientificName)) #373
 
 ```
 
@@ -1409,20 +1406,20 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 
 ```
 
-#Figure 4A   
+#Figure 5A   
 Average GDD for the ealiest collection date did! change significantly over the study years, just the r^2 is next to nothing
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(min1950GDD_2_10, aes(Year,HDD))+
-  geom_point(size=0.25)+
-  stat_smooth(method = "lm")+
+  geom_point(size=0.25, shape=1)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
   xlab("Year")+
   ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
   theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=7))
+        axis.title=element_text(size=6))
 
 dev.off()
 
@@ -1456,8 +1453,6 @@ ggplot(unbloomGDD, aes(Year,avgHDD))+
 summary(lm(avgHDD~Year, data=unbloomGDD))
 ```
 
-
-#Figure 4B
 ```{r}
 totalGDD <- lapply(HDD.yrs, function(x){
   max(x)
@@ -1471,8 +1466,8 @@ head(totalGDDyr)
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(totalGDDyr, aes(Year,MaxGDD))+
-  geom_point(size=0.25)+
-  stat_smooth(method = "lm")+
+  geom_point(size=0.5,shape=1)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab(expression(paste("GDD at ordinal date 273 (T"[base] == 0, degree*C,")")))+
   theme(axis.text=element_text(size=5),
@@ -1507,7 +1502,7 @@ secant.poly.all <- data.frame(Year=1981:2011,
 
 ggplot(secant.poly.all, aes(Year,Secant))+
   geom_point()+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab("Average rate of change in GDD (day 1 to 273)")
 
@@ -1515,14 +1510,14 @@ summary(lm(Secant~Year, data=secant.poly.all))
 
 ```
 
-#Figure 4D 
+#Secant instead of max 
 ```{r}
 min1950GDDsecant2 <- merge(min1950GDD_2_10, secant.poly.all,by="Year")
 head(min1950GDDsecant2)
 
 ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear))+
   geom_point()+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
   xlab("Average rate of GDD accumulation")+
@@ -1535,7 +1530,7 @@ summary(lm(startDayOfYear~Secant, data=min1950GDDsecant2))
 ```{r}
 ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear, colour=Growth.Habit.sm))+
   geom_point()+
-  stat_smooth(method="lm")+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
   xlab("Average rate of GDD accumulation")+
@@ -1571,9 +1566,9 @@ npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
 #although lots of these might not have 10 years    
 #Match names - synonyms and all
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big) #27 -> 76
+length(npn.big) #27 -> 77
 npn.big.m <- merge(npn.all,bloom2,by.x="SciName",by.y="scientificName")
-length(unique(npn.big.m$ID)) #76
+length(unique(npn.big.m$ID)) #77
 
 # How many IDs that match have collections within 1950 to 2011
 npn.foo <- merge.name[merge.name$ID %in% npn.IDs,]
@@ -1611,6 +1606,7 @@ Phenology summary tables
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
 nrow(yr.1950_2) #488 -> 487
+sort(table(yr.1950_2$Species)) #Still two Noccaea fendleri ssp. glauca!!!
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
