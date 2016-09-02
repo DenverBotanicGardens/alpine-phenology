@@ -19,6 +19,7 @@ library(polynom)
 library(MASS)
 # install.packages("segmented")
 library(segmented)
+library(Taxonstand)
 ```
 
 #Fresh start
@@ -325,6 +326,19 @@ nrow(synonyms)
 synonyms[grep("Thlaspi alpestre", synonyms$SYNONYMS),] #ID = 30635
 synonyms[grep("Noccaea fendleri", synonyms$SYNONYMS),] #ID = 30635
 
+synonyms[grep("Dasiphora fruticosa", synonyms$SYNONYMS),] 
+```
+#         ID                            SYNONYMS
+25940 14110                 Dasiphora fruticosa
+25942 14111 Dasiphora fruticosa ssp. floribunda
+25944 14111                 Dasiphora fruticosa
+                                                                AUTH
+25940                                 Dasiphora fruticosa (L.) Rydb.
+25942 Dasiphora fruticosa (L.) Rydb. ssp. floribunda (Pursh) Kartesz
+25944                       Dasiphora fruticosa auct. non (L.) Rydb.
+synonyms[grep("Noccaea fendleri", synonyms$SYNONYMS),] #ID = 30635
+
+```{r}
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand to 'byhand2')
