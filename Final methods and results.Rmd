@@ -278,6 +278,8 @@ TPL.bloom2 <-  TPL(bloom2$scientificName) # lots 'have more than one valid synon
 TPL(unique(bloom2$scientificName[grep("auct", bloom2$Authority)]))
 # In TPLck(sp = d, corr = corr, diffchar = diffchar, max.distance = max.distance,  :
 #  Gentiana amarella has more than one valid synonym
+
+TPL(c("Dasiphora fruticosa","Potentilla fruticosa"))
 ```
 
 
@@ -318,6 +320,7 @@ nrow(synonyms)
 
 
 ## 4a. change the four species, "Dasiphora fruticosa" "Gentiana aquatica"   "Thlaspi alpestre"    "Saxifraga arguta", that when used with auct. non will cause synonomy problems
+If Dasipohra fruticosa auct. non (L.) Rydb. is out, then left with ID 14110. 
 
 
 ## 4 ID links synonyms
@@ -327,18 +330,13 @@ synonyms[grep("Thlaspi alpestre", synonyms$SYNONYMS),] #ID = 30635
 synonyms[grep("Noccaea fendleri", synonyms$SYNONYMS),] #ID = 30635
 
 synonyms[grep("Dasiphora fruticosa", synonyms$SYNONYMS),] 
-```
-#         ID                            SYNONYMS
-25940 14110                 Dasiphora fruticosa
-25942 14111 Dasiphora fruticosa ssp. floribunda
-25944 14111                 Dasiphora fruticosa
-                                                                AUTH
-25940                                 Dasiphora fruticosa (L.) Rydb.
-25942 Dasiphora fruticosa (L.) Rydb. ssp. floribunda (Pursh) Kartesz
-25944                       Dasiphora fruticosa auct. non (L.) Rydb.
-synonyms[grep("Noccaea fendleri", synonyms$SYNONYMS),] #ID = 30635
+# DaFr = 14110
+# DaFr ssp. floribunda = 14111
+# DaFr auct. non = 14111
+synonyms[grep("Potentilla fruticosa", synonyms$SYNONYMS),] 
+# PoFr = 14110
+# PoFr ssp. floribunda = 14111 (and ssp. farreri, var tenuifolia)
 
-```{r}
 bloom.o <- merge(bloom2, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 
 length(unique(synonyms$SYNONYMS)) #91,084 names (91094 after adding 12 by hand to 'byhand2')
@@ -675,7 +673,7 @@ accpt <- rbind(accpt,c("Carex atrata","8105","","",
                        "","",""))
 accpt <- rbind(accpt,c("Carex micropoda","8591","","",
                        "","Cyperaceae","Perennial","Graminoid","AK (N), CAN (N), L48 (N)",
-                       "","",""))q
+                       "","",""))
 # The Plant List says Hieracium triste var. triste is a synonym of Hieracium triste
 #accpt <- rbind(accpt,c("Hieracium triste var. triste","22207","","",
 #                       "", "Asteraceae","Perennial","Forb/herb","AK (N), CAN (N)",
@@ -752,16 +750,6 @@ unique(merge.name$scientificName[merge.name$Growth.Habit == "" & !is.na(merge.na
 
 merge.name[merge.name$scientificName %in% grep("Gentianella amarelle ssp. heterosepala", merge.name$scientificName,value=TRUE),]
 
-merge.name$scientificName[merge.name$scientificName == "Potentilla fruticosa"] <- "Dasiphora fruticosa"
-merge.name$Growth.Habit[merge.name$scientificName == "Dasiphora fruticosa"] <- "Shrub"
-merge.name$Family[merge.name$scientificName == "Dasiphora fruticosa"] <- "Rosaceae"
-merge.name$Duration[merge.name$scientificName == "Dasiphora fruticosa"] <- "Perennial"
-
-merge.name$scientificName[merge.name$scientificName == "Dasiphora floribunda"] <- "Dasiphora fruticosa"
-merge.name$Growth.Habit[merge.name$scientificName == "Dasiphora fruticosa"] <- "Shrub"
-merge.name$Family[merge.name$scientificName == "Dasiphora fruticosa"] <- "Rosaceae"
-merge.name$Duration[merge.name$scientificName == "Dasiphora fruticosa"] <- "Perennial"
-
 merge.name$scientificName[merge.name$scientificName == "Gentiana heterosepala"] <- "Gentianella amarelle ssp. heterosepala"
 merge.name$Growth.Habit[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Forb/herb"
 merge.name$Family[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Gentianaceae"
@@ -778,12 +766,6 @@ merge.name$Family[merge.name$scientificName == "Lupinus argenteus var. rubricaul
 merge.name$Duration[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Perennial"
 
 
-# USDA is where I got A. campestris var. borealis
-# Poop, ThePlantList says synonym of Artemisia campestris ssp. borealis
-# Snow checklist says synonym of Artemisia campestris var. purshii
-# merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. borealis"
-# now going to swap to Artemisia borealis
-# merge.name$scientificName[merge.name$scientificName == "Artemisia campestris var. borealis"] <- "Artemisia campestris var. purshii"
 merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. purshii"
 merge.name$Growth.Habit[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Forb/herb"
 merge.name$Family[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Asteraceae"
@@ -1027,8 +1009,8 @@ tiff("Q:/Research/Projects/alpine-phenology/Fig. ordinalxyear.tiff", width = 174
 
 
 ggplot(merge.name, aes(Year, startDayOfYear)) +
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1)+
+  stat_smooth(method="lm",colour = "black", size = 0.75)+
   theme_bw()+
   xlab("Year")+
   ylab("Ordinal date")+
@@ -1200,8 +1182,8 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1,size=0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression(~degree~C))+
@@ -1366,20 +1348,20 @@ tmps$HDD <- HDD.all
 
 # Now merge GDD with merge.name
 ```{r}
-nrow(merge.name[merge.name$Year > 1980,]) # 7737 -> 7730 -> 7447 -> 7316
+nrow(merge.name[merge.name$Year > 1980,]) #7295
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
 min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
-length(unique(min1950GDD_2$day)) #1152 -> 1147
-length(unique(min1950GDD_2$scientificName)) #487
+length(unique(min1950GDD_2$day)) #1152 -> 1145
+length(unique(min1950GDD_2$scientificName)) #486
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$scientificName))
 yrspsp <- aggregate(gdddatayrs[,3], by = list(gdddatayrs$Var2), FUN=sum)
-nrow(yrspsp[yrspsp$x>=10,]) #372
+nrow(yrspsp[yrspsp$x>=10,]) #373
 
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
@@ -1607,13 +1589,13 @@ Phenology summary tables
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
-nrow(yr.1950_2) #488 -> 487
-sort(table(yr.1950_2$Species)) #Still two Dasiphora fruticosa!!!
+nrow(yr.1950_2) #486
+sort(table(yr.1950_2$Species)) #No repeats!
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
 nrow(yr.1950_2) #488 -> 487
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #433 -> 432
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #433 -> 431
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #55
 
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1129363
@@ -1630,12 +1612,61 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])
 
 ```
 
+```{r}
+TPL.merge.names <- TPL(yr.1950_2$Species)
+tpl.syn <- TPL.merge.names[TPL.merge.names$Taxonomic.status == "Synonym",]
+tpl.syn$Abbrev[is.na(tpl.syn$Abbrev)] <- ""
+
+trim.trailing <- function (x) sub("\\s+$", "", x)
+
+foo.list.2 <- lapply(1:nrow(tpl.syn), function(row){
+  sps <- yr.1950_2[yr.1950_2$Species %in% grep(paste(c(tpl.syn$Genus[row], tpl.syn$New.Genus[row]), collapse="|"),
+                       yr.1950_2$Species, value = TRUE) & 
+              yr.1950_2$Species %in% grep(paste(c(tpl.syn$Species[row], 
+                                                  tpl.syn$New.Species[row]), collapse="|"),
+                       yr.1950_2$Species, value = TRUE),]
+  New.sp <- trim.trailing(do.call(paste, list(tpl.syn$New.Genus[row],tpl.syn$New.Species[row]))) 
+  #, tpl.syn$Abbrev[row], tpl.syn$New.Infraspecific[row]
+#  New.sp <- paste("^",New.sp,"$", collapse = '', sep = '')
+  y.n <- if(grepl(New.sp, sps$Species)) {
+    print("Yes")
+  }
+  else (print("No"))
+  y.n
+})
+
+write.table(do.call(rbind, foo.list.2), "clipboard", sep="\t", row.names=FALSE)
+
+foo.list.1 <- lapply(1:nrow(tpl.syn), function(row){
+  sps <- yr.1950_2[yr.1950_2$Species %in% grep(paste(c(tpl.syn$Genus[row], tpl.syn$New.Genus[row]), collapse="|"),
+                       yr.1950_2$Species, value = TRUE) & 
+              yr.1950_2$Species %in% grep(paste(c(tpl.syn$Species[row], 
+                                                  tpl.syn$New.Species[row]), collapse="|"),
+                       yr.1950_2$Species, value = TRUE),]
+})
+foo.list.1[[15]] #both Draba breweri var. cana and Draba breweri
+#### START HERE!! with the list of 'Yes' for species that is synonym where accepted is already in there
+foo.list.1[[91]]
+
+
+unique(TPL.merge.names$Taxonomic.status)
+TPL.merge.names[TPL.merge.names$Taxonomic.status == "Unresolved",]
+
+
+write.table(TPL.merge.names[TPL.merge.names$Taxonomic.status == "Synonym",], 
+            file = "Q:/Research/Projects/alpine-phenology/synonyms.csv", sep=",")
+
+
+write.table(TPL.merge.names[TPL.merge.names$Taxonomic.status == "Unresolved",], 
+            file = "Q:/Research/Projects/alpine-phenology/Unresolved.csv", sep=",")
+```
 
 ###High Temperature     
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
 
 nrow(high.1950_2) #487
+sort(table(high.1950_2$Species)) #No repeats!
 
 write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
 
@@ -1660,7 +1691,8 @@ nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2)
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name)
 
-nrow(low.1950_2) #487
+nrow(low.1950_2) #486
+sort(table(low.1950_2$Species)) #No repeats!
 
 write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
 
@@ -1700,13 +1732,6 @@ mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0])
 mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0])
 ```
 
-Check for any duplicate plant names
-```{r}
-sort(table(precip.1950_2$Species))  
-  
-```
-
-Figure 4C ???    
 Growing Degree Days at time of earliest collection
 ```{r}
 ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
@@ -1906,8 +1931,8 @@ write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.csv", sep=",
 tiff("Q:/Research/Projects/alpine-phenology/Fig. maxGDD by year.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
-  geom_point()+
-  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
+  geom_point(shape=1, size=0.5)+
+  geom_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab("Ordinal Date")+
   theme(axis.text=element_text(size=7),
