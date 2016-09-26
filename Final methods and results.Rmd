@@ -24,17 +24,13 @@ library(Taxonstand)
 
 #Fresh start
 ```{r, eval=FALSE}
-rm(accpt, acpted, allcol, allcollections, alltable, blnew, 
-   bloom, bloom.o, bloom2, bloomfoo,
+rm(accpt, allcol, allcollections, bloom, bloom.o, bloom2, bloomfoo,
    collJ.sp, collJ.max, collmax, colo, colo.bind, colo.sm, colpyear, colpyear.2, 
-   col.hdd.yrs, dat, demo1, earcol,
-   earliestcollection, fams, fixbloom2, fixbloom2.all, foo, foo12, foo3, foo4, 
-   foo5, GD, GDD.1981, gdd.bl,
-   gdd.sig, gdd.sig.min, gdddatayrs, GH, gtyr, hdd.bl, hdd.f, hdd.foo, HDD.npn, 
-   HDD.0, HDD.0.all, 
-   HDD.npn.sig, hdd.snow, high.1950, high.npn_2, high.1950_2, linknames, lo.npn, 
-   lo.npn.Jul, low.1950,
-   low.1950_2, m15, m9, max.swe, Maxpyr, merge.name, min.dates, min.dates.snow, 
+   earcol,
+   earliestcollection, fixbloom2, fixbloom2.all, foo, GD, 
+   gdddatayrs, GH, hdd.f, HDD.0, 
+   high.1950, high.npn_2, high.1950_2, linknames, lo.npn, low.1950,
+   low.1950_2, max.swe, Maxpyr, merge.name, min.dates, min.dates.snow, 
    min1950_2,
    min1950GDD_2, min1950GDDmax, minNPNGDD_2, mite, mite.log, mite.log.st, ml.JYC, 
    mpy.df, NAT, npn, 
@@ -295,6 +291,9 @@ length(grep("subsp.",bloom2$scientificName)) #1502 (0)
 length(grep("ssp.",synonyms$SYNONYMS)) #6400 -> 6426
 length(grep("subsp.",synonyms$SYNONYMS)) #27 -> 0
 
+
+synonyms2 <- read.csv("Q:/Research/Projects/alpine-phenology/synonyms2_MI.csv")
+
 #use of ssp and subsp
 synonyms$SYNONYMS <- gsub(pattern = "subsp.", replacement = "ssp.", synonyms$SYNONYMS)
 bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
@@ -311,7 +310,8 @@ unique(bloom2$scientificName[bloom2$Authority %in% grep("auct. non", bloom2$Auth
 #Check the auct. non names with The Plant List
 TPL(unique(bloom2$scientificName[bloom2$Authority %in% grep("auct. non", bloom2$Authority, value = TRUE)]))
 
-synonyms[grep("Dasiphora fruticosa", synonyms$SYNONYMS),]
+synonyms[grep("Oreoxis alpina", synonyms$SYNONYMS),]
+synonyms2[grep("Cymopterus alpinus", synonyms2$SYNONYMS),]
 
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),]) #827
 nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE, invert=TRUE),]) #90737
@@ -379,6 +379,7 @@ matches <- apply(fixbloom2.all,1,function(checknames){
   grep(checknames[1],bloomfoo$scientificName)
 })
 allmat <- do.call(c,matches)
+
 length(allmat) #2240 switches (now 2333)
 ```
 
@@ -393,7 +394,12 @@ multisub <- function(pattern,replacement,x){
   result
 }
 
+#Fix with fixbloom2.all
 bloomfoo$scientificName <- multisub(fixbloom2.all$Wrong,fixbloom2.all$Replacement,bloomfoo$scientificName)
+
+#Fix with Melissa's list, synonyms2_MI
+bloomfoo$scientificName <- multisub(synonyms2$Species,
+                                    synonyms2$SYNONYMS,bloomfoo$scientificName)
 
 str(bloomfoo)
 ```
@@ -420,7 +426,7 @@ Oxytropis deflexa
 Paronychia pulvinata   
 Rorippa teres  
 Salix anglorum  
-Salix arctica 
+x Salix arctica 
 
 ### 4f. Remove auct. non records from the synonyms list. 
 ######## remove these from the database
@@ -457,8 +463,8 @@ sort(table(foo$Var1[foo$Freq>0])) #0, no repeated IDs for a plant name (without 
 After combining datasets, find species with at least 10 years of data
 ```{r}
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938
-length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583
+length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938 -> 1809
+length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583 -> 1508
 
 unique(bloom2$ID[bloom2$scientificName == "Noccaea fendleri ssp. glauca"])
 
@@ -466,7 +472,7 @@ unique(bloom2$ID[bloom2$scientificName == "Noccaea fendleri ssp. glauca"])
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
 nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14845
-mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.83
+mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.89
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 tail(sp.yr)
 
@@ -495,13 +501,13 @@ spyears <- do.call(rbind,lapply(bysp, function(x){
 }))
 
 spyears[with(spyears, order(spyears$DataYrs)),]
-spyears[which.max(spyears$DataYrs),] # 52
+spyears[which.max(spyears$DataYrs),] # 54
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491
+nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491 -> 413
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.72301
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #491
+length(unique(sp.10plus$ID)) #491 -> 413
 ```
 
 
@@ -509,7 +515,7 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #491
+length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #491 -> 143
 length(unique(sp.10plus$ID)) # 498 -> 473 -> 491
 length(unique(tenyearplus$scientificName)) #726
 length(unique(tenyearplus$ID)) #473 -> 491
@@ -1646,6 +1652,7 @@ foo.list.1 <- lapply(1:nrow(tpl.syn), function(row){
 })
 foo.list.1[[15]] #both Draba breweri var. cana and Draba breweri
 #### START HERE!! with the list of 'Yes' for species that is synonym where accepted is already in there
+#can look through the Yes list and combine earlier - reduce by 18, should check the unresolved names too
 foo.list.1[[91]]
 
 
