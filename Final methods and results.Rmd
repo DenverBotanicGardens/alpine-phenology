@@ -397,6 +397,8 @@ length(allmat) #2600
 rm(allmat,matches)
 ```
 
+## From below - tenyearplus to min1950_2. The following species names aren't in plantsyn (from USDA plants)
+
 #4e
 To change all the wrong column names to the 'replacement' column names, use the multisub function
 ```{r,eval=TRUE}
@@ -422,11 +424,12 @@ str(bloomfoo)
 
 How many species have two species ID numbers?
 
+## redo and start here! make sure the names changes from bloomfoo are merged back to bloom2 for later#
 ### 4f. Remove auct. non records from the synonyms list. 
-```{r,eval=FALSE}
+```{r}
 # remove all auct. non
-synonyms <- synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value = TRUE, invert = TRUE),]
-synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
+#synonyms <- synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value = TRUE, invert = TRUE),]
+#synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
 
 bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
@@ -439,13 +442,15 @@ From methods: "Looking for ‘auct. non’ authorities in the herbarium collecti
 After combining datasets, find species with at least 10 years of data
 ```{r}
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938 -> 1820
-length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583 -> 1517
+length(unique(bloom2$scientificName)) #1820
+length(unique(bloom2$ID)) #1517
 
 # how many years collected per species
+# Year   ID   #collections
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
 nrow(sp.yr[sp.yr$Freq>0,]) #13588
+nrow(sp.yr[sp.yr$Freq>1,]) #6754
 mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.87
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
 
@@ -468,9 +473,11 @@ sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
 sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
 bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
 
-spyears <- do.call(rbind,lapply(bysp, function(x){
-  data.frame(DataYrs = sum(x$Freq),ID = unique(x$Var2))
-}))
+spyears <- do.call(rbind,
+                   lapply(bysp, function(x){
+                     data.frame(DataYrs = sum(x$Freq),ID = unique(x$Var2))
+                     })
+                   )
 
 spyears[which.max(spyears$DataYrs),] # 54
 spyears[which.min(spyears$DataYrs),] # 1
@@ -485,7 +492,7 @@ length(unique(sp.10plus$ID)) #415
 Pull only the species that have 10 or more years of data for analyses   
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
-tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
+tenyearplus <- merge(bloom2,sp.10plus,by = "ID") 
 length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #415
 length(unique(sp.10plus$ID)) # 498 -> 473 -> 415
 length(unique(tenyearplus$scientificName)) #597
@@ -499,8 +506,9 @@ Pull out earliest collection rows
 minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
   this.species <- tenyearplus[tenyearplus$ID == x,]
   these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  merge(unique(this.species[,c("ID","Year","startDayOfYear","DataYrs")]), these.rows,
-        by=c("startDayOfYear","Year"))
+  merge(unique(this.species[,c("ID","Year","startDayOfYear","DataYrs",
+                               "scientificName","Family.Name","Authority")]), #does adding these make multiple rows?
+        these.rows,by=c("startDayOfYear","Year"))
   })
 
 min1950_2 <- do.call(rbind,minJul.dates.2)
@@ -515,8 +523,28 @@ summary(lm(startDayOfYear~Year, data=min1950_2))
 # check that none have more than one a year
 singlefoo <- data.frame(table(min1950_2$Year,min1950_2$ID))
 nrow(singlefoo[singlefoo$Freq> 1,]) #154? -> 0 Yay!
-rm(singlefoo)
+
+ids <- unique(min1950_2$ID)
+checkdoubles <- lapply(ids,function(id){
+  oneofem <- min1950_2[min1950_2$ID==id,]
+  oneofem[order(oneofem$Year),]
+  })
+
+checkdoubles[[2]]
+
+# Get rid of doubles that are caused by different names
+min1950_2 <- do.call(rbind,
+                     lapply(ids,function(id){
+                       oneofem <- min1950_2[min1950_2$ID==id,]
+                       oneofem <- oneofem[order(oneofem$Year),]
+                       oneofem[!duplicated(oneofem$Year),]
+                       })
+                     )
+
+rm(singlefoo,ids, checkdoubles)
 ```
+
+
 
 #Select the accepted name per code
 ```{r}
@@ -536,7 +564,13 @@ unique(plantsyn$Genera.Binomial.Author[plantsyn$Genera.Binomial.Author %in% grep
 plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
                        grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE, invert = TRUE),]
 str(plantsyn)
+```
 
+
+#Use the accepted name changes from Melissa via Jennifer Ackerfield to change names in plantsyn
+```{r}
+plantsyn$Scientific.Name <- multisub(synonyms2$Species,
+                                     synonyms2$SYNONYMS,plantsyn$Scientific.Name)
 ```
 
 ```{r}
@@ -545,29 +579,41 @@ plantsyn[factnames] <- lapply(plantsyn[factnames], as.character)
 
 plantsyn$Scientific.Name <- gsub(pattern = "subsp.", replacement = "ssp.", plantsyn$Scientific.Name)
 
-#JUST make a list that links the ID to the accepted name to link that in the tables produced!!
-#Need to link the ID with the names used 
-linknames <- merge(bloom2[,c(1,9)],plantsyn[,c(1:4,25:31)],by.x="scientificName",by.y="Scientific.Name")
-#should be the accepted name for each ID
-accpt <- unique(linknames[linknames$Synonym.Symbol=="",])
-
-length(unique(bloom2$ID)) #1583
-length(unique(accpt$ID)) #1273
-
-############# or  
-rm(linknames)
-linknames <- merge(unique(bloom2[,c("scientificName","Family.Name","ID")]),
-                   plantsyn[plantsyn$Synonym.Symbol=="",c(1:4,25:31)],
+# Or don't get rid of the not accepted names yet?
+linknames <- merge(unique(min1950_2[,c("scientificName","ID")]),
+                   plantsyn[,c(1:4,25:31)],
                    by.x = "scientificName", by.y = "Scientific.Name")
-linknames <- linknames[!duplicated(plantsyn$Family),]
 
-merge.name <- merge(accpt,min1950_2, by="ID")
-length(unique(min1950_2$ID)) #491
-length(unique(merge.name$ID)) #469! (488) missing some names from merge.name
+merge.name <- merge(linknames,min1950_2, by="ID")
+length(unique(min1950_2$ID)) #415
+length(unique(merge.name$ID)) #406 - only 406 of the 415 names are in plantsyn. Need to add info for those
 missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
 missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
 
+foo <- data.frame(table(linknames$ID,linknames$scientificName))
+namesfoo <- foo[foo$Freq>1,"Var2"]
+linknames[linknames$scientificName %in% grep(paste(namesfoo, collapse="|"), linknames$scientificName,
+                                             value=TRUE),c(1:6)]
+
+foo <- data.frame(table(merge.name$scientificName,merge.name$ID))
+```
+
+#After synonymy from Melissa Islam via Jennifer Ackerfield
+[1] "Aster foliaceus"                   "Carex maritima" (only 9 years data!)"Castilleja rhexifolia"            
+[4] "Chlorocrepis tristis"              "Eritrichium aretioides"            "Eritrichium nanum var. aretioides"
+[7] "Eutrema edwardsii"                 "Ligularia bigelovii"               "Noccaea montana"                  
+[10] "Veratrum californicum"   
+```{r}
+# make a from:to table
+accpt <- data.frame()
+accpt <- rbind(accpt, c("Aster foliaceus","Symphyotrichum foliaceum"))
+names(accpt) <- c("Syn","Accpt")
+accpt <- rbind(accpt, c("Carex maritima","Symphyotrichum foliaceum"))
+
+```
+
+```{r}
 #At least one doesn't have the Accepted.Symbol line! 
 syns <- linknames[!duplicated(linknames$ID) & linknames$ID %in% missingnums,]
 
@@ -645,7 +691,8 @@ bloom2[bloom2$ID==35582,]
  [1] "scientificName"          "ID"                      "Accepted.Symbol"         "Synonym.Symbol"         
  [5] "Symbol"                  "Family"                  "Duration"                "Growth.Habit"           
  [9] "Native.Status"           "Bloom.Period"            "Fruit.Seed.Period.Begin" "Fruit.Seed.Period.End" 
-```{r}
+```{r, eval = FALSE}
+## Nothing below here:
 ## Fill in data for missing names- add these to accpt
 accpt <- rbind(accpt,c("Symphyotrichum foliaceum var. foliaceum","43988","","",
                        "","Asteraceae","Perennial","Forb/herb",
