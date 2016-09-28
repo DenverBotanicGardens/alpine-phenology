@@ -431,7 +431,6 @@ synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRU
 bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
 sort(table(foo$Var1[foo$Freq>0])) 
-
 ```
 
 # Created bloom2 again after removing the problem names   
@@ -440,18 +439,15 @@ From methods: "Looking for ‘auct. non’ authorities in the herbarium collecti
 After combining datasets, find species with at least 10 years of data
 ```{r}
 #how many species in dataset
-length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938 -> 1809
-length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583 -> 1508
-
-unique(bloom2$ID[bloom2$scientificName == "Noccaea fendleri ssp. glauca"])
+length(unique(bloom2$scientificName)) #2299 -> 1835 -> 1938 -> 1820
+length(unique(bloom2$ID)) # 1563 grouped by synonyms -> 1583 -> 1517
 
 # how many years collected per species
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
-nrow(sp.yr[sp.yr$Freq>0,]) #14369 -> 14845
-mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.89
+nrow(sp.yr[sp.yr$Freq>0,]) #13588
+mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.87
 max(sp.yr$Freq[sp.yr$Freq>0]) #80
-tail(sp.yr)
 
 # How many vouchers per species per year
 colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
@@ -471,20 +467,18 @@ sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
 
 sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
 bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
-names(bysp[1]) #will need to change to names from ID number USDA later....
 
 spyears <- do.call(rbind,lapply(bysp, function(x){
   data.frame(DataYrs = sum(x$Freq),ID = unique(x$Var2))
 }))
 
-spyears[with(spyears, order(spyears$DataYrs)),]
 spyears[which.max(spyears$DataYrs),] # 54
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #473 -> 491 -> 413
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.72301
+nrow(spyears[spyears$DataYrs>=10,]) #415
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.96145
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #491 -> 413
+length(unique(sp.10plus$ID)) #415
 ```
 
 
@@ -492,10 +486,10 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID")
-length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #491 -> 143
-length(unique(sp.10plus$ID)) # 498 -> 473 -> 491
-length(unique(tenyearplus$scientificName)) #726
-length(unique(tenyearplus$ID)) #473 -> 491 -> 413
+length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #415
+length(unique(sp.10plus$ID)) # 498 -> 473 -> 415
+length(unique(tenyearplus$scientificName)) #597
+length(unique(tenyearplus$ID)) #415
 
 summary(lm(startDayOfYear~Year, data=tenyearplus))
 ```
@@ -512,9 +506,10 @@ minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
 min1950_2 <- do.call(rbind,minJul.dates.2)
 head(min1950_2)
 
-length(unique(min1950_2$ID)) #473 -> 491 -> 413
-```
+length(unique(min1950_2$ID)) #415
 
+summary(lm(startDayOfYear~Year, data=min1950_2))
+```
 
 ```{r}
 # check that none have more than one a year
@@ -529,12 +524,8 @@ rm(singlefoo)
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
                         header=TRUE, sep = ",")
 
-names(plantsyn)
-table(plantsyn$Growth.Habit)
-length(unique(plantsyn$Accepted.Symbol)) #5513
-plantsyn[plantsyn$Scientific.Name == "Noccaea fendleri ssp. glauca",]
-plantsyn[plantsyn$Scientific.Name == "Thlaspi alpestre",]
 
+length(unique(plantsyn$Accepted.Symbol)) #5513
 
 length(unique(plantsyn$Symbol[plantsyn$Genera.Binomial.Author %in% grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE)])) #161
 unique(plantsyn$Genera.Binomial.Author[plantsyn$Genera.Binomial.Author %in% grep(" non ", plantsyn$Genera.Binomial.Author, value = TRUE)])
@@ -554,7 +545,7 @@ plantsyn[factnames] <- lapply(plantsyn[factnames], as.character)
 
 plantsyn$Scientific.Name <- gsub(pattern = "subsp.", replacement = "ssp.", plantsyn$Scientific.Name)
 
-# Should do this before getting to species with 10 years or more to have the accepted name! or could do this just to get the accepted name after... 
+#JUST make a list that links the ID to the accepted name to link that in the tables produced!!
 #Need to link the ID with the names used 
 linknames <- merge(bloom2[,c(1,9)],plantsyn[,c(1:4,25:31)],by.x="scientificName",by.y="Scientific.Name")
 #should be the accepted name for each ID
@@ -562,6 +553,18 @@ accpt <- unique(linknames[linknames$Synonym.Symbol=="",])
 
 length(unique(bloom2$ID)) #1583
 length(unique(accpt$ID)) #1273
+
+############# or
+rm(linknames)
+linknames <- merge(unique(bloom2[,c("scientificName","Family.Name","ID")]),
+                   plantsyn[plantsyn$Synonym.Symbol=="",c(1:4,25:31)],
+                   by.x = "scientificName", by.y = "Scientific.Name")
+
+foo <- data.frame(table(linknames$ID,linknames$scientificName))
+namesfoo <- foo[foo$Freq>1,"Var2"]
+linknames[linknames$scientificName %in% grep(paste(namesfoo, collapse="|"), linknames$scientificName,
+                                             value=TRUE),c(1:5)]
+rm(foo)
 
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
@@ -714,6 +717,27 @@ merge.name from away
 ```{r}
 merge.name <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/merge.name.csv"))
 
+
+```
+
+#Figure 2 Year x Bloom date
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. ordinalxyear.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+
+
+ggplot(merge.name, aes(Year, startDayOfYear)) +
+  geom_point(shape=1)+
+  stat_smooth(method="lm",colour = "black", size = 0.75)+○
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal date")+
+  scale_x_continuous(breaks = seq(1950,2011,10)) +
+  theme(axis.text=element_text(size=9),
+        axis.title=element_text(size=12)) 
+
+dev.off()
+
+summary(lm(startDayOfYear~Year, data=merge.name))
 
 ```
 
@@ -982,27 +1006,6 @@ cor(unbloom[,-1])
 cor.test(unbloom[,2],unbloom[,3])
 cor.test(unbloom[,2],unbloom[,4])
 cor.test(unbloom[,3],unbloom[,4])
-
-```
-
-#Figure 2 Year x Bloom date
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. ordinalxyear.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
-
-
-ggplot(merge.name, aes(Year, startDayOfYear)) +
-  geom_point(shape=1)+
-  stat_smooth(method="lm",colour = "black", size = 0.75)+
-  theme_bw()+
-  xlab("Year")+
-  ylab("Ordinal date")+
-  scale_x_continuous(breaks = seq(1950,2011,10)) +
-  theme(axis.text=element_text(size=9),
-        axis.title=element_text(size=12)) 
-
-dev.off()
-
-summary(lm(startDayOfYear~Year, data=merge.name))
 
 ```
 
