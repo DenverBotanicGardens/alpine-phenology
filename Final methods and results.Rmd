@@ -554,17 +554,12 @@ accpt <- unique(linknames[linknames$Synonym.Symbol=="",])
 length(unique(bloom2$ID)) #1583
 length(unique(accpt$ID)) #1273
 
-############# or
+############# or  
 rm(linknames)
 linknames <- merge(unique(bloom2[,c("scientificName","Family.Name","ID")]),
                    plantsyn[plantsyn$Synonym.Symbol=="",c(1:4,25:31)],
                    by.x = "scientificName", by.y = "Scientific.Name")
-
-foo <- data.frame(table(linknames$ID,linknames$scientificName))
-namesfoo <- foo[foo$Freq>1,"Var2"]
-linknames[linknames$scientificName %in% grep(paste(namesfoo, collapse="|"), linknames$scientificName,
-                                             value=TRUE),c(1:5)]
-rm(foo)
+linknames <- linknames[!duplicated(plantsyn$Family),]
 
 merge.name <- merge(accpt,min1950_2, by="ID")
 length(unique(min1950_2$ID)) #491
