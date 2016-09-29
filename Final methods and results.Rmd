@@ -265,20 +265,6 @@ remove genus only, 241 records of only genus
 bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 ```
 
-#August 29, 2016: try Taxonstand to standardize names and remove orthographic erros using "The Plant List"
-```{r}
-#install.packages("Taxonstand")
-library(Taxonstand)
-
-TPL.bloom2 <-  TPL(bloom2$scientificName) # lots 'have more than one valid synonym'
-TPL(unique(bloom2$scientificName[grep("auct", bloom2$Authority)]))
-# In TPLck(sp = d, corr = corr, diffchar = diffchar, max.distance = max.distance,  :
-#  Gentiana amarella has more than one valid synonym
-
-TPL(c("Dasiphora fruticosa","Potentilla fruticosa"))
-```
-
-
 ## 4. found herbarium sheets where name was not in database. 
 Check for synonyms - Add ID numbers for unique taxa (link synonyms)    
 synonym_list_byhand2.txt? 
@@ -317,8 +303,6 @@ nrow(synonyms)
 
 
 ## 4a. change the four species, "Dasiphora fruticosa" "Gentiana aquatica"   "Thlaspi alpestre"    "Saxifraga arguta", that when used with auct. non will cause synonomy problems
-If Dasipohra fruticosa auct. non (L.) Rydb. is out, then left with ID 14110. 
-
 
 ## 4 ID links synonyms
 ### 4d. to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join), see which aren't in the original and assign those names the appropriate ID to link synonyms
@@ -346,7 +330,10 @@ badnames.o <- setdiff(namebloom2,bloom.o$scientificName)
 head(badnames.o)
 length(badnames.o) #281
 
-intersect(badnames.o, synonyms2$SYNONYMS)
+intersect(badnames.o, synonyms2$SYNONYMS) #"Trifolium brandegei"; "Phacelia sericea var. sericea"
+synonyms2[synonyms2$SYNONYMS %in% 
+            grep(paste(intersect(badnames.o, synonyms2$SYNONYMS), collapse="|"),
+                 synonyms2$SYNONYMS,value=TRUE),]
 
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
 ```
@@ -385,7 +372,7 @@ matches <- apply(fixbloom2.all,1,function(checknames){
 allmat <- do.call(c,matches)
 
 length(allmat) #2240 switches (now 2333)
-
+rm(allmat,matches)
 # Want to put NA in and then take out rows with NA for the scientifcName
 matches <- apply(fixbloom2,1,function(checknames){
   grep(checknames[1],bloomfoo$scientificName)
@@ -393,8 +380,6 @@ matches <- apply(fixbloom2,1,function(checknames){
 allmat <- do.call(c,matches)
 
 length(allmat) #2600
-
-rm(allmat,matches)
 ```
 
 ## From below - tenyearplus to min1950_2. The following species names aren't in plantsyn (from USDA plants)
@@ -433,7 +418,10 @@ How many species have two species ID numbers?
 
 bloom2 <- merge(bloomfoo, synonyms[,-3], by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom2$scientificName,bloom2$ID))
-sort(table(foo$Var1[foo$Freq>0])) 
+sort(table(foo$Var1[foo$Freq>0]))  #19 again that have two
+
+foo2 <- table(foo$Var1[foo$Freq>0])
+foo2[foo2>1]
 ```
 
 # Created bloom2 again after removing the problem names   
@@ -559,6 +547,30 @@ length(unique(plantsyn$Symbol[plantsyn$Genera.Binomial.Author %in% grep("auct. n
 unique(plantsyn$Genera.Binomial.Author[plantsyn$Genera.Binomial.Author %in% grep(" non ", plantsyn$Genera.Binomial.Author, value = TRUE)])
 ```
 
+#After synonymy from Melissa Islam via Jennifer Ackerfield
+## NEED THIS BEFORE 10 years data part, These are ones not found in plantsyn (USDA plants list)
+[1] "Aster foliaceus"                   "Carex maritima"- should remove! "Castilleja rhexifolia"            
+[4] "Chlorocrepis tristis"              "Eritrichium aretioides"            "Eritrichium nanum var. aretioides"
+[7] "Eutrema edwardsii"                 "Ligularia bigelovii"               "Noccaea montana"                  
+[10] "Veratrum californicum"   
+```{r}
+# make a from:to table
+accpt <- c("Aster foliaceus","Symphyotrichum foliaceum")
+accpt <- sapply(accpt, as.character)
+names(accpt) <- c("Syn","Accpt")
+accpt <- rbind(accpt, c("Carex maritima","Carex incurviformis")) #8348, given 8445, need change name before linked to 8445
+#accpt <- rbind(accpt, c("Castilleja rhexifolia","Castilleja rhexiifolia")) # given as 9086 with rhexiifolia, I added 8950 spelled C. rhexifolia Rydb -> edited to 9086
+accpt <- rbind(accpt, c("Chlorocrepis tristis","Heiracium triste")) #22207 should == 22205 Hieracium triste
+accpt <- rbind(accpt, c("Eritrichium aretioides","Eritrichium nanum var. elongatum")) #17897 Eritrichium == Eritrichum, Weber called it Eritrichium aretioides as distict from European and not just a variety of E. nanum
+accpt <- rbind(accpt, c("Eritrichium nanum var. aretioides","Eritrichium nanum var. elongatum"))
+accpt <- rbind(accpt, c("Eutrema edwardsii","Eutrema penlandii"))
+#accpt <- rbind(accpt, c("Ligularia bigelovii","")) L. bigelovii var. hallii == Senecio bigelovii var. hallii, no just S. bigelovii in Ackerfield so will remove
+#accpt <- rbind(accpt, c("Noccaea montana","")) only in Ackerfield as Noccaea fendleri ssp. glauca
+row.names(accpt) <- c("8348","22205","17897","1","2","3")
+#      accpt <- rbind(accpt, c("Veratrum californicum","")) #in Ackerfield! need it to be in plantsyn
+```
+
+
 #remove auct non only
 ```{r}
 plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
@@ -591,6 +603,8 @@ missingnums <- setdiff(unique(min1950_2$ID),unique(merge.name$ID))
 missingnames <- unique(bloom2$scientificName[bloom2$ID %in% grep(paste(missingnums,collapse="|"),
                                                  bloom2$ID, value=TRUE)])
 
+TPL(missingnames)
+
 foo <- data.frame(table(linknames$ID,linknames$scientificName))
 namesfoo <- foo[foo$Freq>1,"Var2"]
 linknames[linknames$scientificName %in% grep(paste(namesfoo, collapse="|"), linknames$scientificName,
@@ -599,19 +613,6 @@ linknames[linknames$scientificName %in% grep(paste(namesfoo, collapse="|"), link
 foo <- data.frame(table(merge.name$scientificName,merge.name$ID))
 ```
 
-#After synonymy from Melissa Islam via Jennifer Ackerfield
-[1] "Aster foliaceus"                   "Carex maritima" (only 9 years data!)"Castilleja rhexifolia"            
-[4] "Chlorocrepis tristis"              "Eritrichium aretioides"            "Eritrichium nanum var. aretioides"
-[7] "Eutrema edwardsii"                 "Ligularia bigelovii"               "Noccaea montana"                  
-[10] "Veratrum californicum"   
-```{r}
-# make a from:to table
-accpt <- data.frame()
-accpt <- rbind(accpt, c("Aster foliaceus","Symphyotrichum foliaceum"))
-names(accpt) <- c("Syn","Accpt")
-accpt <- rbind(accpt, c("Carex maritima","Symphyotrichum foliaceum"))
-
-```
 
 ```{r}
 #At least one doesn't have the Accepted.Symbol line! 
