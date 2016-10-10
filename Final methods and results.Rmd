@@ -90,8 +90,6 @@ multisub <- function(pattern,replacement,x){
   }
   result
 }
-
-
 ```
 
 
@@ -1177,7 +1175,7 @@ summary(lm(MaxGDD~Year,data=totalGDDyr))
 ```
 
 
-#Figure 4C
+#Fig.
 ```{r}
 #meltd is from Results figures and tables.Rmd
 fit1 <- lapply(unique(meltd$Year), function(x){
@@ -1285,11 +1283,12 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2298124
 
 #later
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4
+unique(bloom2$AUTH[bloom2$scientificName %in% grep(paste(yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0],
+                                        collapse="|"), yr.1950_2$Species, value=TRUE)])
 mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.5457558
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.2396479
 
 ```
-
 
 ###High Temperature     
 ```{r}
@@ -1308,6 +1307,9 @@ mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2
 
 #later
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(high.1950_2$Species[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0],
+                                collapse="|"), high.1950_2$Species, value=TRUE)])
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #8.893071
 mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3145635
 
@@ -1321,7 +1323,7 @@ low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name)
 
 nrow(low.1950_2) #404
 
-write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
+write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.Table3.csv", sep=",")
 
 nrow(low.1950_2[low.1950_2$p.value<0.05,]) #70
 nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1732673
@@ -1333,6 +1335,9 @@ mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #0.1691
 
 #later
 nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #3
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(low.1950_2$Species[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0],
+                                collapse="|"), low.1950_2$Species, value=TRUE)])
 mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #8.362067
 mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #0.2722874
 ```
@@ -1340,13 +1345,16 @@ mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #0.272
 ### Precipitation
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name)
-write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.csv", sep=",")
+write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.Table4.csv", sep=",")
 
 nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #35
 nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.08663366
 
 #earlier
 nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0,]) #2
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(precip.1950_2$Species[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0],
+                                collapse="|"), precip.1950_2$Species, value=TRUE)])
 mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # -0.06062124
 mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2277311
 
@@ -1468,7 +1476,6 @@ results <- lapply(unique(min1950GDD_2_10$ID), function(x){
   })
 
 
-results[[1]]
 rst <- do.call(rbind,results)
 head(rst)
 
@@ -1516,7 +1523,7 @@ results <- lapply(unique(min1950GDDmax$ID), function(x){
 
 rst <- do.call(rbind,results)
 
-nrow(rst) #319
+nrow(rst) #304
 nrow(rst[rst$p.value<0.05,]) #54
 
 #earlier
@@ -1525,14 +1532,14 @@ mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -0.06105381
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.2509337
 
 #later
-nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #1
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #0
 
-write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.csv", sep=",")
+write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.Table5.csv", sep=",")
 ```
 
 #Overall MaxGDD
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. maxGDD by year.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
   geom_point(shape=1, size=0.5)+
@@ -1638,19 +1645,3 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=Growth.Habit, colour=Growth.Habit))+
   theme_bw()+
   ylab(expression(GDD))
 ```
-
-## Streamflow
-```{r}
-streamflow <- read.delim(path.expand("C:/Users/deprengm/Downloads/dv.csv"),
-                       strip.white=TRUE,
-                       blank.lines.skip=TRUE,
-                       skipNul=TRUE,
-                       sep=c(",","\t","/"),
-                       comment.char = "#")
-head(streamflow)
-streamflow[2000:2030,]
-streamflow[1000:1500,]
-```
-
-
-
