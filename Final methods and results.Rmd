@@ -455,23 +455,69 @@ summary(lm(startDayOfYear~Year, data=min1950_2))
 # Select the accepted name (according to USDA)
 ```{r}
 #First change names according to Ackerfield
-synonyms.plantsyn$SYNONYMS <- multisub(synonyms2$Species,synonyms2$SYNONYMS,
-                                       synonyms.plantsyn$SYNONYMS)
-synonyms.plantsyn <- synonyms.plantsyn[!is.na(synonyms.plantsyn),]
-
 allIDs <- unique(synonyms.plantsyn$ID)
-length(unique(synonyms.plantsyn$ID)) #5496
-synonyms.plantsyn <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
-accptIds <- unique(synonyms.plantsyn$ID)
-length(unique(synonyms.plantsyn$ID)) #5443
+length(unique(synonyms.plantsyn$ID)) #5497
+synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
+accptIds <- unique(synonyms.plantsyn.accpt$ID)
+length(unique(synonyms.plantsyn.accpt$ID)) #5452
 
-############## START HERE ################
 missingIDs <- setdiff(allIDs,accptIds)
 
-min1950_2[min1950_2$ID %in% grep(paste(missingIDs, collapse="|"),
-                                 min1950_2$ID, value=TRUE),]
+missingnames <- unique(min1950_2$scientificName[min1950_2$ID %in% grep(paste(missingIDs, collapse="|"),
+                                 min1950_2$ID, value=TRUE)])
 
-### Check if need to add a line with the accepted name for these IDs to keep them in 
+
+# Which accepted names aren't one of the names in the 10 plus species?
+unique(min1950_2[min1950_2$ID %in% grep(paste("^", paste(missingIDs, collapse="|"), "$", sep=""),
+                                 min1950_2$ID, value=TRUE),c("scientificName","ID")])
+```
+
+Need to add these in as accpted names
+```{r}
+accpt <- data.frame(matrix(vector(), 1, 33,
+                           dimnames=list(c(), names(synonyms.plantsyn.accpt))),
+                    stringsAsFactors=F)
+#Oligosporus groenlandicus  3449
+#Artemisia borealis  3449
+accpt <- rbind(accpt,c("Artemisia campestris var. purshii",3449,rep(NA, 24),"Asteraceae","Perennial",
+           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
+#Besseya alpina  5603
+accpt <- rbind(accpt,c("Besseya alpina",5603,rep(NA, 24),"Plantaginaceae","Perennial",
+           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
+#Besseya ritteriana  5608
+accpt <- rbind(accpt,c("Besseya ritteriana",5608,rep(NA, 24),"Plantaginaceae","Perennial",
+           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
+#Carex chalciolepis  8325
+accpt <- rbind(accpt,c("Carex chalciolepis",8325,rep(NA, 24),"Cyperaceae","Perennial",
+           "Graminoid","L48 (N)","Fall",rep(NA,2)))
+#Carex phaeocephala  8560
+accpt <- rbind(accpt,c("Carex phaeocephala",8560,rep(NA, 24),"Cyperaceae","Perennial",
+           "Graminoid","L48 (N)","Fall",rep(NA,2)))
+#Askellia nana 12586
+#Crepis nana 12586
+accpt <- rbind(accpt,c("Crepis nana",12586,rep(NA, 24),"Asteraceae","Perennial",
+           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
+#Mertensia viridis 29023
+#Mertensia bakeri 29023
+#Mertensia lanceolata var. nivalis 29023
+#Mertensia fusiformis 29023
+accpt <- rbind(accpt,c("Crepis nana",29023,rep(NA, 24),"Asteraceae","Perennial",
+           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
+#Poa secunda 35604
+#Poa nevadensis 35604
+#Poa sandbergii 35604
+#Poa secunda ssp. secunda 35604
+accpt <- rbind(accpt,c("Poa secunda",35604,rep(NA, 24),"Poaceae","Perennial",
+           "Graminoid","L48 (N)","Summer",rep(NA,2)))
+accpt <- accpt[-1,]
+```
+
+
+```{r}
+fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
+merge.name <- merge(fin.accpt, min1950_2, by="ID") #will keep SYNONYMS
+
+length(unique(merge.name$ID)) #404! yay
 ```
 
 
@@ -497,44 +543,6 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 ```
 
 # How many forbs vs. grasses vs. tree? How many 
-Names without growth habit (and some other infomraiton, often because not accepted name, switch to accepted name)
-```{r}
-unique(merge.name$scientificName[merge.name$Growth.Habit == "" & !is.na(merge.name$Growth.Habit)])
-
-merge.name[merge.name$scientificName %in% grep("Gentianella amarelle ssp. heterosepala", merge.name$scientificName,value=TRUE),]
-
-merge.name$scientificName[merge.name$scientificName == "Gentiana heterosepala"] <- "Gentianella amarelle ssp. heterosepala"
-merge.name$Growth.Habit[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Forb/herb"
-merge.name$Family[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Gentianaceae"
-merge.name$Duration[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "Annual, Biennial"
-
-merge.name$scientificName[merge.name$scientificName == "Boechera lemmonii"] <- "Arabis lemmonii var. lemmonii"
-merge.name$Growth.Habit[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "Forb/herb"
-merge.name$Family[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "Brassicaceae"
-merge.name$Duration[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "Perennial"
-
-
-merge.name$Growth.Habit[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Forb/herb"
-merge.name$Family[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Fabaceae"
-merge.name$Duration[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "Perennial"
-
-
-merge.name$scientificName[merge.name$scientificName == "Artemisia borealis"] <- "Artemisia campestris var. purshii"
-merge.name$Growth.Habit[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Forb/herb"
-merge.name$Family[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Asteraceae"
-merge.name$Duration[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "Biennial, Perennial"
-
-merge.name$scientificName[merge.name$scientificName == "Silene hitchguirei"] <- "Silene uralensis ssp. montana"
-merge.name$Growth.Habit[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Forb/herb"
-merge.name$Family[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Caryophyllaceae"
-merge.name$Duration[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "Perennial"
-
-unique(merge.name$Growth.Habit)
-unique(merge.name$Bloom.Period)
-unique(merge.name$Duration)
-```
-
-
 #Smaller groups for Growth.Habit
 ```{r}
 merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
@@ -607,36 +615,10 @@ table(merge.name$Native.Status) #109 missing status
 unique(merge.name$scientificName[merge.name$Native.Status == ""])
 ```
 
-"Dasiphora fruticosa" - L48 (N)    
-"Dasiphora fruticosa ssp. floribunda" -  L48 (N)    
-   "Eutrema edwardsii" - not from L48      
-"Gentianella amarelle ssp. heterosepala" - L48 (N)    
-    "Hieracium triste var. triste" - not from L48         
-"Arabis lemmonii var. lemmonii" - L48 (N)     
-"Lupinus argenteus var. rubricaulis" - L48 (N)     
-"Artemisia campestris var. purshii" - L48 (N)      
-"Silene uralensis ssp. montana" - L48 (N)    
-    "Valeriana capitata"  not in L48     
-    "Carex atrata"  not in L48  
-    
-#Fix missing Native.Status
-```{r}
-merge.name$Native.Status[merge.name$scientificName == "Dasiphora fruticosa"] <- "L48 (N)"
-merge.name$Native.Status[merge.name$scientificName == "Dasiphora fruticosa ssp. floribunda"] <- "L48 (N)"
-merge.name$Native.Status[merge.name$scientificName == "Gentianella amarelle ssp. heterosepala"] <- "L48 (N)"
-merge.name$Native.Status[merge.name$scientificName == "Arabis lemmonii var. lemmonii"] <- "L48 (N)"
-merge.name$Native.Status[merge.name$scientificName == "Lupinus argenteus var. rubricaulis"] <- "L48 (N)"
-merge.name$Native.Status[merge.name$scientificName == "Artemisia campestris var. purshii"] <- "L48 (N)"
-merge.name$Native.Status[merge.name$scientificName == "Silene uralensis ssp. montana"] <- "L48 (N)"
-
-```
-
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
 earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
                                                 merge.name$Year)))
-
-length(unique(merge.name$ID))
 sort(unique(merge.name$DataYrs))
 
 earcol <- data.frame(Year = row.names(earliestcollection),
@@ -648,7 +630,7 @@ mean(earcol$Collections) #189 -> 166.1148 -> 286.4
 
 ```
      Year Collections
-1998 1998         581
+1998 1998         350
 
 
 #Figure 1A
@@ -671,7 +653,7 @@ dev.off()
 
 Average number of collections over the study period was 187.049 species collected per year
 ```{r}
-mean(earcol$Collections) # 166.1148 -> 286
+mean(earcol$Collections) # 168.7
 ```
  
 ```{r}
@@ -880,24 +862,6 @@ summary(lm(Raw_Precip~Year, data = unbloom))
 
 ```
 
-lm(formula = Raw_Precip ~ Year, data = unbloom)
-
-Residuals:
-    Min      1Q  Median      3Q     Max 
--273.55  -69.59   -2.62   55.73  349.97 
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)  
-(Intercept) -2537.7346  1508.9971  -1.682   0.0978 .
-Year            1.6812     0.7619   2.207   0.0312 *
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 107.4 on 60 degrees of freedom
-Multiple R-squared:  0.07506,	Adjusted R-squared:  0.05964 
-F-statistic: 4.869 on 1 and 60 DF,  p-value: 0.03118
-
-
 Segmented test
 ```{r}
 segmented.Raw_Precip.year <- segmented(lm(Raw_Precip~Year, data=unbloom), 
@@ -945,21 +909,6 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 ```
 lm(formula = startDayOfYear ~ Avg_Hi, data = merge.name)
 
-Residuals:
-    Min      1Q  Median      3Q     Max 
--186.33  -13.76   -1.33   13.15  111.47 
-
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)    
-(Intercept) 235.9715     2.0153  117.09   <2e-16 ***
-Avg_Hi       -4.3695     0.2482  -17.61   <2e-16 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 19.8 on 10131 degrees of freedom
-Multiple R-squared:  0.02968,	Adjusted R-squared:  0.02959 
-F-statistic: 309.9 on 1 and 10131 DF,  p-value: < 2.2e-16
-
 
 # By growth type
 ```{r}
@@ -994,22 +943,6 @@ dev.off()
 
 summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
 ```
-lm(formula = startDayOfYear ~ Avg_Lo, data = merge.name)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--189.129  -13.656   -0.779   13.022  108.584 
-
-Coefficients:
-            Estimate Std. Error t value Pr(>|t|)    
-(Intercept) 175.6159     1.5049  116.70   <2e-16 ***
-Avg_Lo       -4.0062     0.2386  -16.79   <2e-16 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 19.83 on 10131 degrees of freedom
-Multiple R-squared:  0.02707,	Adjusted R-squared:  0.02697 
-F-statistic: 281.8 on 1 and 10131 DF,  p-value: < 2.2e-16
 
 
 ```{r}
@@ -1043,22 +976,6 @@ dev.off()
 summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
 
 ```
-lm(formula = startDayOfYear ~ Raw_Precip, data = merge.name)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--191.608  -13.441   -2.082   12.917  109.006 
-
-Coefficients:
-             Estimate Std. Error t value Pr(>|t|)    
-(Intercept) 1.889e+02  1.604e+00 117.740  < 2e-16 ***
-Raw_Precip  1.466e-02  1.979e-03   7.405 1.42e-13 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 20.05 on 10131 degrees of freedom
-Multiple R-squared:  0.005383,	Adjusted R-squared:  0.005285 
-F-statistic: 54.83 on 1 and 10131 DF,  p-value: 1.419e-13
 
 
 ```{r}
@@ -1143,31 +1060,27 @@ HDD.all <- do.call(c,HDD.yrs)
 tmps$HDD <- HDD.all
 ```
 
-
-### START HERE AGAIN! BROKE SOMETHING!!! -- somehow have .x and .y from something before
 # Now merge GDD with merge.name
 ```{r}
-nrow(merge.name[merge.name$Year > 1980,]) #7295 -> 6426
+nrow(merge.name[merge.name$Year > 1980,]) #6499
 
 #min.dates <- merge(min.dates, tmps, 
 #                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
 min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
-length(unique(min1950GDD_2$day)) #1152 -> 1145 -> 1111
-length(unique(min1950GDD_2$scientificName)) #486 -> 408
+length(unique(min1950GDD_2$day)) #1110
+length(unique(min1950GDD_2$scientificName)) #516
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$scientificName))
 yrspsp <- aggregate(gdddatayrs[,3], by = list(gdddatayrs$Var2), FUN=sum)
-nrow(yrspsp[yrspsp$x>=10,]) #373 -> 319
-
+nrow(yrspsp[yrspsp$x>=10,]) #308
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="scientificName",by.y="Group.1")
-length(unique(min1950GDD_2_10$scientificName)) #319
-
+length(unique(min1950GDD_2_10$scientificName)) #308
 ```
 
 ```{r}
@@ -1209,22 +1122,6 @@ dev.off()
 
 summary(lm(HDD~Year, data=min1950GDD_2_10))
 ```
-lm(formula = HDD ~ Year, data = min1950GDD_2_10)
-
-Residuals:
-    Min      1Q  Median      3Q     Max 
--628.25 -154.49  -22.08  131.85  755.85 
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -3580.8233   659.9441  -5.426 6.00e-08 ***
-Year            2.1007     0.3308   6.351 2.31e-10 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 205.5 on 5754 degrees of freedom
-Multiple R-squared:  0.006961,	Adjusted R-squared:  0.006788 
-F-statistic: 40.33 on 1 and 5754 DF,  p-value: 2.306e-10
 
 
 ```{r}
@@ -1278,22 +1175,6 @@ dev.off()
 summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 ```
-lm(formula = MaxGDD ~ Year, data = totalGDDyr)
-
-Residuals:
-     Min       1Q   Median       3Q      Max 
--199.051  -66.605   -6.118   62.893  160.943 
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -19652.703   3735.051  -5.262 1.23e-05 ***
-Year            10.561      1.871   5.644 4.25e-06 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-Residual standard error: 93.19 on 29 degrees of freedom
-Multiple R-squared:  0.5234,	Adjusted R-squared:  0.507 
-F-statistic: 31.85 on 1 and 29 DF,  p-value: 4.249e-06
 
 
 #Figure 4C
@@ -1357,22 +1238,6 @@ summary(lm(startDayOfYear~Secant+Growth.Habit.sm, data=min1950GDDsecant2))
 
 ```
 
-#SKIP this, not informative!
-Because of course the GDD of a certain day of the year will be very similar every year even if it's increasing over the years. 
-```{r, eval=FALSE}
-ggplot(min1950GDD_2_10, aes(HDD,startDayOfYear))+
-  geom_point()+
-  stat_smooth(method = "lm")+
-  theme_bw()+
-  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
-  xlab("GDD")+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~HDD, data=min1950GDD_2_10))
-
-```
-
-
 NPN species   
 (from Climate)    
 ```{r}
@@ -1383,15 +1248,20 @@ npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
 #although lots of these might not have 10 years    
 #Match names - synonyms and all
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big) #27 -> 77
-npn.big.m <- merge(npn.all,bloom2,by.x="SciName",by.y="scientificName")
-length(unique(npn.big.m$ID)) #77
+length(npn.big) #68
 
-# How many IDs that match have collections within 1950 to 2011
-npn.foo <- merge.name[merge.name$ID %in% npn.IDs,]
-nrow(npn.foo)
-length(unique(npn.foo$ID)) #28
-sort(unique(npn.foo$scientificName))
+npn.all$SciName <- multisub(synonyms2$Species,
+                                    synonyms2$SYNONYMS,npn.all$SciName)
+npn.all <- npn.all[!is.na(npn.all$SciName),]
+
+npn.all$SciName <- multisub(fixbloom3$Wrong,
+                                    fixbloom3$Replacement,npn.all$SciName)
+npn.all <- npn.all[!is.na(npn.all$SciName),]
+
+npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
+length(npn.big) #68
+
+npn.min1950 <- merge(npn.big, merge.name)
 ```
 
 Phenology summary tables    
