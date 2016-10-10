@@ -1261,155 +1261,99 @@ npn.all <- npn.all[!is.na(npn.all$SciName),]
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
 length(npn.big) #68
 
-npn.min1950 <- merge(npn.big, merge.name)
+npn.min1950 <- merge(npn.all, merge.name, by.x = "SciName", by.y = "SYNONYMS")
+length(unique(npn.min1950$ID)) #27
 ```
 
 Phenology summary tables    
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
-nrow(yr.1950_2) #486
-sort(table(yr.1950_2$Species)) #No repeats!
+nrow(yr.1950_2) #404
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
-nrow(yr.1950_2) #488 -> 487
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #433 -> 431
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #55
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #356
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #48
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1129363
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1188119
 
 #earlier
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #46
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5309595
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2259684
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #44
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5348264
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2298124
 
 #later
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #5 -> 1
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.8140648
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.2182915
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.5457558
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.2396479
 
 ```
 
-```{r}
-TPL.merge.names <- TPL(yr.1950_2$Species)
-tpl.syn <- TPL.merge.names[TPL.merge.names$Taxonomic.status == "Synonym",]
-tpl.syn$Abbrev[is.na(tpl.syn$Abbrev)] <- ""
-
-trim.trailing <- function (x) sub("\\s+$", "", x)
-
-foo.list.2 <- lapply(1:nrow(tpl.syn), function(row){
-  sps <- yr.1950_2[yr.1950_2$Species %in% grep(paste(c(tpl.syn$Genus[row], tpl.syn$New.Genus[row]), collapse="|"),
-                       yr.1950_2$Species, value = TRUE) & 
-              yr.1950_2$Species %in% grep(paste(c(tpl.syn$Species[row], 
-                                                  tpl.syn$New.Species[row]), collapse="|"),
-                       yr.1950_2$Species, value = TRUE),]
-  New.sp <- trim.trailing(do.call(paste, list(tpl.syn$New.Genus[row],tpl.syn$New.Species[row]))) 
-  #, tpl.syn$Abbrev[row], tpl.syn$New.Infraspecific[row]
-#  New.sp <- paste("^",New.sp,"$", collapse = '', sep = '')
-  y.n <- if(grepl(New.sp, sps$Species)) {
-    print("Yes")
-  }
-  else (print("No"))
-  y.n
-})
-
-write.table(do.call(rbind, foo.list.2), "clipboard", sep="\t", row.names=FALSE)
-
-foo.list.1 <- lapply(1:nrow(tpl.syn), function(row){
-  sps <- yr.1950_2[yr.1950_2$Species %in% grep(paste(c(tpl.syn$Genus[row], tpl.syn$New.Genus[row]), collapse="|"),
-                       yr.1950_2$Species, value = TRUE) & 
-              yr.1950_2$Species %in% grep(paste(c(tpl.syn$Species[row], 
-                                                  tpl.syn$New.Species[row]), collapse="|"),
-                       yr.1950_2$Species, value = TRUE),]
-})
-foo.list.1[[15]] #both Draba breweri var. cana and Draba breweri
-#### START HERE!! with the list of 'Yes' for species that is synonym where accepted is already in there
-#can look through the Yes list and combine earlier - reduce by 18, should check the unresolved names too
-foo.list.1[[91]]
-
-
-unique(TPL.merge.names$Taxonomic.status)
-TPL.merge.names[TPL.merge.names$Taxonomic.status == "Unresolved",]
-
-
-write.table(TPL.merge.names[TPL.merge.names$Taxonomic.status == "Synonym",], 
-            file = "Q:/Research/Projects/alpine-phenology/synonyms.csv", sep=",")
-
-
-write.table(TPL.merge.names[TPL.merge.names$Taxonomic.status == "Unresolved",], 
-            file = "Q:/Research/Projects/alpine-phenology/Unresolved.csv", sep=",")
-```
 
 ###High Temperature     
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
 
-nrow(high.1950_2) #487
-sort(table(high.1950_2$Species)) #No repeats!
-
+nrow(high.1950_2) #404
 write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
 
-nrow(high.1950_2[high.1950_2$p.value<0.05,]) #79
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2)
+nrow(high.1950_2[high.1950_2$p.value<0.05,]) #69
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
 
 #earlier
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #69
-mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.50008
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2190323
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #67
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.60067
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2187695
 
 #later
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #8.893071
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3025555
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3145635
 
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1740196
-nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8259804
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
+nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8292079
 
 ```
 
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name)
 
-nrow(low.1950_2) #486
-sort(table(low.1950_2$Species)) #No repeats!
+nrow(low.1950_2) #404
 
 write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2.csv", sep=",")
 
-nrow(low.1950_2[low.1950_2$p.value<0.05,]) #79 -> 74
-nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2)
+nrow(low.1950_2[low.1950_2$p.value<0.05,]) #70
+nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1732673
 
 #earlier
-nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #66
-mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #-9.691339
-mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #0.1787917
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #67
+mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #-9.550934
+mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #0.1691973
 
 #later
-nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #2
-mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #9.253998
-mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #0.2248121
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #3
+mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #8.362067
+mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]) #0.2722874
 ```
 
 ### Precipitation
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name)
-
-nrow(precip.1950_2) #487
-
 write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.csv", sep=",")
 
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #51 -> 45
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2)
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #35
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.08663366
 
 #earlier
 nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0,]) #2
-mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # -0.06127949
-mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2274756
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # -0.06062124
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2277311
 
 #later
 nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #33
-mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.08201873
-mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2329733
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.08322917
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2431201
 ```
 
 Growing Degree Days at time of earliest collection
@@ -1419,93 +1363,85 @@ ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
   geom_smooth(method="lm", level=0, lwd = .5, colour = "grey")+
   theme_bw()+
   ylab(expression(GDD))
-
-
 ```
 
 # NPN only precip, high, low
 ###NPN year     
 ```{r}
-npn.min1950 <- npn.foo
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
-nrow(yr.npn_2) #28 
+nrow(yr.npn_2) #27 
 
 write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr.csv", sep=",")
-
-nrow(yr.npn_2) 
-nrow(yr.npn_2[yr.npn_2$p.value<0.05,])
-nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2)
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,]) #4
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1481481
 
 #earlier
-nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) #3
-mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #-0.5594091
-mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #0.1777188
+nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) #4
+mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #-0.5518231
+mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #0.2055609
 
 #later
-nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0,]) #5 -> 0
-mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
-mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0])
-
+nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0,]) #0
 ```
 ###NPN high
 ```{r}
 high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
 
-nrow(high.npn_2) #28
+nrow(high.npn_2) #27
 
 write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2.csv", sep=",")
 
-nrow(high.npn_2[high.npn_2$p.value<0.05,])
+nrow(high.npn_2[high.npn_2$p.value<0.05,]) #4
 
 #earlier
 nrow(high.npn_2[high.npn_2$p.value<0.05 & high.npn_2$Slope<0,]) #4
-mean(high.npn_2$Slope[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #-9.74149
-mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #0.1705335
+mean(high.npn_2$Slope[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #-9.59834
+mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #0.1678493
 
 #later
 nrow(high.npn_2[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0,]) #0
-mean(high.npn_2$Slope[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0])
-mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0])
 ```
 ###NPN low
 ```{r}
 low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
 
-nrow(low.npn_2) #27 -> 28
+nrow(low.npn_2) #27
 
 write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2.csv", sep=",")
 
-nrow(low.npn_2[low.npn_2$p.value<0.05,])
-nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2)
+nrow(low.npn_2[low.npn_2$p.value<0.05,]) #8
+nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2) #0.2962963
 
 #earlier
-nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope<0,]) # 7
-mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #-10.56014
-mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #0.173146
+nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope<0,]) # 8
+mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #-10.32498
+mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #0.1659896
 
 #later
 nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0,]) #0
-mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0])
-mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0])
-
 ```
+
 ###NPN precip
 ```{r}
 precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
 
-nrow(precip.NPN_2) #27 -> 28
+nrow(precip.NPN_2) #27
 
 write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_2.csv", sep=",")
 
-nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #1
-nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.04166667
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #2
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.07407407
+
+#earlier
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0,]) #1
+mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #-0.05782597
+mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #0.1592876
 
 #later
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #1
 mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.09425329
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.4683842
-
 ```
 
 
@@ -1537,20 +1473,18 @@ rst <- do.call(rbind,results)
 head(rst)
 
 
-nrow(rst) #406 -> 373
-rst[rst$p.value<0.05,]
-nrow(rst[rst$p.value<0.05,]) #27
+nrow(rst) #304
+nrow(rst[rst$p.value<0.05,]) #30
 
 #smaller HDD at time of collection
-nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #4
-mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -10.73456
-mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.2570544
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #5
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -11.77443
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.249709
 
 #bigger HDD at time of collection
-nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,])  #23
-rst$Species[rst$p.value<0.05 & rst$Slope >= 0]
-mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) #10.40766
-mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0])  #0.2585075
+nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,])  #25
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) #11.07281
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0])  #0.273644
 
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", sep=",")
 ```
@@ -1580,32 +1514,22 @@ results <- lapply(unique(min1950GDDmax$ID), function(x){
   }
   })
 
-
-results[[1]]
 rst <- do.call(rbind,results)
-head(rst)
-
 
 nrow(rst) #319
-rst[rst$p.value<0.05,]
-nrow(rst[rst$p.value<0.05,]) #61
+nrow(rst[rst$p.value<0.05,]) #54
 
 #earlier
-nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #60
-mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -0.06494145
-mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.2688013
+nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #54
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -0.06105381
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.2509337
 
 #later
 nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #1
-rst[rst$p.value<0.05 & rst$Slope >= 0,] #Sambucus racemosa var. racemosa
-mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) #0.06436998
-mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) #0.2293882
 
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.csv", sep=",")
 ```
 
-
-,group=scientificName
 #Overall MaxGDD
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. maxGDD by year.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
@@ -1615,6 +1539,7 @@ ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
   geom_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab("Ordinal Date")+
+  xlab("Maximum annual GDD (by ordinal day 273)")+
   theme(axis.text=element_text(size=7),
         axis.title=element_text(size=9))
 
@@ -1645,32 +1570,24 @@ results.npn <- lapply(unique(minNPNGDD_2$scientificName), function(x){
   }
   })
 
-
-results.npn[[1]]
 rst.npn <- do.call(rbind,results.npn)
-head(rst.npn)
 
-
-nrow(rst.npn) #19
-rst[rst.npn$p.value<0.05,]
-nrow(rst.npn[rst.npn$p.value<0.05,])
+nrow(rst.npn) #24
+nrow(rst.npn[rst.npn$p.value<0.05,]) #2
 
 #lower GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #0
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) 
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) 
 
 #bigger GDD
-nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) #1
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) #7.896939
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) #0.1250017
+nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) #2
+mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) #14.25831
+mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) #0.498273
 
-rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,] #Deschampsia cespitosa
+rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,] #Deschampsia cespitosa and Dryas hookeriana
 
 rst.npn$genus <- gsub(" .*$", "", rst.npn$Species)
 
 write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a.csv", sep=",")
-
 ```
 
 
@@ -1696,15 +1613,11 @@ results.npn <- lapply(unique(minNPNGDD_2_max$scientificName), function(x){
   }
   })
 
-
-results.npn[[1]]
 rst.npn <- do.call(rbind,results.npn)
-head(rst.npn)
 
-
-nrow(rst.npn) #19
+nrow(rst.npn) #24
 rst.npn[rst.npn$p.value<0.05,] #Achillea millefolium, Calamagrostis canadensis, Salix glauca
-nrow(rst.npn[rst.npn$p.value<0.05,])
+nrow(rst.npn[rst.npn$p.value<0.05,]) #3
 
 #earlier
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #3
@@ -1713,25 +1626,9 @@ mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) #0.2299413
 
 #later
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) 
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) 
-
-rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]
-
 rst.npn$genus <- gsub(" .*$", "", rst.npn$Species)
 
 write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a_MaxGDD.csv", sep=",")
-
-```
-
-
-Figure 4C too ????
-```{r}
-ggplot(minNPNGDD_2, aes(Year, HDD, group=scientificName))+
-  geom_point()+
-  geom_smooth(method="lm", level=0, lwd = .5, colour = "black")+
-  theme_bw()+
-  ylab(expression(GDD))
 ```
 
 ```{r}
