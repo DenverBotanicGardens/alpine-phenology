@@ -1386,6 +1386,9 @@ nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1481481
 
 #earlier
 nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) #4
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(yr.npn_2$Species[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0],
+                                collapse="|"), yr.npn_2$Species, value=TRUE)])
 mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #-0.5518231
 mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #0.2055609
 
@@ -1404,6 +1407,11 @@ nrow(high.npn_2[high.npn_2$p.value<0.05,]) #4
 
 #earlier
 nrow(high.npn_2[high.npn_2$p.value<0.05 & high.npn_2$Slope<0,]) #4
+
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(high.npn_2$Species[high.npn_2$p.value<0.05 & high.npn_2$Slope<0],
+                                collapse="|"), high.npn_2$Species, value=TRUE)])
+
 mean(high.npn_2$Slope[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #-9.59834
 mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #0.1678493
 
@@ -1443,11 +1451,13 @@ nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.07407407
 
 #earlier
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0,]) #1
+unique(bloom2$AUTH[bloom2$scientificName == precip.NPN_2$Species[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]])
 mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #-0.05782597
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #0.1592876
 
 #later
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #1
+unique(bloom2$AUTH[bloom2$scientificName == precip.NPN_2$Species[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]])
 mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.09425329
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.4683842
 ```
