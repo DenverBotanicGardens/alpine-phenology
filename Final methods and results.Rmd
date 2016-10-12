@@ -90,6 +90,23 @@ multisub <- function(pattern,replacement,x){
   }
   result
 }
+
+appd <- function(x){
+  x <- merge(x,merge.name[!duplicated(merge.name$ID),c("ID","scientificName","AUTH",
+                                                       "Growth.Habit","Duration")], 
+                      by.x = "Species", by.y = "scientificName")
+  lmodel <- paste("F(",x$numDF,",",x$denDF,") = ",round(x$`F Stat`,2),
+                  ", Slope = ",round(x$Slope,2),
+                  ", p-value = ", round(x$p.value,2),
+                  ", r2 = ", round(x$adj.r.squ,2), 
+                  sep = "")
+  data.frame(Family = x$Fam,
+             Species = x$AUTH,
+             Sp = x$Species,
+             GrowthHabit = x$Growth.Habit,
+             Duration = x$Duration,
+             CollectionDate = lmodel)
+  }
 ```
 
 
@@ -364,6 +381,15 @@ After combining datasets, find species with at least 10 years of data
 ```{r}
 bloom2 <- bloom.sp
 
+#Collection days each year, over the years for all herbarium records
+summary(lm(startDayOfYear~Year,data=bloom2))
+
+#Peak collection period throughout the study
+ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
+  geom_boxplot()
+
+mean(bloom2$startDayOfYear, na.rm = TRUE)
+
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1595
 length(unique(bloom2$ID)) #1516 -> 1321
@@ -390,6 +416,29 @@ sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
   }, USE.NAMES = FALSE)
 
 sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
+
+## Do I have any duplicate records per ID in a single year?
+sp.yr.sp[,1:2] <- sapply(sp.yr.sp[,1:2], function(x) as.numeric(as.character(x)))
+
+sp.yr.sp <- do.call(rbind,
+                    lapply(unique(sp.yr.sp$Var2), function(id){
+                      oneID <- sp.yr.sp[sp.yr.sp$Var2==id,]
+                      oneID <- oneID[order(oneID$Var1),]
+                      oneID[!duplicated(oneID$Var1),]
+                    })
+                    )
+
+#How many species were collected each year? For all specimens
+byyr <- split(sp.yr.sp, sp.yr.sp$Var1, drop=TRUE)
+species.per.year <- do.call(rbind,
+                            lapply(byyr, function(x){
+                              data.frame(SpeciesTotal = sum(x$Freq), Year = unique(x$Var1))
+                            }))
+
+species.per.year[which.max(species.per.year$SpeciesTotal),]
+
+
+#How many years have each species been collected?
 bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
 
 spyears <- do.call(rbind,
@@ -405,6 +454,21 @@ mean(spyears$DataYrs[spyears$DataYrs>=10]) #25.10891
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
 length(unique(sp.10plus$ID)) #414 -> 404
+
+#How many species were collected each year? For 404 species with 10 or more years of data
+sp.yr.sp.10 <- sp.yr.sp[sp.yr.sp$Var2 %in% grep(paste("^",
+                                                      paste(unique(sp.10plus$ID), collapse="|"),
+                                                       "$", sep=""),
+                                                sp.yr.sp$Var2, value=TRUE),]
+byyr.10 <- split(sp.yr.sp.10, sp.yr.sp.10$Var1, drop=TRUE)
+species.per.year.10 <- do.call(rbind,
+                            lapply(byyr.10, function(x){
+                              data.frame(SpeciesTotal = sum(x$Freq), Year = unique(x$Var1))
+                            }))
+
+species.per.year.10[which.max(species.per.year.10$SpeciesTotal),]
+species.per.year[which.max(species.per.year$SpeciesTotal),]
+
 ```
 
 Pull only the species that have 10 or more years of data for analyses   
@@ -516,12 +580,14 @@ fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
 merge.name <- merge(fin.accpt, min1950_2, by="ID") #will keep SYNONYMS
 
 length(unique(merge.name$ID)) #404! yay
+
+merge.name[merge.name$startDayOfYear < 100,]
 ```
 
 
 #Figure 2 Year x Bloom date
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. ordinalxyear.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
 
 
 ggplot(merge.name, aes(Year, startDayOfYear)) +
@@ -887,14 +953,14 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
 
 #Figure 4A  
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
   geom_point(shape=1,size=0.5)+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression(~degree~C))+
+  xlab(expression("Average high"~degree~C))+
   ylab("Ordinal Date")+
   theme(axis.text=element_text(size=6),
         axis.title=element_text(size=7))
@@ -925,14 +991,14 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 
 #Figure 4B
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Avg_Lo, startDayOfYear))+
   geom_point(shape=1, size= 0.5)+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
-  xlab(expression(~degree~C))+
+  xlab(expression("Average low"~degree~C))+
   ylab("Ordinal Date")+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
@@ -957,7 +1023,7 @@ summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
 
 #Figure 4C
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
   geom_point(shape=1,size=0.25)+
@@ -1158,7 +1224,7 @@ head(totalGDDyr)
 
 #5b -> 3d to go with the others
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig3d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 3d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(totalGDDyr, aes(Year,MaxGDD))+
   geom_point(size=0.5,shape=1)+
@@ -1364,6 +1430,22 @@ mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #
 mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2431201
 ```
 
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(precip.1950_2$Species[precip.1950_2$p.value<0.05 &
+                                                       precip.1950_2$Slope>=0], 
+                               collapse="|"), "$", sep=""),precip.1950_2$Species,
+                         value=TRUE),], 
+       aes(Raw_Precip, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
 Growing Degree Days at time of earliest collection
 ```{r}
 ggplot(min1950GDD_2_10, aes(Year, HDD, group=scientificName))+
@@ -1509,7 +1591,7 @@ write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_table5a.csv", se
 # Informative part, like average precip, temp per year, does the earliest collection date change as the MaxGDD (up through ordinal day 273) changes per year?
 #GDD high per year
 ```{r}
-head(totalGDDyr)
+
 #Reset for time of collection and now max
 rm(results,rst,min1950GDDmax)
 min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
@@ -1549,7 +1631,7 @@ write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max.Table5.csv",
 
 #Overall MaxGDD
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
   geom_point(shape=1, size=0.5)+
@@ -1557,8 +1639,8 @@ ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
   theme_bw()+
   ylab("Ordinal Date")+
   xlab("Maximum annual GDD (by ordinal day 273)")+
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1601,6 +1683,9 @@ mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) #14.25831
 mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope >= 0]) #0.498273
 
 rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,] #Deschampsia cespitosa and Dryas hookeriana
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(rst.npn$Species[rst.npn$p.value<0.05 & rst.npn$Slope >= 0],
+                                collapse="|"), rst.npn$Species, value=TRUE)])
 
 rst.npn$genus <- gsub(" .*$", "", rst.npn$Species)
 
@@ -1623,9 +1708,10 @@ results.npn <- lapply(unique(minNPNGDD_2_max$scientificName), function(x){
                           t(foo1$fstatistic),
                           Species = x,
                           foo1$adj.r.squared,
-                          N = nrow(minNPNGDD_2_max[minNPNGDD_2_max$scientificName==x,])))
+                          N = nrow(minNPNGDD_2_max[minNPNGDD_2_max$scientificName==x,]),
+                          Fam = unique(minNPNGDD_2_max$Family)))
   colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
-                   "F Stat", "numDF","denDF", "Species", "adj.r.squ","N")
+                   "F Stat", "numDF","denDF", "Species", "adj.r.squ","N","Fam")
   JYC
   }
   })
@@ -1638,6 +1724,9 @@ nrow(rst.npn[rst.npn$p.value<0.05,]) #3
 
 #earlier
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #3
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(rst.npn$Species[rst.npn$p.value<0.05 & rst.npn$Slope < 0],
+                                collapse="|"), rst.npn$Species, value=TRUE)])
 mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.0720336
 mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) #0.2299413
 
@@ -1655,3 +1744,35 @@ ggplot(minNPNGDD_2, aes(Year, HDD, group=Growth.Habit, colour=Growth.Habit))+
   theme_bw()+
   ylab(expression(GDD))
 ```
+
+# Appendix
+```{r}
+coll.year <- appd(yr.1950_2)
+coll.high <- appd(high.1950_2)
+coll.low <- appd(low.1950_2)
+coll.precip <- appd(precip.1950_2)
+coll.year.NPN <- appd(yr.npn_2)
+coll.high.NPN <- appd(high.npn_2)
+coll.low.NPN <- appd(low.npn_2)
+coll.precip.NPN <- appd(precip.NPN_2)
+# startDayOfYear ~ MaxGDD
+coll.GDD <- appd(rst)
+coll.GDD.npn <- appd(rst.npn)
+
+appendixA.404 <- cbind(coll.year[,-6],
+                       Year = coll.year$CollectionDate,
+                       High = coll.high$CollectionDate,
+                       Low = coll.low$CollectionDate,
+                       Precip = coll.precip$CollectionDate)
+
+appendixA <- merge(appendixA.404, coll.GDD, by = c("Family","Species","Sp","GrowthHabit","Duration"),
+                   all=TRUE)
+
+appendixA$NPN <- NA
+appendixA$NPN[appendixA$Sp %in% grep(paste("^", paste(npn.min1950$SciName, collapse="|"),
+                                       "$", sep=""),
+                                 npn.min1950$SciName, value=TRUE)] <- "NPN"
+
+write.table(appendixA,file="Q:/Research/Projects/alpine-phenology/AppendixA.csv", sep=",")
+```
+
