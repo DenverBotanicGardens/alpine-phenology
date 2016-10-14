@@ -23,39 +23,9 @@ library(Taxonstand)
 ```
 
 #Fresh start
+Save the GDD variables - those take hours to calculate/extract
 ```{r, eval=FALSE}
-rm(avg.snow, 
-   annppt, avg.p.yr, avg.p.yr, avg.HDD.yrs, avg.p.yr.cc, avg.snowdepth, 
-   avg.swe, climate, low.npn_2, maxsnow, maysnow, maysnow.min, maysnow.sig,
-   melt.avg.swe, melt.snow, meltd, min1950GDD_2_10, min1950GDDsecant2,
-   min2plot, minNPNGDD_2_max, secant.poly, secant.poly.all, secant.polysnow,
-   accpt, allcol, allcollections, bloom, bloom.o, bloom2, bloomfoo,
-   collJ.sp, collJ.max, collmax, colo, colo.bind, colo.sm, colpyear, colpyear.2, 
-   earcol, header, header2, i, l.lmerTest.private.contrast, 
-   precip.1983, precip.npn.sig1, precip.NPN_2, precip.sig.min,
-   synonyms2, sps, TPL.bloom2, TPL.merge.names, TPL.badnames,
-   unbloom, unbloomGDD, yr.snow,
-   highsigsp, lct, lm.1, lm.coef, lm.sum, lmlist,
-   matches, minJul.dates.2, mins.foo, month, name, namebloom2, namesID,
-   New.sp, npn.IDs, npns, ptest, pr1981, repro, res, res.qt,
-   result, results.npn, sday, sample100, samplell, seg.fit,
-   earliestcollection, fixbloom2, fixbloom2.all, foo, GD, 
-   gdddatayrs, GH, high.npn_2, high.1950_2, linknames, 
-   low.1950_2, merge.name, min1950_2,
-   min1950GDD_2, min1950GDDmax, minNPNGDD_2, mite, ml.JYC, 
-   mpy.df, NAT, names, namesfoo, secant, segmented.Avg_Hi.year,
-   segmented.Avg_Lo.year, row, segmented.start.year, size, species, 
-   tonumeric, wrongdates, 
-   npn.all, npn.big, npn.big.m, npn.foo, npn.min1950,  
-   npnonly, npnPrecip, plantsyn, precip.bl,
-   precip.npn, precip.1950_2, precip.sig, rst.npn, 
-   secant1, secant2, seg.model, seinet, seinet.bind, seinet.sm, sig.in.merge, 
-   sig.interaction.JYC, sig.ml.JYC, sig.yr.1950, sig.yr.1950_2, singlefoo, 
-   sp.10plus, sp.yr, sp.yr.sp,
-   spyears, spyears.snow, synonyms, syns, temps, tenyearplus, 
-   toplot, total.p.yr, total.p.yr.cc, 
-   total.snow, yr.1950_2, yr.npn_2, yr.sig, yr.sig.min, yrspsp)
-
+rm(list= setdiff(ls(), c("avgTemps.max","avgTemps.min","tmps","HDD","HDD.all")))
 ```
 
 ## load functions   
@@ -159,6 +129,8 @@ wrongdates <- colo.sm$Date..dd.month.yyyy.[colo.sm$Date..dd.month.yyyy. %in% gre
 colo.sm$startDayOfYear<-as.numeric(format(
     as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format="%d %B %Y")    ,"%j"))
 
+colo.sm <- colo.sm[!is.na(colo.sm$startDayOfYear),]
+
 barplot(table(colo.sm$startDayOfYear))
 ```
 
@@ -186,6 +158,10 @@ seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
 
 # Elevation over 3200 meters - was gathered from SEINet with that limitation. 
 seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
+
+# Remove any rows missing startDayOfYear
+seinet.sm <- seinet.sm[!is.na(seinet.sm$startDayOfYear),]
+
 barplot(table(seinet.sm$startDayOfYear))
 ```
 
@@ -289,6 +265,7 @@ plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in%
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
 
+# Check for more than one ID for a species name 
 bloom.sp <- merge(bloom2, synonyms.plantsyn, by.x = "scientificName", by.y = "SYNONYMS")
 foo <- data.frame(table(bloom.sp$scientificName,bloom.sp$ID))
 sort(table(foo$Var1[foo$Freq>1]))
@@ -300,7 +277,7 @@ rm(foo)
 ```{r}
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames.o <- setdiff(namebloom2,bloom.sp$scientificName)
-length(badnames.o) #293 -> 509 (after linking plantsyn to synonyms (our version of USDA))
+length(badnames.o) #293 -> 505 (after linking plantsyn to synonyms (our version of USDA))
 
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
 ```
@@ -391,17 +368,20 @@ ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
 mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #1820 -> 1595
-length(unique(bloom2$ID)) #1516 -> 1321
+length(unique(bloom2$scientificName)) #1820 -> 1588
+length(unique(bloom2$ID)) #1516 -> 1319
+```
+
 
 # how many years collected per species
 # Year   ID   #collections
+```{r}
 sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
-nrow(sp.yr[sp.yr$Freq>0,]) #13571 -> 13007
-nrow(sp.yr[sp.yr$Freq>1,]) #6750 -> 6560
-mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.87 -> 2.92
-max(sp.yr$Freq[sp.yr$Freq>0]) #80
+nrow(sp.yr[sp.yr$Freq>0,]) #13571 -> 12892
+nrow(sp.yr[sp.yr$Freq>1,]) #6750 -> 6451
+mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.89
+max(sp.yr$Freq[sp.yr$Freq>0]) #79
 
 # How many vouchers per species per year
 colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
@@ -449,11 +429,11 @@ spyears <- do.call(rbind,
 
 spyears[which.max(spyears$DataYrs),] # 54
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 404
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #25.10891
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.97761
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 404
+length(unique(sp.10plus$ID)) #414 -> 402
 
 #How many species were collected each year? For 404 species with 10 or more years of data
 sp.yr.sp.10 <- sp.yr.sp[sp.yr.sp$Var2 %in% grep(paste("^",
@@ -475,10 +455,10 @@ Pull only the species that have 10 or more years of data for analyses
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID") 
-length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #414 -> 404
-length(unique(sp.10plus$ID)) #414 -> 404
-length(unique(tenyearplus$scientificName)) #597 -> 571
-length(unique(tenyearplus$ID)) #414 -> 404
+length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #414 -> 402
+length(unique(sp.10plus$ID)) #402
+length(unique(tenyearplus$scientificName)) #597 -> 564Γ
+length(unique(tenyearplus$ID)) #414 -> 402
 
 # Not earliest, all collections for species with 10+ yrs data
 summary(lm(startDayOfYear~Year, data=tenyearplus))
@@ -579,9 +559,11 @@ accpt <- accpt[-1,]
 fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
 merge.name <- merge(fin.accpt, min1950_2, by="ID") #will keep SYNONYMS
 
-length(unique(merge.name$ID)) #404! yay
+length(unique(merge.name$ID)) #402
 
-merge.name[merge.name$startDayOfYear < 100,]
+merge.name[merge.name$startDayOfYear < 100,] #could remove?
+
+
 ```
 
 
@@ -690,11 +672,11 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #189 -> 166.1148 -> 286.4
+mean(earcol$Collections) #168.4098
 
 ```
      Year Collections
-1998 1998         350
+1998 1998         349
 
 
 #Figure 1A
@@ -715,9 +697,9 @@ ggplot(earcol, aes(Year, Collections))+
 dev.off()
 ```
 
-Average number of collections over the study period was 187.049 species collected per year
+Average number of collections over the study period was 168.4098 species collected per year
 ```{r}
-mean(earcol$Collections) # 168.7
+mean(earcol$Collections) 
 ```
  
 ```{r}
@@ -848,11 +830,9 @@ seg.model <- data.frame(Year = unbloom$Year, Avg_Hi = seg.fit)
 ggplot(unbloom, aes(Year,Avg_Hi))+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1)+
-#  stat_smooth(geom = "smooth")+
   theme_bw()+
-#  labs(title="Average High Temperature by Year")+
   xlab("Year")+
-  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
+  ylab(expression("Average High Temperature"~degree*C)) + #ylab(expression("Average high temperature"~degree~C))
   scale_x_continuous(breaks = seq(1950,2011,10))+
   geom_line(data = seg.model, aes(Year,Avg_Hi), colour = "tomato")
 ```
@@ -981,7 +961,7 @@ ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
   stat_smooth(method="lm",size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression(~degree~C))+
+  xlab(expression("Average high"~degree*C))+
   ylab("Ordinal Date")
 
 summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
@@ -1012,7 +992,7 @@ summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
 ```{r}
 ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Growth.Habit.sm))+
   geom_point(shape=1)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  stat_smooth(method="lm", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
   xlab(expression(~degree~C))+
@@ -1144,7 +1124,7 @@ nrow(yrspsp[yrspsp$x>=10,]) #308
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="scientificName",by.y="Group.1")
-length(unique(min1950GDD_2_10$scientificName)) #308
+length(unique(min1950GDD_2_10$scientificName)) #306
 ```
 
 ```{r}
@@ -1243,6 +1223,11 @@ summary(lm(MaxGDD~Year,data=totalGDDyr))
 
 #Fig.
 ```{r}
+col.hdd.yrs <- lapply(HDD.yrs, function(x) x[1:273])
+col.hdd.yrs <- do.call(cbind,col.hdd.yrs)
+meltd<-melt(col.hdd.yrs)
+names(meltd) <- c("Day","Year","GDD")
+
 #meltd is from Results figures and tables.Rmd
 fit1 <- lapply(unique(meltd$Year), function(x){
   stepAIC(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year==x,]),
@@ -1292,7 +1277,7 @@ summary(lm(startDayOfYear~Secant, data=min1950GDDsecant2))
 ```{r}
 ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear, colour=Growth.Habit.sm))+
   geom_point()+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  stat_smooth(method="lm", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
   xlab("Average rate of GDD accumulation")+
@@ -1337,10 +1322,10 @@ nrow(yr.1950_2) #404
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #356
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #354
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #48
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1188119
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
 
 #earlier
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #44
@@ -1351,8 +1336,47 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2298124
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4
 unique(bloom2$AUTH[bloom2$scientificName %in% grep(paste(yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0],
                                         collapse="|"), yr.1950_2$Species, value=TRUE)])
+
+merge.name[merge.name$scientificName == "Pulsatilla patens ssp. multifida",
+           c("Year","ID","scientificName",
+                                                              "startDayOfYear")]
+
 mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.5457558
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.2396479
+
+```
+
+#Year later
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(yr.1950_2$Species[yr.1950_2$p.value<0.05 &
+                                                              yr.1950_2$Slope>=0],
+                                          collapse="|"), "$", sep=""),yr.1950_2$Species,
+                         value=TRUE),], 
+       aes(Year, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
+#Year earlier
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(yr.1950_2$Species[yr.1950_2$p.value<0.05 &
+                                                              yr.1950_2$Slope<0],
+                                          collapse="|"), "$", sep=""),yr.1950_2$Species,
+                         value=TRUE),], 
+       aes(Year, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
 
 ```
 
@@ -1376,11 +1400,47 @@ nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
 unique(bloom2$AUTH[bloom2$scientificName %in% 
                      grep(paste(high.1950_2$Species[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0],
                                 collapse="|"), high.1950_2$Species, value=TRUE)])
+
+merge.name[merge.name$scientificName == "Askellia nana",c("startDayOfYear","Year")] ##NOOO, doubles!
+
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #8.893071
 mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3145635
 
 nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
 nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8292079
+
+```
+
+
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
+                                                                high.1950_2$Slope<0], 
+                               collapse="|"), "$", sep=""),high.1950_2$Species,
+                         value=TRUE),], 
+       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab(expression("Average high"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
+                                                                high.1950_2$Slope>=0], 
+                               collapse="|"), "$", sep=""),high.1950_2$Species,
+                         value=TRUE),], 
+       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab(expression("Average high"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
 
 ```
 
@@ -1434,6 +1494,22 @@ mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0
 ggplot(merge.name[merge.name$scientificName %in% 
                     grep(paste("^", paste(precip.1950_2$Species[precip.1950_2$p.value<0.05 &
                                                        precip.1950_2$Slope>=0], 
+                               collapse="|"), "$", sep=""),precip.1950_2$Species,
+                         value=TRUE),], 
+       aes(Raw_Precip, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(precip.1950_2$Species[precip.1950_2$p.value<0.05 &
+                                                       precip.1950_2$Slope<0], 
                                collapse="|"), "$", sep=""),precip.1950_2$Species,
                          value=TRUE),], 
        aes(Raw_Precip, startDayOfYear, colour = scientificName))+
