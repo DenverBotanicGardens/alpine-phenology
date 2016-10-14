@@ -351,6 +351,7 @@ bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 #4e
 #Bloom2 post Ackerfield nomenclature
 ```{r}
+
 bloom.sp <- merge(bloom2, synonyms.plantsyn, by.x = "scientificName", by.y = "SYNONYMS")
 ```
 
@@ -374,124 +375,66 @@ length(unique(bloom2$ID)) #1516 -> 1319
 
 
 # how many years collected per species
-# Year   ID   #collections
 ```{r}
-sp.yr <- as.data.frame(table(bloom2$Year,bloom2$ID))
 
-nrow(sp.yr[sp.yr$Freq>0,]) #13571 -> 12892
-nrow(sp.yr[sp.yr$Freq>1,]) #6750 -> 6451
-mean(sp.yr$Freq[sp.yr$Freq > 0])  #2.89
-max(sp.yr$Freq[sp.yr$Freq>0]) #79
-
-# How many vouchers per species per year
-colpyear <- data.frame(table(bloom2$ID,bloom2$Year))
-colpyear.2 <- do.call(rbind,lapply(split(colpyear,as.factor(colpyear$Var2)),
-                                   function(x) x[which.max(x$Freq),]))
-
-# change all values above 0 to 1 from number of collections for that species a year
-# finding which years have any data, not the minimum date
-sp.yr$Freq <- sapply(sp.yr$Freq,function(x){
-  if(x>0) {1}
-  else 0
-  }, USE.NAMES = FALSE)
-
-sp.yr.sp <- sp.yr[sp.yr$Freq>0,]
-
-## Do I have any duplicate records per ID in a single year?
-sp.yr.sp[,1:2] <- sapply(sp.yr.sp[,1:2], function(x) as.numeric(as.character(x)))
-
-sp.yr.sp <- do.call(rbind,
-                    lapply(unique(sp.yr.sp$Var2), function(id){
-                      oneID <- sp.yr.sp[sp.yr.sp$Var2==id,]
-                      oneID <- oneID[order(oneID$Var1),]
-                      oneID[!duplicated(oneID$Var1),]
-                    })
-                    )
+earl.sp.yr <- do.call(rbind,
+                      lapply(split(bloom2, bloom2$ID), function(id){
+                        id <- id[order(id$Year),]
+                        id$DataYrs <- nrow(id[!duplicated(id$Year),])
+                        rows <- aggregate(startDayOfYear~Year, id, FUN=min)
+                        out <- merge(unique(id[,c("ID","Year","startDayOfYear","DataYrs",
+                                                  "scientificName","Family.Name","Authority")]),
+                                     rows, by=c("startDayOfYear","Year"))
+                        out[order(out$Year),]
+                        out[!duplicated(id$Year),]
+                        })
+)
 
 #How many species were collected each year? For all specimens
-byyr <- split(sp.yr.sp, sp.yr.sp$Var1, drop=TRUE)
+byyr <- split(earl.sp.yr, earl.sp.yr$Year, drop=TRUE)
 species.per.year <- do.call(rbind,
                             lapply(byyr, function(x){
-                              data.frame(SpeciesTotal = sum(x$Freq), Year = unique(x$Var1))
+                              data.frame(SpeciesTotal = length(unique(x$ID)), Year = unique(x$Year))
                             }))
 
-species.per.year[which.max(species.per.year$SpeciesTotal),]
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357
 
 
 #How many years have each species been collected?
-bysp <- split(sp.yr.sp, sp.yr.sp$Var2, drop=TRUE)
+bysp <- split(earl.sp.yr, earl.sp.yr$ID, drop=TRUE)
 
 spyears <- do.call(rbind,
                    lapply(bysp, function(x){
-                     data.frame(DataYrs = sum(x$Freq),ID = unique(x$Var2))
+                     data.frame(DataYrs = length(unique(x$Year)),ID = unique(x$ID))
                      })
                    )
 
-spyears[which.max(spyears$DataYrs),] # 54
+spyears[which.max(spyears$DataYrs),] # 27
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.97761
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #15.47333
 
 sp.10plus <- spyears[spyears$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402
-
-#How many species were collected each year? For 404 species with 10 or more years of data
-sp.yr.sp.10 <- sp.yr.sp[sp.yr.sp$Var2 %in% grep(paste("^",
-                                                      paste(unique(sp.10plus$ID), collapse="|"),
-                                                       "$", sep=""),
-                                                sp.yr.sp$Var2, value=TRUE),]
-byyr.10 <- split(sp.yr.sp.10, sp.yr.sp.10$Var1, drop=TRUE)
-species.per.year.10 <- do.call(rbind,
-                            lapply(byyr.10, function(x){
-                              data.frame(SpeciesTotal = sum(x$Freq), Year = unique(x$Var1))
-                            }))
-
-species.per.year.10[which.max(species.per.year.10$SpeciesTotal),]
-species.per.year[which.max(species.per.year$SpeciesTotal),]
-
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300
 ```
 
 Pull only the species that have 10 or more years of data for analyses   
 Not earliest but does tell me if one per species per year to tell how many species have at least 10 years a year   
 ```{r}
 tenyearplus <- merge(bloom2,sp.10plus,by = "ID") 
-length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #414 -> 402
+length(unique(tenyearplus$ID[tenyearplus$DataYrs>9])) #414 -> 402 -> 300
 length(unique(sp.10plus$ID)) #402
-length(unique(tenyearplus$scientificName)) #597 -> 564Γ
-length(unique(tenyearplus$ID)) #414 -> 402
+length(unique(tenyearplus$scientificName)) #597 -> 427
+length(unique(tenyearplus$ID)) #414 -> 402 -> 300
 
-# Not earliest, all collections for species with 10+ yrs data
-summary(lm(startDayOfYear~Year, data=tenyearplus))
+min1950_2 <- tenyearplus
+
 ```
 
-Pull out earliest collection rows   
-```{r}
-minJul.dates.2 <- lapply(unique(tenyearplus$ID), function(x){
-  this.species <- tenyearplus[tenyearplus$ID == x,]
-  these.rows <- aggregate(startDayOfYear~Year, this.species, FUN=min)
-  out <- merge(unique(this.species[,c("ID","Year","startDayOfYear","DataYrs",
-                                      "scientificName","Family.Name","Authority")]),
-               these.rows,by=c("startDayOfYear","Year"))
-  out[order(out$Year),]
-  })
-
-min1950_2 <- do.call(rbind,minJul.dates.2)
-head(min1950_2)
-
-length(unique(min1950_2$ID)) #414 -> 404
-
-#confirm no doubles per year
-ids <- unique(tenyearplus$ID)
-min1950_2 <- do.call(rbind,
-                     lapply(ids,function(id){
-                       oneofem <- min1950_2[min1950_2$ID==id,]
-                       oneofem <- oneofem[order(oneofem$Year),]
-                       oneofem[!duplicated(oneofem$Year),]
-                       })
-                     )
-
 #Results: 3rd para
-summary(lm(startDayOfYear~Year, data=min1950_2))
+```{r}
+# earliest collections for species with 10+ yrs data
+summary(lm(startDayOfYear~Year, data=tenyearplus))
 ```
 
 # Select the accepted name (according to USDA)
@@ -521,30 +464,30 @@ accpt <- data.frame(matrix(vector(), 1, 33,
                     stringsAsFactors=F)
 #Oligosporus groenlandicus  3449
 #Artemisia borealis  3449
-accpt <- rbind(accpt,c("Artemisia campestris var. purshii",3449,rep(NA, 24),"Asteraceae","Perennial",
-           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
+#accpt <- rbind(accpt,c("Artemisia campestris var. purshii",3449,rep(NA, 24),"Asteraceae","Perennial",
+#           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
 #Besseya alpina  5603
 accpt <- rbind(accpt,c("Besseya alpina",5603,rep(NA, 24),"Plantaginaceae","Perennial",
            "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
 #Besseya ritteriana  5608
-accpt <- rbind(accpt,c("Besseya ritteriana",5608,rep(NA, 24),"Plantaginaceae","Perennial",
-           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
+#accpt <- rbind(accpt,c("Besseya ritteriana",5608,rep(NA, 24),"Plantaginaceae","Perennial",
+#           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
 #Carex chalciolepis  8325
-accpt <- rbind(accpt,c("Carex chalciolepis",8325,rep(NA, 24),"Cyperaceae","Perennial",
-           "Graminoid","L48 (N)","Fall",rep(NA,2)))
+#accpt <- rbind(accpt,c("Carex chalciolepis",8325,rep(NA, 24),"Cyperaceae","Perennial",
+#           "Graminoid","L48 (N)","Fall",rep(NA,2)))
 #Carex phaeocephala  8560
 accpt <- rbind(accpt,c("Carex phaeocephala",8560,rep(NA, 24),"Cyperaceae","Perennial",
            "Graminoid","L48 (N)","Fall",rep(NA,2)))
 #Askellia nana 12586
 #Crepis nana 12586
-accpt <- rbind(accpt,c("Crepis nana",12586,rep(NA, 24),"Asteraceae","Perennial",
-           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
+#accpt <- rbind(accpt,c("Crepis nana",12586,rep(NA, 24),"Asteraceae","Perennial",
+#           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
 #Mertensia viridis 29023
 #Mertensia bakeri 29023
 #Mertensia lanceolata var. nivalis 29023
 #Mertensia fusiformis 29023
-accpt <- rbind(accpt,c("Crepis nana",29023,rep(NA, 24),"Asteraceae","Perennial",
-           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
+#accpt <- rbind(accpt,c("Crepis nana",29023,rep(NA, 24),"Asteraceae","Perennial",
+#           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
 #Poa secunda 35604
 #Poa nevadensis 35604
 #Poa sandbergii 35604
@@ -554,21 +497,25 @@ accpt <- rbind(accpt,c("Poa secunda",35604,rep(NA, 24),"Poaceae","Perennial",
 accpt <- accpt[-1,]
 ```
 
-
+#just need the ID and accpt name once...
 ```{r}
 fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
-merge.name <- merge(fin.accpt, min1950_2, by="ID") #will keep SYNONYMS
 
-length(unique(merge.name$ID)) #402
+cols2keep <- setdiff(names(min1950_2),names(fin.accpt))
+head(min1950_2[,cols2keep])
+
+merge.name <- merge(fin.accpt, min1950_2[,c(cols2keep,"ID")], by="ID") #will keep SYNONYMS
+
+length(unique(merge.name$ID)) #402 -> 300
 
 merge.name[merge.name$startDayOfYear < 100,] #could remove?
-
 
 ```
 
 
 #Figure 2 Year x Bloom date
 ```{r}
+dpi = 1200
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
 
 
@@ -631,38 +578,38 @@ sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignor
 
 GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
 GD[GH$Freq>0,]
-sum(GD$Freq)#487
+sum(GD$Freq)#487 -> 300
 
 # Duration
 table(merge.name$Duration[!duplicated(merge.name$ID)])
 
-sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #12
+sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
 
 NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
 NAT[NAT$Freq>0,]
-sum(NAT$Freq)#487
+sum(NAT$Freq)#487 -> 300
 
 # Native status
-unique(merge.name$scientificName[merge.name$Native.Status == ""])
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #477
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #10
-
-merge.name$scientificName[!duplicated(merge.name$ID) & merge.name$Native.Status %in% grep("L48", merge.name$Native.Status, value=TRUE, invert=TRUE)]
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
 
 #which are missing a native status?
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #476
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
 length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
 length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #10 non-native
+                                             invert=TRUE)])) #0 non-native
 length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #10 non-native
+                                             invert=TRUE)])) #0 non-native
 
-table(merge.name$Native.Status) #109 missing status
-unique(merge.name$scientificName[merge.name$Native.Status == ""])
 ```
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
+
+#merge.name has only one collection per species ID per year?
+foo <- data.frame(table(merge.name$Year,merge.name$ID))
+head(foo[foo$Freq>0,])
+
 earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
                                                 merge.name$Year)))
 sort(unique(merge.name$DataYrs))
