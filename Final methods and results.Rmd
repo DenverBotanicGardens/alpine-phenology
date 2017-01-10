@@ -265,17 +265,8 @@ synonyms <- synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value =
 synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) These would be missing the ones I added to synonyms by hand....
-#### START HERE #### this is why I lose some species!
-plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
-                       grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE, invert = TRUE),]
-plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
-                       grep(" non ", plantsyn$Genera.Binomial.Author, 
-                            value = TRUE, invert = TRUE),]
+                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
 
-# Merge is an exact match, that's what we want
-synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
-synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
 
 # Check for more than one ID for a species name 
 bloom.sp <- merge(bloom2, synonyms.plantsyn, by.x = "scientificName", by.y = "SYNONYMS")
@@ -366,6 +357,7 @@ bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 bloom.sp <- merge(bloom2, synonyms.plantsyn, by.x = "scientificName", by.y = "SYNONYMS")
 ```
 
+
 After combining datasets, find species with at least 10 years of data
 ```{r}
 bloom2 <- bloom.sp
@@ -414,6 +406,10 @@ species.per.year <- do.call(rbind,
 
 species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens
 
+ggplot(species.per.year, aes( Year,SpeciesTotal))+
+  geom_point()+
+  stat_smooth(method = "lm")
+
 
 #How many years have each species been collected?
 bysp <- split(earl.sp.yr, earl.sp.yr$ID, drop=TRUE)
@@ -425,9 +421,9 @@ spyears <- do.call(rbind,
                    )
 
 # Still all species, not just ones with 10+ years
-spyears[which.max(spyears$DataYrs),] # 27
+spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #15.47333
 
 # Now 10 plus years
