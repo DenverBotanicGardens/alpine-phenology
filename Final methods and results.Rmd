@@ -243,7 +243,7 @@ Check for synonyms - Add ID numbers for unique taxa (link synonyms)
 synonym_list_byhand2.txt? 
 added a few synonyms at the end that weren't in there. SEINet and Weber and Hartman to find what ID those names (from Herbarium specimens) should be assigned to. 
 ```{r,eval=TRUE}
-synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt"))
+synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt")) # from DBG database taken from USDA (got from Rick)
 
 #use of ssp and subsp
 synonyms$SYNONYMS <- gsub(pattern = "subsp.", replacement = "ssp.", synonyms$SYNONYMS)
@@ -265,7 +265,8 @@ synonyms <- synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value =
 synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
 
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",")
+                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) These would be missing the ones I added to synonyms by hand....
+#### START HERE #### this is why I lose some species!
 plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
                        grep("auct. non", plantsyn$Genera.Binomial.Author, value = TRUE, invert = TRUE),]
 plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
@@ -374,7 +375,10 @@ summary(lm(startDayOfYear~Year,data=bloom2))
 
 #Peak collection period throughout the study
 ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
-  geom_boxplot()
+  geom_boxplot()+
+  theme_bw()+
+  ylab("Flowering day")+
+  xlab("")
 
 mean(bloom2$startDayOfYear, na.rm = TRUE)
 
@@ -440,7 +444,7 @@ summary(lm(startDayOfYear~Year, data=sp.10plus))
 # Select the accepted name (according to USDA)
 ```{r}
 #First change names according to Ackerfield
-allIDs <- unique(synonyms.plantsyn$ID)
+allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
 length(unique(synonyms.plantsyn$ID)) #5497
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
