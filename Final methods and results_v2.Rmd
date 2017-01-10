@@ -1,4 +1,10 @@
 ---
+title: "Final methods and results v2"
+author: "Michelle DePrenger-Levin"
+date: "January 10, 2017"
+output: html_document
+---
+---
 title: "Final Methods and Results"
 author: "Michelle DePrenger-Levin"
 date: "March 3, 2016"
@@ -252,52 +258,59 @@ nrow(synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value=TRUE),])
 ### 4f. Remove auct. non records from the synonyms list. 
 ```{r}
 # remove all auct. non
-synonyms <- synonyms[synonyms$AUTH %in% grep("auct. non", synonyms$AUTH, value = TRUE, invert = TRUE),]
+synonyms <- synonyms[synonyms$AUTH %in% grep("auct.", synonyms$AUTH, value = TRUE, invert = TRUE),]
 synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
-
-plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
-
-# Merge is an exact match, that's what we want
-synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
-synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
+# Agroelymus adamsii is in there twice with all the same information
+synonyms <- unique(synonyms) # gets rid of 13 rows
 
 # Check for more than one ID for a species name 
-bloom.sp <- merge(bloom2, synonyms.plantsyn, by.x = "scientificName", by.y = "SYNONYMS")
-foo <- data.frame(table(synonyms.plantsyn$SYNONYMS,synonyms.plantsyn$ID))
-head(foo[foo$Freq > 0,])
-foo[foo$Freq > 1,] # Great, no species has more than one ID
+bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
+
+foo <- table(synonyms$SYNONYMS)
+foo[foo > 1]
+
+# Acarospora squamulosa twice, one with "sensu Th. Fr." two differnt IDs - lichen, remove all
+# Aletris japonica, "nom. obsc." with two same ID
+#Alisma lanceolatum either A. Gray or different ID with "With." <- git rid of "With."
+synonyms[synonyms$SYNONYMS == names(foo[foo>1][1]),]
+synonyms[synonyms$SYNONYMS == names(foo[foo>1][11]),]
+bloom2[bloom2$scientificName == names(foo[foo>1][2]),] #not in there, don't worry about it
+namesinbloom2 <- unique(bloom2$scientificName[bloom2$scientificName %in% names(foo[foo>1])])
+
+# find to get rid of thse but doesn't appear in herbarium records
+synonyms <- synonyms[synonyms$SYNONYMS != "Acarospora squamulosa",] #lichen
+synonyms <- synonyms[synonyms$AUTH != "Alisma lanceolatum With.",] #UDSA plants has this one only in CA
+
+# These two do!
+synonyms <- synonyms[synonyms$AUTH != "Aster foliaceus Lindl. ex DC., database artifact",]
+takeoutAste <- which(synonyms$AUTH == "" & synonyms$SYNONYMS == "Astragalus tenellus")
+synonyms <- synonyms[-takeoutAste,]
+
+rm(bloom.sp)
+bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
+
 ```
 
 ## 4 ID links synonyms
 ### 4d. to not lose ones from bloom2 that have no match in synonyms, add all.x = TRUE (left outer join), see which aren't in the original and assign those names the appropriate ID to link synonyms
 ```{r}
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom.sp$scientificName)
-length(unique(bloom2$scientificName[!(bloom2$scientificName %in% bloom.sp$scientificName)]))
+length(unique(bloom2$scientificName[!(bloom2$scientificName %in% bloom.sp$scientificName)])) #290
 
 badnames.o <- setdiff(namebloom2,bloom.sp$scientificName)
-length(badnames.o) #293 -> 502 (after linking plantsyn to synonyms (our version of USDA))
-
-plantsyn[plantsyn$Scientific.Name == badnames.o[1],]
-synonyms[synonyms$SYNONYMS == badnames.o[1],]
-
+length(badnames.o) #293 -> 502 (after linking plantsyn to synonyms (our version of USDA)) #290
 
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
 
-TPL(badnames.o[1:10])
 ```
 
 ####Use these 'badnames.o' which are names in bloom2 not found in the USDA synonym list to correct errors some are crosses, some misspellings. 
 ###### fixbloom2 csv has $Wrong: list of bloom2 names with no UDSA match 
 ######                   $Replacement: corrected or NA if it should just be removed/ignored     
 ```{r}
-fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v3.csv"),
+fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v4.csv"),
                       na.strings = c("NA", "", " "), colClasses = "character")
 
-remainingerrors <- setdiff(badnames.o,fixbloom2$Wrong)
-write.table(remainingerrors,"clipboard", sep="\t", row.names=FALSE)
-fixbloom3 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v3plus.csv"),
-                      na.strings = c("NA", "", " "), colClasses = "character")
 ```
 
 #  #2 - after finding names that are on herbarium sheets but not in the USDA list (for a unique ID per name with synonyms and nativity, habit....) then use nomenclature from Jennifer Ackerfield's Flora (2015) and link. 
@@ -333,6 +346,8 @@ bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), functio
 bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
 ```
 
+
+#Start here! should do the replace with _v4 first then this other stuff, right?!?! or do it below..
 Replace names with accepted by Ackerfield
 ```{r}
 synonyms2 <- read.csv("Q:/Research/Projects/alpine-phenology/synonyms2_MI.csv")
