@@ -376,7 +376,8 @@ need to add the linking ID numbers contained in synonyms
 ```{r}
 bloom.aftercorrections <- bloom2
 
-bloom.sp <- merge(bloom2, synonyms2, by.x = "scientificName", by.y = "Species")
+#synonyms is the current USDA plant list that we have at DBG
+bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 ```
 
 
@@ -406,24 +407,28 @@ ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
 mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #1820 -> 1588, 1703
-length(unique(bloom2$ID)) #1516 -> 1319, 1371
+length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1570
 ```
 
 
 # how many years collected per species
 ```{r}
 
+temp.split <- split(bloom2, bloom2$ID)
+id <- temp.split[[1]][order(temp.split[[1]]$Year),]
+id
+
+rm(temp.split, id, out, rows)
+
 earl.sp.yr <- do.call(rbind,
                       lapply(split(bloom2, bloom2$ID), function(id){
                         id <- id[order(id$Year),]
                         id$DataYrs <- nrow(id[!duplicated(id$Year),])
                         rows <- aggregate(startDayOfYear~Year, id, FUN=min)
-                        out <- merge(unique(id[,c("ID","Year","startDayOfYear","DataYrs",
-                                                  "scientificName","Family.Name","Authority")]),
-                                     rows, by=c("startDayOfYear","Year"))
+                        out <- merge(id, rows, by=c("startDayOfYear","Year"))
                         out[order(out$Year),]
-                        out[!duplicated(id$Year),]
+                        out <- out[!duplicated(id$Year),]
                         out
                         })
 )
