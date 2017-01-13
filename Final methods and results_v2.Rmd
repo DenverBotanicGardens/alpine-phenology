@@ -416,36 +416,38 @@ length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1570
 ```{r}
 
 temp.split <- split(bloom2, bloom2$ID)
-id <- temp.split[[1]][order(temp.split[[1]]$Year),]
+temp.split$`43359`
+id <- temp.split$`43359`[order(temp.split$`43359`$Year),]
 id
-
-rm(temp.split, id, out, rows)
 
 earl.sp.yr <- do.call(rbind,
                       lapply(split(bloom2, bloom2$ID), function(id){
                         id <- id[order(id$Year),]
-                        id$DataYrs <- nrow(id[!duplicated(id$Year),])
+                        id$DataYrs <- nrow(id[!duplicated(id$Year) & !is.na(id$Year),])
                         rows <- aggregate(startDayOfYear~Year, id, FUN=min)
                         out <- merge(id, rows, by=c("startDayOfYear","Year"))
-                        out[order(out$Year),]
-                        out <- out[!duplicated(id$Year),]
+                        out <- out[order(out$Year),]
+                        out <- out[!duplicated(out$Year),]
                         out
                         })
 )
 
 #How many species were collected each year? For all specimens
 byyr <- split(earl.sp.yr, earl.sp.yr$Year, drop=TRUE)
+
 species.per.year <- do.call(rbind,
                             lapply(byyr, function(x){
                               data.frame(SpeciesTotal = length(unique(x$ID)), Year = unique(x$Year))
                             }))
 
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 610 in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
   stat_smooth(method = "lm")
 
+
+### START HERE!!!  
 
 #How many years have each species been collected?
 bysp <- split(earl.sp.yr, earl.sp.yr$ID, drop=TRUE)
@@ -459,8 +461,8 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #15.47333
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
