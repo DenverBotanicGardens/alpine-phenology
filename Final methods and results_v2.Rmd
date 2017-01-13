@@ -344,10 +344,10 @@ rm(tonumeric)
 
 bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
 bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
+
 ```
 
 
-#Start here! should do the replace with _v4 first then this other stuff, right?!?! or do it below..
 Replace names with accepted by Ackerfield
 ```{r}
 synonyms2 <- read.csv("Q:/Research/Projects/alpine-phenology/synonyms2_MI.csv")
@@ -356,22 +356,27 @@ bloom2$scientificName <- multisub(synonyms2$Species,
                                     synonyms2$SYNONYMS,bloom2$scientificName)
 bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 
-fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v3.csv"),
+fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v4.csv"),
                       na.strings = c("NA", "", " "), colClasses = "character")
 
-bloom2$scientificName <- multisub(fixbloom2$Wrong,
+bloom2$scientificName <- multisub(fixbloom2$Wrong.1,
                                     fixbloom2$Replacement,bloom2$scientificName)
 bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 
-bloom2$scientificName <- multisub(fixbloom3$Wrong,
-                                    fixbloom3$Replacement,bloom2$scientificName)
-bloom2 <- bloom2[!is.na(bloom2$scientificName),]
+# This was SpellingErrorCorrections_v3plus where I must have added to Melissa's version after losing some species. I think the loss is from linking to traits, will add that in after pick species iwth 10 years or more data
+# START HERE!!!
+#bloom2$scientificName <- multisub(fixbloom3$Wrong,
+#                                    fixbloom3$Replacement,bloom2$scientificName)
+#bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 ```
 
 #4e
-#Bloom2 post Ackerfield nomenclature
+#Bloom2 post Ackerfield nomenclature   
+need to add the linking ID numbers contained in synonyms
 ```{r}
-bloom.sp <- merge(bloom2, synonyms.plantsyn, by.x = "scientificName", by.y = "SYNONYMS")
+bloom.aftercorrections <- bloom2
+
+bloom.sp <- merge(bloom2, synonyms2, by.x = "scientificName", by.y = "Species")
 ```
 
 
@@ -379,8 +384,17 @@ After combining datasets, find species with at least 10 years of data
 ```{r}
 bloom2 <- bloom.sp
 
+
+write.table(unique(bloom2[,c("ID","Family.Name","scientificName")]),
+            file="P:/hackathon/alpine-phenology/datasets/bloom2_170113.csv", sep=",")
+
 #Collection days each year, over the years for all herbarium records
-summary(lm(startDayOfYear~Year,data=bloom2))
+ggplot(bloom2, aes(Year, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()
+
+summary(lm(startDayOfYear~Year,data=bloom2)) 
 
 #Peak collection period throughout the study
 ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+

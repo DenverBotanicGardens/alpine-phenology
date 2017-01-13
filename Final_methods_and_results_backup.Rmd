@@ -13,7 +13,6 @@ library(data.table)
 library(raster)
 require(rgdal)
 library(devtools)
-# devtools::install_github("ropensci/prism")
 library(prism)
 library(polynom)
 library(MASS)
@@ -288,7 +287,7 @@ foo[foo$Freq > 1,] # Great, no species has more than one ID
 ```{r}
 #which names are in bloom2 before merge (namebloom2) vs. after merge (bloom2$scientificName)
 badnames.o <- setdiff(namebloom2,bloom.sp$scientificName)
-length(badnames.o) #293 -> 505 (after linking plantsyn to synonyms (our version of USDA))
+length(badnames.o) #293 -> 505 (after linking plantsyn to synonyms (our version of USDA)) 290
 
 write.table(badnames.o,"clipboard", sep="\t", row.names=FALSE)
 ```
