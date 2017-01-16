@@ -364,7 +364,7 @@ bloom2$scientificName <- multisub(fixbloom2$Wrong.1,
 bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 
 # This was SpellingErrorCorrections_v3plus where I must have added to Melissa's version after losing some species. I think the loss is from linking to traits, will add that in after pick species iwth 10 years or more data
-# START HERE!!!
+
 #bloom2$scientificName <- multisub(fixbloom3$Wrong,
 #                                    fixbloom3$Replacement,bloom2$scientificName)
 #bloom2 <- bloom2[!is.na(bloom2$scientificName),]
@@ -375,6 +375,18 @@ bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 need to add the linking ID numbers contained in synonyms
 ```{r}
 bloom.aftercorrections <- bloom2
+
+## One set of collection in SEINet entered as 02/07/1996 should be July 2, not Feb 7th.
+bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1996] <- 184
+
+#entered wrong in SEINet
+bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" & 
+                        bloom2$Year == 1999 &
+                        bloom2$startDayOfYear < 100] <- 203
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
+
+
 
 #synonyms is the current USDA plant list that we have at DBG
 bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
@@ -387,7 +399,7 @@ bloom2 <- bloom.sp
 
 
 write.table(unique(bloom2[,c("ID","Family.Name","scientificName")]),
-            file="P:/hackathon/alpine-phenology/datasets/bloom2_170113.csv", sep=",")
+            file="P:/hackathon/alpine-phenology/datasets/bloom2_170116.csv", sep=",")
 
 #Collection days each year, over the years for all herbarium records
 ggplot(bloom2, aes(Year, startDayOfYear))+
@@ -432,6 +444,8 @@ earl.sp.yr <- do.call(rbind,
                         })
 )
 
+earl.sp.yr[earl.sp.yr$startDayOfYear < 100,]
+
 #How many species were collected each year? For all specimens
 byyr <- split(earl.sp.yr, earl.sp.yr$Year, drop=TRUE)
 
@@ -446,8 +460,6 @@ ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
   stat_smooth(method = "lm")
 
-
-### START HERE!!!  
 
 #How many years have each species been collected?
 bysp <- split(earl.sp.yr, earl.sp.yr$ID, drop=TRUE)
@@ -466,17 +478,33 @@ mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 468
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480
 ```
 
 #Results: 3rd para
 ```{r}
 # earliest collections for species with 10+ yrs data
 summary(lm(startDayOfYear~Year, data=sp.10plus))
+
+ggplot(sp.10plus, aes(Year, startDayOfYear))+
+  geom_point()+
+  theme_bw()+
+  stat_smooth(method="lm")
+
+# Seems legit??
+sp.10plus[sp.10plus$startDayOfYear < 100,]
 ```
 
+### START HERE --- move this after the table making begins!
+### DON't need this until making the final tables...
 # Select the accepted name (according to USDA)
 ```{r}
+plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
+                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
+# Merge is an exact match, that's what we want
+synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
+synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
+
 #First change names according to Ackerfield
 allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
 length(unique(synonyms.plantsyn$ID)) #5497
@@ -495,46 +523,25 @@ unique(min1950_2[min1950_2$ID %in% grep(paste("^", paste(missingIDs, collapse="|
                                  min1950_2$ID, value=TRUE),c("scientificName","ID")])
 ```
 
+### LATER
 Need to add these in as accpted names
 ```{r}
 accpt <- data.frame(matrix(vector(), 1, 33,
                            dimnames=list(c(), names(synonyms.plantsyn.accpt))),
                     stringsAsFactors=F)
-#Oligosporus groenlandicus  3449
-#Artemisia borealis  3449
-#accpt <- rbind(accpt,c("Artemisia campestris var. purshii",3449,rep(NA, 24),"Asteraceae","Perennial",
-#           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
-#Besseya alpina  5603
+
 accpt <- rbind(accpt,c("Besseya alpina",5603,rep(NA, 24),"Plantaginaceae","Perennial",
            "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
-#Besseya ritteriana  5608
-#accpt <- rbind(accpt,c("Besseya ritteriana",5608,rep(NA, 24),"Plantaginaceae","Perennial",
-#           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
-#Carex chalciolepis  8325
-#accpt <- rbind(accpt,c("Carex chalciolepis",8325,rep(NA, 24),"Cyperaceae","Perennial",
-#           "Graminoid","L48 (N)","Fall",rep(NA,2)))
-#Carex phaeocephala  8560
+
 accpt <- rbind(accpt,c("Carex phaeocephala",8560,rep(NA, 24),"Cyperaceae","Perennial",
            "Graminoid","L48 (N)","Fall",rep(NA,2)))
-#Askellia nana 12586
-#Crepis nana 12586
-#accpt <- rbind(accpt,c("Crepis nana",12586,rep(NA, 24),"Asteraceae","Perennial",
-#           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
-#Mertensia viridis 29023
-#Mertensia bakeri 29023
-#Mertensia lanceolata var. nivalis 29023
-#Mertensia fusiformis 29023
-#accpt <- rbind(accpt,c("Crepis nana",29023,rep(NA, 24),"Asteraceae","Perennial",
-#           "Forb/herb","L48 (N)","Fall",rep(NA,2)))
-#Poa secunda 35604
-#Poa nevadensis 35604
-#Poa sandbergii 35604
-#Poa secunda ssp. secunda 35604
+
 accpt <- rbind(accpt,c("Poa secunda",35604,rep(NA, 24),"Poaceae","Perennial",
            "Graminoid","L48 (N)","Summer",rep(NA,2)))
 accpt <- accpt[-1,]
 ```
 
+## LATER
 #just need the ID and accpt name once...
 ```{r}
 fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
@@ -553,6 +560,13 @@ unique(merge.name$Family)
 
 ```
 
+
+### START HERE###
+Instead of merging first, do this stuffs now...
+```{r}
+merge.name <- sp.10plus
+
+```
 
 #Figure 2 Year x Bloom date
 ```{r}
@@ -575,6 +589,8 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 
 ```
 
+
+### MOVE LATER
 # How many forbs vs. grasses vs. tree? How many 
 #Smaller groups for Growth.Habit
 ```{r}
