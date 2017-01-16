@@ -590,81 +590,13 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 ```
 
 
-### MOVE LATER
-# How many forbs vs. grasses vs. tree? How many 
-#Smaller groups for Growth.Habit
-```{r}
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb", 
-                                  grep("shrub", merge.name$Growth.Habit, 
-                                       value=TRUE, ignore.case=TRUE), 
-                                  value=TRUE, invert=TRUE)] <- "Shrubs"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Shrub", 
-                                  grep("Tree", merge.name$Growth.Habit, 
-                                       value=TRUE, ignore.case=TRUE), 
-                                  value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
-
-```
-
-```{r}
-GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
-GH[GH$Freq>0,]
-sum(GH$Freq)#488 -> 487
-
-# Number of Families represented!
-length(table(merge.name$Family[!duplicated(merge.name$ID)]))
-
-# Growth Habit numbers
-table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
-
-
-GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
-GD[GH$Freq>0,]
-sum(GD$Freq)#487 -> 300
-
-# Duration
-table(merge.name$Duration[!duplicated(merge.name$ID)])
-
-sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
-
-NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
-NAT[NAT$Freq>0,]
-sum(NAT$Freq)#487 -> 300
-
-# Native status
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
-
-#which are missing a native status?
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-
-```
 
 Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
 ```{r}
 
 #merge.name has only one collection per species ID per year?
 foo <- data.frame(table(merge.name$Year,merge.name$ID))
-head(foo[foo$Freq>0,])
+head(foo[foo$Freq>1,])
 
 earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
                                                 merge.name$Year)))
@@ -679,7 +611,7 @@ mean(earcol$Collections) #168.4098 -> 190.7869
 
 ```
      Year Collections
-1998 1998         426
+1998 1998         406
 
 
 #Figure 1A
@@ -700,13 +632,13 @@ ggplot(earcol, aes(Year, Collections))+
 dev.off()
 ```
 
-Average number of collections over the study period was 168.4098 species collected per year
+Average number of collections over the study period was 187 species collected per year
 ```{r}
-mean(earcol$Collections) # 190.7869
+mean(earcol$Collections) # 187.0984
 ```
  
 ```{r}
-allcollections <- data.frame(colSums(table(bloom2$scientificName,bloom2$Year)))
+allcollections <- data.frame(colSums(table(bloom2$ID,bloom2$Year)))
 allcol <- data.frame(Year = row.names(allcollections),
                      allcollections)
 colnames(allcol)[2] <- "collections"
@@ -734,9 +666,19 @@ ggplot(allcol,  aes(x = Year, y = collections))+
 dev.off()
 ```
 
+###START HERE##### warnings arrrggg
+
+
 The day each year with the most collections has on average been Julian day 206 and the day with the most collections has not moved significantly over time from 1950 to 2011. The earliest peak collection day was Julian day 175 (June 30th) in 2007 and the latest peak collection day was Julian day 238 in 1957 (August 29th)   
 ```{r}
 collJ.sp <- data.frame(table(bloom2$Year,bloom2$startDayOfYear))
+
+str(collJ.sp)
+collJ.sp[,1:3] <- sapply(collJ.sp[,1:3], function(x){
+  as.numeric()
+})
+
+coll.per.julianday <- aggregate(collJ.sp, list(collJ.sp$Var2), sum)
 
 collJ.max <- lapply(split(collJ.sp, collJ.sp$Var1), function(x) x[which.max(x$Freq),])
 collmax <- do.call(rbind,collJ.max)
@@ -955,6 +897,90 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 
 ```
 lm(formula = startDayOfYear ~ Avg_Hi, data = merge.name)
+
+
+
+
+
+
+
+
+############################################################################################
+############################################################################################
+### MOVE LATER
+# How many forbs vs. grasses vs. tree? How many 
+#Smaller groups for Growth.Habit
+```{r}
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Forb", 
+                                  grep("shrub", merge.name$Growth.Habit, 
+                                       value=TRUE, ignore.case=TRUE), 
+                                  value=TRUE, invert=TRUE)] <- "Shrubs"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Shrub", 
+                                  grep("Tree", merge.name$Growth.Habit, 
+                                       value=TRUE, ignore.case=TRUE), 
+                                  value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
+
+```
+
+```{r}
+GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
+GH[GH$Freq>0,]
+sum(GH$Freq)#488 -> 487
+
+# Number of Families represented!
+length(table(merge.name$Family[!duplicated(merge.name$ID)]))
+
+# Growth Habit numbers
+table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
+
+
+GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
+GD[GH$Freq>0,]
+sum(GD$Freq)#487 -> 300
+
+# Duration
+table(merge.name$Duration[!duplicated(merge.name$ID)])
+
+sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
+
+NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
+NAT[NAT$Freq>0,]
+sum(NAT$Freq)#487 -> 300
+
+# Native status
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
+
+#which are missing a native status?
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #0 non-native
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #0 non-native
+
+```
+
+
+############################################################################################
+############################################################################################
+
+
 
 
 # By growth type
