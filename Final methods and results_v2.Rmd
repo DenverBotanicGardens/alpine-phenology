@@ -45,7 +45,6 @@ JulBloomDate.min1950 <- function(variable,dataset){
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),
-                                    blnew$ID[1],
                                     blnew$scientificName[1],
                                     blnew$Family[1],
                                     foo1$adj.r.squared,
@@ -1296,6 +1295,10 @@ Phenology summary tables
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
 nrow(yr.1950_2) #480
+
+### Want to see how many of these species IDs are in synonyms.plantsyn
+missingfrom480 <- setdiff(yr.1950_2$ID,accptIds)
+unique(merge.name$scientificName[merge.name$ID %in% missingfrom480])
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
