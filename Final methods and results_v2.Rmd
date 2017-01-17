@@ -315,7 +315,7 @@ fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/Spellin
 
 #  #2 - after finding names that are on herbarium sheets but not in the USDA list (for a unique ID per name with synonyms and nativity, habit....) then use nomenclature from Jennifer Ackerfield's Flora (2015) and link. 
 9/30/2016 add Melissa's corrections (synonyms2) to bloom2 and synonyms (and plantsyn) before linking by  names
-# Bloom2 final
+# Bloom2 first
 ```{r}
 rm(bloom2)
 bloom2 <- rbind(seinet.bind,colo.bind) 
@@ -424,6 +424,7 @@ length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1570
 ```
 
 
+
 # how many years collected per species
 ```{r}
 
@@ -481,6 +482,288 @@ sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
 length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480
 ```
 
+
+
+#############################################################################################
+#############################################################################################
+# Select the accepted name (according to USDA)
+```{r}
+plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
+                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
+# Merge is an exact match, that's what we want
+synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
+synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
+
+#First change names according to Ackerfield
+allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
+length(unique(synonyms.plantsyn$ID)) #5497 -> 5547
+synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
+accptIds <- unique(synonyms.plantsyn.accpt$ID)
+length(unique(synonyms.plantsyn.accpt$ID)) #5444; why do we lose some?
+
+missingIDs <- setdiff(allIDs,accptIds)
+
+missingnames <- unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collapse="|"),
+                                 sp.10plus$ID, value=TRUE)])
+
+
+
+### Want to see how many of these species IDs from bloom2 are in synonyms.plantsyn
+missingfrom480 <- setdiff(yr.1950_2$ID,accptIds)
+length(missingfrom480)
+unique(merge.name$scientificName[merge.name$ID %in% missingfrom480])
+
+
+
+missingfromALL <- setdiff(unique(sp.10plus$ID), unique(synonyms.plantsyn$ID))
+length(missingfromALL)
+unique(merge.name$scientificName[merge.name$ID %in% missingfromALL])
+```
+
+ [1] "Ligularia bigelovii"                     "Noccaea montana"                        
+ [3] "Eritrichium aretioides"                  "Aster foliaceus"                        
+ [5] "Eutrema edwardsii"                       "Salix arctica"                          
+ [7] "Poa nervosa"                             "Chlorocrepis tristis"                   
+ [9] "Symphyotrichum foliaceum var. foliaceum" "Carex micropoda"                        
+[11] "Veratrum californicum"                   "Hieracium triste"                       
+[13] "Eritrichium nanum var. aretioides"
+```{r}
+
+
+synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. aretioides" ,]
+synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,] #17900 !!
+
+synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. aretioides"]<-
+synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]
+
+
+synonyms[synonyms$SYNONYMS ==  "Veratrum californicum" ,]
+synonyms[synonyms$SYNONYMS ==  "Veratrum tenuipetalum" ,]
+plantsyn$Scientific.Name[grep("Veratrum tenuipetalum", plantsyn$Scientific.Name)] <- "Veratrum californicum"
+
+synonyms$ID[synonyms$SYNONYMS=="Veratrum tenuipetalum"]<-
+synonyms$ID[synonyms$SYNONYMS=="Veratrum californicum"]
+
+synonyms[synonyms$SYNONYMS ==  "Carex micropoda" ,]
+plantsyn$Scientific.Name[grep("pyrenaica", plantsyn$Scientific.Name)] <- "Carex micropoda"
+
+#remove!
+synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. foliaceum" ,]
+
+synonyms <- synonyms[synonyms$SYNONYMS!="Symphyotrichum foliaceum var. foliaceum",]
+
+
+synonyms[synonyms$SYNONYMS ==  "Chlorocrepis tristis" ,]
+synonyms[synonyms$SYNONYMS ==  "Hieracium triste" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Chlorocrepis tristis"]<-
+synonyms$ID[synonyms$SYNONYMS=="Hieracium triste"]
+
+
+synonyms[synonyms$SYNONYMS ==  "Poa nervosa" ,]
+synonyms[synonyms$SYNONYMS ==  "Poa wheeleri" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Poa nervosa"]<-
+synonyms$ID[synonyms$SYNONYMS=="Poa wheeleri"]
+
+
+synonyms[synonyms$SYNONYMS ==  "Salix arctica" ,]
+synonyms[synonyms$SYNONYMS ==  "Salix petrophila" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Salix arctica"]<-
+synonyms$ID[synonyms$SYNONYMS=="Salix petrophila"]
+
+synonyms[synonyms$SYNONYMS ==  "Eutrema edwardsii" ,]
+synonyms[synonyms$SYNONYMS ==  "Eutrema penlandii" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Eutrema edwardsii"]<-
+synonyms$ID[synonyms$SYNONYMS=="Eutrema penlandii"]
+
+synonyms[synonyms$SYNONYMS ==  "Aster foliaceus" ,]
+synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. apricum" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Aster foliaceus"]<-
+synonyms$ID[synonyms$SYNONYMS=="Symphyotrichum foliaceum var. apricum"]
+
+
+synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,]
+synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. elongatum" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]<-
+synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. elongatum"]
+
+synonyms[synonyms$SYNONYMS ==  "Noccaea montana" ,]
+synonyms[synonyms$SYNONYMS ==  "Thlaspi montanum var. montanum" ,]
+synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Thlaspi montanum var. montanum",]
+
+synonyms$ID[synonyms$SYNONYMS=="Noccaea montana"]<-
+synonyms$ID[synonyms$SYNONYMS=="Thlaspi montanum var. montanum"]
+
+#should combine 
+synonyms[synonyms$SYNONYMS ==  "Ligularia bigelovii" ,]
+synonyms[synonyms$SYNONYMS ==  "Senecio bigelovii var. hallii" ,]
+synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii",]
+
+synonyms[synonyms$SYNONYMS ==  "Ligularia bigelovii" ,]
+synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <- synonyms.plantsyn$ID[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii"]
+
+tail(synonyms)
+
+```
+
+# Bloom2 Final
+Found issues from 480 - will be down a few but do again after synonyms and plantsyn have been 'fixed' with accepted name
+```{r}
+rm(bloom2)
+bloom2 <- rbind(seinet.bind,colo.bind) 
+proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
+bloom2$Family.Name <- proper(bloom2$Family.Name)
+bloom2 <- as.data.frame(sapply(bloom2, gsub, 
+                               pattern = "caerulea",
+                               replacement = "coerulea"))
+
+bloom2 <- as.data.frame(sapply(bloom2, gsub,
+                               pattern = "Eritrichum",
+                               replacement = "Eritrichium"))
+
+str(bloom2)
+tochar <- c(1:3) #added authority
+bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
+  as.character(ch)
+})
+rm(tochar)
+
+tonumeric <- c(4:length(bloom2))
+bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
+  as.numeric(as.character(s))
+})
+rm(tonumeric)
+
+bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
+bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
+
+synonyms2 <- read.csv("Q:/Research/Projects/alpine-phenology/synonyms2_MI.csv")
+
+bloom2$scientificName <- multisub(synonyms2$Species,
+                                    synonyms2$SYNONYMS,bloom2$scientificName)
+bloom2 <- bloom2[!is.na(bloom2$scientificName),]
+
+fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v4.csv"),
+                      na.strings = c("NA", "", " "), colClasses = "character")
+
+bloom2$scientificName <- multisub(fixbloom2$Wrong.1,
+                                    fixbloom2$Replacement,bloom2$scientificName)
+bloom2 <- bloom2[!is.na(bloom2$scientificName),]
+
+```
+
+#Bloom2 post Ackerfield nomenclature Final
+```{r}
+bloom.aftercorrections <- bloom2
+
+## One set of collection in SEINet entered as 02/07/1996 should be July 2, not Feb 7th.
+bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1996] <- 184
+
+#entered wrong in SEINet
+bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" & 
+                        bloom2$Year == 1999 &
+                        bloom2$startDayOfYear < 100] <- 203
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
+
+
+
+#synonyms is the current USDA plant list that we have at DBG
+bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
+
+```
+
+# find 10 years or more after final synonymy checked
+```{r}
+bloom2 <- bloom.sp
+
+
+write.table(unique(bloom2[,c("ID","Family.Name","scientificName")]),
+            file="P:/hackathon/alpine-phenology/datasets/bloom2_170117.csv", sep=",")
+
+#Collection days each year, over the years for all herbarium records
+ggplot(bloom2, aes(Year, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()
+
+summary(lm(startDayOfYear~Year,data=bloom2)) 
+
+#Peak collection period throughout the study
+ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab("Flowering day")+
+  xlab("")
+
+mean(bloom2$startDayOfYear, na.rm = TRUE)
+
+#how many species in dataset
+length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563
+
+```
+
+# how many years collected per species FINAL
+```{r}
+
+earl.sp.yr <- do.call(rbind,
+                      lapply(split(bloom2, bloom2$ID), function(id){
+                        id <- id[order(id$Year),]
+                        id$DataYrs <- nrow(id[!duplicated(id$Year) & !is.na(id$Year),])
+                        rows <- aggregate(startDayOfYear~Year, id, FUN=min)
+                        out <- merge(id, rows, by=c("startDayOfYear","Year"))
+                        out <- out[order(out$Year),]
+                        out <- out[!duplicated(out$Year),]
+                        out
+                        })
+)
+
+earl.sp.yr[earl.sp.yr$startDayOfYear < 100,]
+
+#How many species were collected each year? For all specimens
+byyr <- split(earl.sp.yr, earl.sp.yr$Year, drop=TRUE)
+
+species.per.year <- do.call(rbind,
+                            lapply(byyr, function(x){
+                              data.frame(SpeciesTotal = length(unique(x$ID)), Year = unique(x$Year))
+                            }))
+
+#Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 604 in 1998
+
+ggplot(species.per.year, aes( Year,SpeciesTotal))+
+  geom_point()+
+  stat_smooth(method = "lm")
+
+
+#How many years have each species been collected?
+bysp <- split(earl.sp.yr, earl.sp.yr$ID, drop=TRUE)
+
+spyears <- do.call(rbind,
+                   lapply(bysp, function(x){
+                     data.frame(DataYrs = length(unique(x$Year)),ID = unique(x$ID))
+                     })
+                   )
+
+# Still all species, not just ones with 10+ years
+spyears[which.max(spyears$DataYrs),] # 51
+spyears[which.min(spyears$DataYrs),] # 1
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 473!!
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
+
+# Now 10 plus years
+sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473
+
+```
+
+
 #Results: 3rd para
 ```{r}
 # earliest collections for species with 10+ yrs data
@@ -496,9 +779,6 @@ sp.10plus[sp.10plus$startDayOfYear < 100,]
 ```
 
 
-
-### START HERE###
-Instead of merging first, do this stuffs now...
 ```{r}
 merge.name <- sp.10plus
 
@@ -570,7 +850,7 @@ dev.off()
 
 Average number of collections over the study period was 187 species collected per year
 ```{r}
-mean(earcol$Collections) # 187.0984
+mean(earcol$Collections) # 186.1639
 ```
  
 ```{r}
@@ -875,10 +1155,6 @@ write.table(tmps, file="P:/hackathon/alpine-phenology/datasets/tmps.csv", sep=",
 
 # Now merge GDD with merge.name
 ```{r}
-nrow(merge.name[merge.name$Year > 1980,]) #6499 -> 7436
-
-#min.dates <- merge(min.dates, tmps, 
-#                   by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 
 min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
@@ -887,13 +1163,13 @@ length(unique(min1950GDD_2$scientificName)) #516
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
-yrspsp <- aggregate(gdddatayrs[,3], by = list(gdddatayrs$Var2), FUN=sum)
-nrow(yrspsp[yrspsp$x>=10,]) #308 -> 375
+yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)
+nrow(yrspsp[yrspsp$x>=10,]) #308 -> 375 -> 370
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="ID",by.y="Group.1")
-length(unique(min1950GDD_2_10$ID)) #375
+length(unique(min1950GDD_2_10$ID)) #375 -> 370
 ```
 
 ```{r}
@@ -1045,147 +1321,6 @@ summary(lm(startDayOfYear~Secant+Growth.Habit.sm, data=min1950GDDsecant2))
 ```
 
 
-#############################################################################################
-#############################################################################################
-# Select the accepted name (according to USDA)
-```{r}
-plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
-# Merge is an exact match, that's what we want
-synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
-synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
-
-#First change names according to Ackerfield
-allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
-length(unique(synonyms.plantsyn$ID)) #5497 -> 5547
-synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
-accptIds <- unique(synonyms.plantsyn.accpt$ID)
-length(unique(synonyms.plantsyn.accpt$ID)) #5444; why do we lose some?
-
-missingIDs <- setdiff(allIDs,accptIds)
-
-missingnames <- unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collapse="|"),
-                                 sp.10plus$ID, value=TRUE)])
-
-```
-
-
-Need to add these in as accpted names
-```{r}
-accpt <- data.frame(matrix(vector(), 1, 33,
-                           dimnames=list(c(), names(synonyms.plantsyn.accpt))),
-                    stringsAsFactors=F)
-
-accpt <- rbind(accpt,c("Besseya alpina",5603,rep(NA, 24),"Plantaginaceae","Perennial",
-           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
-
-accpt <- rbind(accpt,c("Carex phaeocephala",8560,rep(NA, 24),"Cyperaceae","Perennial",
-           "Graminoid","L48 (N)","Fall",rep(NA,2)))
-
-accpt <- rbind(accpt,c("Poa secunda",35604,rep(NA, 24),"Poaceae","Perennial",
-           "Graminoid","L48 (N)","Summer",rep(NA,2)))
-accpt <- accpt[-1,]
-```
-
-## LATER
-#just need the ID and accpt name once...
-```{r}
-fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
-
-cols2keep <- setdiff(names(sp.10plus),names(fin.accpt))
-head(sp.10plus[,cols2keep])
-
-merge.name <- merge(fin.accpt, sp.10plus[,c(cols2keep,"ID")], by="ID") #will keep SYNONYMS
-
-length(unique(merge.name$ID)) #402 -> 300, 468
-
-
-merge.name[merge.name$startDayOfYear < 100,] #could remove?
-
-unique(merge.name$Family)
-
-```
-
-
-#############################################################################################
-#############################################################################################
-
-
-############################################################################################
-############################################################################################
-### MOVE LATER
-# How many forbs vs. grasses vs. tree? How many 
-#Smaller groups for Growth.Habit
-```{r}
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb", 
-                                  grep("shrub", merge.name$Growth.Habit, 
-                                       value=TRUE, ignore.case=TRUE), 
-                                  value=TRUE, invert=TRUE)] <- "Shrubs"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Shrub", 
-                                  grep("Tree", merge.name$Growth.Habit, 
-                                       value=TRUE, ignore.case=TRUE), 
-                                  value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
-
-```
-
-```{r}
-GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
-GH[GH$Freq>0,]
-sum(GH$Freq)#488 -> 487
-
-# Number of Families represented!
-length(table(merge.name$Family[!duplicated(merge.name$ID)]))
-
-# Growth Habit numbers
-table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
-
-
-GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
-GD[GH$Freq>0,]
-sum(GD$Freq)#487 -> 300
-
-# Duration
-table(merge.name$Duration[!duplicated(merge.name$ID)])
-
-sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
-
-NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
-NAT[NAT$Freq>0,]
-sum(NAT$Freq)#487 -> 300
-
-# Native status
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
-
-#which are missing a native status?
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-
-```
-
-
-############################################################################################
-############################################################################################
-
 
 
 
@@ -1288,17 +1423,88 @@ npn.min1950 <- merge(npn.all, merge.name, by.x = "SciName", by.y = "SYNONYMS")
 length(unique(npn.min1950$ID)) #27
 ```
 
+############################################################################################
+############################################################################################
+### MOVE LATER
+# How many forbs vs. grasses vs. tree? How many 
+#Smaller groups for Growth.Habit
+```{r}
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
 
-############START HERE. get summary tables, then link to accepted name without losing species
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Forb", 
+                                  grep("shrub", merge.name$Growth.Habit, 
+                                       value=TRUE, ignore.case=TRUE), 
+                                  value=TRUE, invert=TRUE)] <- "Shrubs"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Shrub", 
+                                  grep("Tree", merge.name$Growth.Habit, 
+                                       value=TRUE, ignore.case=TRUE), 
+                                  value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
+
+```
+
+```{r}
+GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
+GH[GH$Freq>0,]
+sum(GH$Freq)#488 -> 487
+
+# Number of Families represented!
+length(table(merge.name$Family[!duplicated(merge.name$ID)]))
+
+# Growth Habit numbers
+table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
+
+
+GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
+GD[GH$Freq>0,]
+sum(GD$Freq)#487 -> 300
+
+# Duration
+table(merge.name$Duration[!duplicated(merge.name$ID)])
+
+sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
+
+NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
+NAT[NAT$Freq>0,]
+sum(NAT$Freq)#487 -> 300
+
+# Native status
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
+
+#which are missing a native status?
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #0 non-native
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #0 non-native
+
+```
+
+
+############################################################################################
+############################################################################################
+
+
+
 Phenology summary tables    
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
 nrow(yr.1950_2) #480
-
-### Want to see how many of these species IDs are in synonyms.plantsyn
-missingfrom480 <- setdiff(yr.1950_2$ID,accptIds)
-unique(merge.name$scientificName[merge.name$ID %in% missingfrom480])
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
