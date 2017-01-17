@@ -45,6 +45,7 @@ JulBloomDate.min1950 <- function(variable,dataset){
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),
+                                    blnew$ID[1],
                                     blnew$scientificName[1],
                                     blnew$Family[1],
                                     foo1$adj.r.squared,
@@ -495,70 +496,6 @@ ggplot(sp.10plus, aes(Year, startDayOfYear))+
 sp.10plus[sp.10plus$startDayOfYear < 100,]
 ```
 
-### START HERE --- move this after the table making begins!
-### DON't need this until making the final tables...
-# Select the accepted name (according to USDA)
-```{r}
-plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
-# Merge is an exact match, that's what we want
-synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
-synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
-
-#First change names according to Ackerfield
-allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
-length(unique(synonyms.plantsyn$ID)) #5497
-synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
-accptIds <- unique(synonyms.plantsyn.accpt$ID)
-length(unique(synonyms.plantsyn.accpt$ID)) #5452
-
-missingIDs <- setdiff(allIDs,accptIds)
-
-missingnames <- unique(min1950_2$scientificName[min1950_2$ID %in% grep(paste(missingIDs, collapse="|"),
-                                 min1950_2$ID, value=TRUE)])
-
-
-# Which accepted names aren't one of the names in the 10 plus species?
-unique(min1950_2[min1950_2$ID %in% grep(paste("^", paste(missingIDs, collapse="|"), "$", sep=""),
-                                 min1950_2$ID, value=TRUE),c("scientificName","ID")])
-```
-
-### LATER
-Need to add these in as accpted names
-```{r}
-accpt <- data.frame(matrix(vector(), 1, 33,
-                           dimnames=list(c(), names(synonyms.plantsyn.accpt))),
-                    stringsAsFactors=F)
-
-accpt <- rbind(accpt,c("Besseya alpina",5603,rep(NA, 24),"Plantaginaceae","Perennial",
-           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
-
-accpt <- rbind(accpt,c("Carex phaeocephala",8560,rep(NA, 24),"Cyperaceae","Perennial",
-           "Graminoid","L48 (N)","Fall",rep(NA,2)))
-
-accpt <- rbind(accpt,c("Poa secunda",35604,rep(NA, 24),"Poaceae","Perennial",
-           "Graminoid","L48 (N)","Summer",rep(NA,2)))
-accpt <- accpt[-1,]
-```
-
-## LATER
-#just need the ID and accpt name once...
-```{r}
-fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
-
-cols2keep <- setdiff(names(sp.10plus),names(fin.accpt))
-head(sp.10plus[,cols2keep])
-
-merge.name <- merge(fin.accpt, sp.10plus[,c(cols2keep,"ID")], by="ID") #will keep SYNONYMS
-
-length(unique(merge.name$ID)) #402 -> 300, 468
-
-
-merge.name[merge.name$startDayOfYear < 100,] #could remove?
-
-unique(merge.name$Family)
-
-```
 
 
 ### START HERE###
@@ -666,27 +603,28 @@ ggplot(allcol,  aes(x = Year, y = collections))+
 dev.off()
 ```
 
-###START HERE##### warnings arrrggg
-
 
 The day each year with the most collections has on average been Julian day 206 and the day with the most collections has not moved significantly over time from 1950 to 2011. The earliest peak collection day was Julian day 175 (June 30th) in 2007 and the latest peak collection day was Julian day 238 in 1957 (August 29th)   
 ```{r}
 collJ.sp <- data.frame(table(bloom2$Year,bloom2$startDayOfYear))
 
 str(collJ.sp)
-collJ.sp[,1:3] <- sapply(collJ.sp[,1:3], function(x){
-  as.numeric()
+
+collJ.sp[,1:2] <- sapply(collJ.sp[,1:2], function(x){
+  as.numeric.factor(x)
 })
 
-coll.per.julianday <- aggregate(collJ.sp, list(collJ.sp$Var2), sum)
+coll.per.julianday <- aggregate(collJ.sp$Freq, list(collJ.sp$Var2), sum)
+coll.per.julianday[which.max(coll.per.julianday$x),]
 
+# split the number of collections per Julian day by year, find which day had the most each year
 collJ.max <- lapply(split(collJ.sp, collJ.sp$Var1), function(x) x[which.max(x$Freq),])
 collmax <- do.call(rbind,collJ.max)
 collmax[,1:2]<-sapply(collmax[,1:2], function(x) as.numeric(as.character(x)))
 
 mean(collmax$Var2)
-collmax[which.min(collmax$Var2),]
-collmax[which.max(collmax$Var2),]
+collmax[which.min(collmax$Var2),] # smallest Julian day with most collections
+collmax[which.max(collmax$Var2),] # biggest julian day with most collections
 summary(lm(Var2~Var1, data=collmax))
 
 ```
@@ -727,14 +665,6 @@ cor.test(unbloom[,3],unbloom[,4])
 
 ```
 
-Segmented test
-```{r}
-segmented.start.year <- segmented(lm(startDayOfYear~Year, data=merge.name), 
-                                  seg.Z = ~Year, psi=1980)
-summary(segmented.start.year)
-slope(segmented.start.year)
-```
-U1.Year is the difference in slopes between the first and second segment. So if your coefficients are Year = 0.18110 and U1.x = -0.53408, then the slope of the second segment is -0.53408+0.18110 = -0.35298. Using the slope(segmented.mod) command will give you the slopes of each segment, which should match the above calculation.
 
 
 #Figure 3A  
@@ -759,29 +689,6 @@ dev.off()
 summary(lm(Avg_Hi~Year, data=unbloom))
 ```
 
-Segmented test
-```{r}
-segmented.Avg_Hi.year <- segmented(lm(Avg_Hi~Year, data=unbloom), 
-                                  seg.Z = ~Year, 
-                                  psi= list(Year = c(1985,2000)))
-summary(segmented.Avg_Hi.year)
-slope(segmented.Avg_Hi.year)
-segmented.Avg_Hi.year$psi #1994.5 and 2001.3
-#Fitted data
-seg.fit <- fitted(segmented.Avg_Hi.year)
-seg.model <- data.frame(Year = unbloom$Year, Avg_Hi = seg.fit)
-
-#plot fitted model
-ggplot(unbloom, aes(Year,Avg_Hi))+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  geom_point(shape=1)+
-  theme_bw()+
-  xlab("Year")+
-  ylab(expression("Average High Temperature"~degree*C)) + #ylab(expression("Average high temperature"~degree~C))
-  scale_x_continuous(breaks = seq(1950,2011,10))+
-  geom_line(data = seg.model, aes(Year,Avg_Hi), colour = "tomato")
-```
-<https://rpubs.com/MarkusLoew/12164> 
 
 #Figure 3B
 ```{r}
@@ -805,30 +712,7 @@ summary(lm(Avg_Lo~Year, data = unbloom))
 
 ```
 
-Segmented test
-```{r}
-segmented.Avg_Lo.year <- segmented(lm(Avg_Lo~Year, data=unbloom), 
-                                  seg.Z = ~Year, 
-                                  psi= 1980)
-summary(segmented.Avg_Lo.year)
-slope(segmented.Avg_Lo.year)
-segmented.Avg_Lo.year$psi #1988.3
-#Fitted data
-seg.fit <- fitted(segmented.Avg_Lo.year)
-seg.model <- data.frame(Year = unbloom$Year, Avg_Lo = seg.fit)
 
-#plot fitted model
-ggplot(unbloom, aes(Year,Avg_Lo))+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  geom_point(shape=1)+
-#  stat_smooth(geom = "smooth")+
-  theme_bw()+
-#  labs(title="Average High Temperature by Year")+
-  xlab("Year")+
-  ylab(expression(~degree~C)) + #ylab(expression("Average high temperature"~degree~C))
-  scale_x_continuous(breaks = seq(1950,2011,10))+
-  geom_line(data = seg.model, aes(Year,Avg_Lo), colour = "tomato")
-```
 
 #Figure 3C   
 ```{r}
@@ -851,30 +735,7 @@ summary(lm(Raw_Precip~Year, data = unbloom))
 
 ```
 
-Segmented test
-```{r}
-segmented.Raw_Precip.year <- segmented(lm(Raw_Precip~Year, data=unbloom), 
-                                  seg.Z = ~Year, 
-                                  psi= 1965)
-summary(segmented.Raw_Precip.year)
-slope(segmented.Raw_Precip.year)
-segmented.Raw_Precip.year$psi
-#Fitted data
-seg.fit <- fitted(segmented.Raw_Precip.year)
-seg.model <- data.frame(Year = unbloom$Year, Raw_Precip = seg.fit)
 
-#plot fitted model
-ggplot(unbloom, aes(Year,Raw_Precip))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-#  stat_smooth(geom = "smooth")+
-  theme_bw()+
-#  labs(title="Average High Temperature by Year")+
-  xlab("Year")+
-  ylab("Precipitation (mm)")+
-  scale_x_continuous(breaks = seq(1950,2011,10))+
-  geom_line(data = seg.model, aes(Year,Raw_Precip), colour = "tomato")
-```
 
 #Figure 4A  
 ```{r}
@@ -896,120 +757,7 @@ dev.off()
 summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
 
 ```
-lm(formula = startDayOfYear ~ Avg_Hi, data = merge.name)
 
-
-
-
-
-
-
-
-############################################################################################
-############################################################################################
-### MOVE LATER
-# How many forbs vs. grasses vs. tree? How many 
-#Smaller groups for Growth.Habit
-```{r}
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb", 
-                                  grep("shrub", merge.name$Growth.Habit, 
-                                       value=TRUE, ignore.case=TRUE), 
-                                  value=TRUE, invert=TRUE)] <- "Shrubs"
-
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Shrub", 
-                                  grep("Tree", merge.name$Growth.Habit, 
-                                       value=TRUE, ignore.case=TRUE), 
-                                  value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
-
-```
-
-```{r}
-GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
-GH[GH$Freq>0,]
-sum(GH$Freq)#488 -> 487
-
-# Number of Families represented!
-length(table(merge.name$Family[!duplicated(merge.name$ID)]))
-
-# Growth Habit numbers
-table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
-
-
-GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
-GD[GH$Freq>0,]
-sum(GD$Freq)#487 -> 300
-
-# Duration
-table(merge.name$Duration[!duplicated(merge.name$ID)])
-
-sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
-
-NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
-NAT[NAT$Freq>0,]
-sum(NAT$Freq)#487 -> 300
-
-# Native status
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
-
-#which are missing a native status?
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-
-```
-
-
-############################################################################################
-############################################################################################
-
-
-
-
-# By growth type
-```{r}
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm",size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree*C))+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
-
-```
-
-# By family
-```{r}
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Family))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm",size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree*C))+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
-
-```
 
 
 
@@ -1033,19 +781,6 @@ summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
 ```
 
 
-```{r}
-ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Family))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Low Temperature") +
-  xlab(expression(~degree~C))+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
-```
-
 #Figure 4C
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
@@ -1067,19 +802,6 @@ summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
 ```
 
 
-```{r}
-ggplot(merge.name, aes(Raw_Precip, startDayOfYear, colour = Family))+
-  geom_point()+
-  stat_smooth(method="lm", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Precipitation") +
-  xlab("Precipitation (mm)")+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-summary(lm(startDayOfYear~Raw_Precip+Family, data = merge.name))
-
-```
 
 Growing Degree Days   
 ```{r, eval=FALSE}
@@ -1216,19 +938,6 @@ summary(lm(HDD~Year, data=min1950GDD_2_10))
 ```
 
 
-```{r}
-ggplot(min1950GDD_2_10, aes(Year,HDD, colour=Family))+
-  geom_point()+
-  stat_smooth(method = "lm")+
-  theme_bw()+
-#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
-  xlab("Year")+
-  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
-  theme(legend.position="none")
-
-summary(lm(HDD~Year+Family, data=min1950GDD_2_10))
-```
-
 Growing Degree Days over time
 ```{r}
 
@@ -1336,6 +1045,223 @@ summary(lm(startDayOfYear~Secant+Growth.Habit.sm, data=min1950GDDsecant2))
 
 ```
 
+
+#############################################################################################
+#############################################################################################
+# Select the accepted name (according to USDA)
+```{r}
+plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
+                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
+# Merge is an exact match, that's what we want
+synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
+synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
+
+#First change names according to Ackerfield
+allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
+length(unique(synonyms.plantsyn$ID)) #5497 -> 5547
+synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
+accptIds <- unique(synonyms.plantsyn.accpt$ID)
+length(unique(synonyms.plantsyn.accpt$ID)) #5444; why do we lose some?
+
+missingIDs <- setdiff(allIDs,accptIds)
+
+missingnames <- unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collapse="|"),
+                                 sp.10plus$ID, value=TRUE)])
+
+```
+
+
+Need to add these in as accpted names
+```{r}
+accpt <- data.frame(matrix(vector(), 1, 33,
+                           dimnames=list(c(), names(synonyms.plantsyn.accpt))),
+                    stringsAsFactors=F)
+
+accpt <- rbind(accpt,c("Besseya alpina",5603,rep(NA, 24),"Plantaginaceae","Perennial",
+           "Forb/herb","L48 (N)","Late Summer",rep(NA,2)))
+
+accpt <- rbind(accpt,c("Carex phaeocephala",8560,rep(NA, 24),"Cyperaceae","Perennial",
+           "Graminoid","L48 (N)","Fall",rep(NA,2)))
+
+accpt <- rbind(accpt,c("Poa secunda",35604,rep(NA, 24),"Poaceae","Perennial",
+           "Graminoid","L48 (N)","Summer",rep(NA,2)))
+accpt <- accpt[-1,]
+```
+
+## LATER
+#just need the ID and accpt name once...
+```{r}
+fin.accpt <- rbind(synonyms.plantsyn.accpt,accpt)
+
+cols2keep <- setdiff(names(sp.10plus),names(fin.accpt))
+head(sp.10plus[,cols2keep])
+
+merge.name <- merge(fin.accpt, sp.10plus[,c(cols2keep,"ID")], by="ID") #will keep SYNONYMS
+
+length(unique(merge.name$ID)) #402 -> 300, 468
+
+
+merge.name[merge.name$startDayOfYear < 100,] #could remove?
+
+unique(merge.name$Family)
+
+```
+
+
+#############################################################################################
+#############################################################################################
+
+
+############################################################################################
+############################################################################################
+### MOVE LATER
+# How many forbs vs. grasses vs. tree? How many 
+#Smaller groups for Growth.Habit
+```{r}
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Forb", 
+                                  grep("shrub", merge.name$Growth.Habit, 
+                                       value=TRUE, ignore.case=TRUE), 
+                                  value=TRUE, invert=TRUE)] <- "Shrubs"
+
+merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+                             grep("Shrub", 
+                                  grep("Tree", merge.name$Growth.Habit, 
+                                       value=TRUE, ignore.case=TRUE), 
+                                  value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
+
+```
+
+```{r}
+GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
+GH[GH$Freq>0,]
+sum(GH$Freq)#488 -> 487
+
+# Number of Families represented!
+length(table(merge.name$Family[!duplicated(merge.name$ID)]))
+
+# Growth Habit numbers
+table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
+
+
+GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
+GD[GH$Freq>0,]
+sum(GD$Freq)#487 -> 300
+
+# Duration
+table(merge.name$Duration[!duplicated(merge.name$ID)])
+
+sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
+
+NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
+NAT[NAT$Freq>0,]
+sum(NAT$Freq)#487 -> 300
+
+# Native status
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
+
+#which are missing a native status?
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
+length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #0 non-native
+length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
+                                             invert=TRUE)])) #0 non-native
+
+```
+
+
+############################################################################################
+############################################################################################
+
+
+
+
+# By growth type
+```{r}
+ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm",size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression("Average high"~degree*C))+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+
+```
+
+# By family
+```{r}
+ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Family))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm",size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression("Average high"~degree*C))+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+
+```
+
+
+```{r}
+ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Family))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Low Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
+```
+
+```{r}
+ggplot(merge.name, aes(Raw_Precip, startDayOfYear, colour = Family))+
+  geom_point()+
+  stat_smooth(method="lm", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+summary(lm(startDayOfYear~Raw_Precip+Family, data = merge.name))
+
+```
+
+
+```{r}
+ggplot(min1950GDD_2_10, aes(Year,HDD, colour=Family))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
+  theme(legend.position="none")
+
+summary(lm(HDD~Year+Family, data=min1950GDD_2_10))
+```
+
+
+
 NPN species   
 (from Climate)    
 ```{r}
@@ -1363,11 +1289,13 @@ npn.min1950 <- merge(npn.all, merge.name, by.x = "SciName", by.y = "SYNONYMS")
 length(unique(npn.min1950$ID)) #27
 ```
 
+
+############START HERE. get summary tables, then link to accepted name without losing species
 Phenology summary tables    
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
-nrow(yr.1950_2) #404
+nrow(yr.1950_2) #480
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
