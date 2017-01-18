@@ -496,27 +496,18 @@ synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
 
 #First change names according to Ackerfield
 allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
-length(unique(synonyms.plantsyn$ID)) #5497 -> 5547
+
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
-length(unique(synonyms.plantsyn.accpt$ID)) #5444; why do we lose some?
 
-missingIDs <- setdiff(allIDs,accptIds)
+
+# sp.10plus == merge.name but might need to check it here, not made yet
+missingIDs <- setdiff(unique(sp.10plus$ID),accptIds)
 
 missingnames <- unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collapse="|"),
                                  sp.10plus$ID, value=TRUE)])
 
 
-
-### Want to see how many of these species IDs from bloom2 are in synonyms.plantsyn
-missingfrom480 <- setdiff(yr.1950_2$ID,accptIds)
-length(missingfrom480)
-unique(merge.name$scientificName[merge.name$ID %in% missingfrom480])
-
-
-
-missingfromALL <- setdiff(unique(sp.10plus$ID), unique(synonyms.plantsyn$ID))
-length(missingfromALL)
 unique(merge.name$scientificName[merge.name$ID %in% missingfromALL])
 ```
 
@@ -1158,8 +1149,9 @@ write.table(tmps, file="P:/hackathon/alpine-phenology/datasets/tmps.csv", sep=",
 
 min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
-length(unique(min1950GDD_2$day)) #1110
-length(unique(min1950GDD_2$scientificName)) #516
+length(unique(min1950GDD_2$day)) #1137
+length(unique(min1950GDD_2$scientificName)) #641
+length(unique(min1950GDD_2$ID)) #473
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
@@ -1213,20 +1205,6 @@ summary(lm(HDD~Year, data=min1950GDD_2_10))
 ```
 
 
-Growing Degree Days over time
-```{r}
-
-ggplot(unbloomGDD, aes(Year,avgHDD))+
-  geom_point()+
-  stat_smooth(method = "lm")+
-  theme_bw()+
-#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
-  xlab("Year")+
-  ylab("average annual GDD")
-
-summary(lm(avgHDD~Year, data=unbloomGDD))
-```
-
 ```{r}
 totalGDD <- lapply(HDD.yrs, function(x){
   max(x)
@@ -1254,147 +1232,6 @@ summary(lm(MaxGDD~Year,data=totalGDDyr))
 ```
 
 
-#Fig.
-```{r}
-col.hdd.yrs <- lapply(HDD.yrs, function(x) x[1:273])
-col.hdd.yrs <- do.call(cbind,col.hdd.yrs)
-meltd<-melt(col.hdd.yrs)
-names(meltd) <- c("Day","Year","GDD")
-
-#meltd is from Results figures and tables.Rmd
-fit1 <- lapply(unique(meltd$Year), function(x){
-  stepAIC(lm(GDD~Day+I(Day^2), data=meltd[meltd$Year==x,]),
-          scope = lm(GDD~1, data=meltd[meltd$Year==x,]),
-          direction = "backward")
-})
-
-poly.p <- lapply(fit1, function(fx){
-  polynomial(coef(fx))
-})
-sday <- 1
-eday <- 273
-
-secant.poly <- lapply(poly.p,function(x){
-  ((as.function(x)(eday)+1000) - (as.function(x)(sday)+1000))/(eday-sday)
-})
-secant.poly.all <- data.frame(Year=1981:2011, 
-                              Secant= do.call(rbind,secant.poly))
-
-ggplot(secant.poly.all, aes(Year,Secant))+
-  geom_point()+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  theme_bw()+
-  ylab("Average rate of change in GDD (day 1 to 273)")
-
-summary(lm(Secant~Year, data=secant.poly.all))
-
-```
-
-#Secant instead of max 
-```{r}
-min1950GDDsecant2 <- merge(min1950GDD_2_10, secant.poly.all,by="Year")
-head(min1950GDDsecant2)
-
-ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear))+
-  geom_point()+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
-  xlab("Average rate of GDD accumulation")+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~Secant, data=min1950GDDsecant2))
-
-```
-
-```{r}
-ggplot(min1950GDDsecant2, aes(Secant,startDayOfYear, colour=Growth.Habit.sm))+
-  geom_point()+
-  stat_smooth(method="lm", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by average rate of GDD accumulation") +
-  xlab("Average rate of GDD accumulation")+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~Secant+Growth.Habit.sm, data=min1950GDDsecant2))
-
-```
-
-
-
-
-
-# By growth type
-```{r}
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm",size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree*C))+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
-
-```
-
-# By family
-```{r}
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Family))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm",size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree*C))+
-  ylab("Ordinal Date")
-
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
-
-```
-
-
-```{r}
-ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Family))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Low Temperature") +
-  xlab(expression(~degree~C))+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
-```
-
-```{r}
-ggplot(merge.name, aes(Raw_Precip, startDayOfYear, colour = Family))+
-  geom_point()+
-  stat_smooth(method="lm", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Precipitation") +
-  xlab("Precipitation (mm)")+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-summary(lm(startDayOfYear~Raw_Precip+Family, data = merge.name))
-
-```
-
-
-```{r}
-ggplot(min1950GDD_2_10, aes(Year,HDD, colour=Family))+
-  geom_point()+
-  stat_smooth(method = "lm")+
-  theme_bw()+
-#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
-  xlab("Year")+
-  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
-  theme(legend.position="none")
-
-summary(lm(HDD~Year+Family, data=min1950GDD_2_10))
-```
-
-
 
 NPN species   
 (from Climate)    
@@ -1406,26 +1243,22 @@ npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
 #although lots of these might not have 10 years    
 #Match names - synonyms and all
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big) #68
+length(npn.big) #68 -> 76
 
 npn.all$SciName <- multisub(synonyms2$Species,
                                     synonyms2$SYNONYMS,npn.all$SciName)
 npn.all <- npn.all[!is.na(npn.all$SciName),]
 
-npn.all$SciName <- multisub(fixbloom3$Wrong,
-                                    fixbloom3$Replacement,npn.all$SciName)
-npn.all <- npn.all[!is.na(npn.all$SciName),]
-
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big) #68
+length(npn.big) #68 -> 76
 
-npn.min1950 <- merge(npn.all, merge.name, by.x = "SciName", by.y = "SYNONYMS")
-length(unique(npn.min1950$ID)) #27
+npn.min1950 <- merge(npn.all, merge.name, by.x = "SciName", by.y = "scientificName")
+length(unique(npn.min1950$ID)) #29
 ```
 
 ############################################################################################
 ############################################################################################
-### MOVE LATER
+
 # How many forbs vs. grasses vs. tree? How many 
 #Smaller groups for Growth.Habit
 ```{r}
@@ -1494,22 +1327,94 @@ length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
 
 ```
 
+# By growth type
+```{r}
+ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm",size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression("Average high"~degree*C))+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+
+```
+
+# Need to pick accepted name and family names first!
+# By family
+```{r}
+ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Family.Name))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm",size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression("Average high"~degree*C))+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+
+```
+
+
+```{r}
+ggplot(merge.name, aes(Avg_Lo, startDayOfYear, colour = Family))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Low Temperature") +
+  xlab(expression(~degree~C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+summary(lm(startDayOfYear~Avg_Lo+Growth.Habit.sm, data = merge.name))
+```
+
+```{r}
+ggplot(merge.name, aes(Raw_Precip, startDayOfYear, colour = Family))+
+  geom_point()+
+  stat_smooth(method="lm", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+summary(lm(startDayOfYear~Raw_Precip+Family, data = merge.name))
+
+```
+
+
+```{r}
+ggplot(min1950GDD_2_10, aes(Year,HDD, colour=Family))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()+
+#  labs(title= expression("Cumulative GDD (Tbase = 0"~degree*C~")"))+
+  xlab("Year")+
+  ylab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
+  theme(legend.position="none")
+
+summary(lm(HDD~Year+Family, data=min1950GDD_2_10))
+```
+
+
+
 
 ############################################################################################
 ############################################################################################
-
 
 
 Phenology summary tables    
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
 
-nrow(yr.1950_2) #480
+nrow(yr.1950_2) #473
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #410
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #58
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #416
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #57
 
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
 
