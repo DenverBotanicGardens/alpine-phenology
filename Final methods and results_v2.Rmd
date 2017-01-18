@@ -491,26 +491,70 @@ length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480
 plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
                         header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
 # Merge is an exact match, that's what we want
+
+f <- sapply(plantsyn, is.factor)
+plantsyn[f] <- lapply(plantsyn[f], as.character)
+
+#Remove auct. non. 
+plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
+                       grep("auct.", plantsyn$Genera.Binomial.Author,
+                            value = TRUE, invert = TRUE),]
+# in as non Poir, want real Anemone mutifida as accepted name, not synonym for Pulsatilla patens ssp. multifida
+plantsyn$Synonym.Symbol[plantsyn$Synonym.Symbol == "ANMU8"] <- ""
+
+# plantsyn is missing both the synonym Chlorocrepis tristis and accepted name Hieracium triste.
+plantsyn <- rbind(plantsyn, c("HITR2","","HITR2","Hieracium triste","","Hieracium","",
+                              "triste","","",
+                              "","","","","","","","","","","","","","",
+                              "Asteraceae","Perennial","Forb/herb",
+                              "L48 (N), AK (N), CAN (N)", "Late Summer",
+                              "",""))
+
+synonyms$ID <- as.numeric(synonyms$ID)
+synonyms$ID[synonyms$SYNONYMS == "Carex atrata"] <- synonyms$ID[synonyms$SYNONYMS == "Carex heteroneura"]
+synonyms$SYNONYMS[synonyms$SYNONYMS == "Carex atrata"] <- synonyms$SYNONYMS[synonyms$SYNONYMS == "Carex heteroneura"]
+
+rm(synonyms.plantsyn, synonyms.plantsyn.accpt)
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
-
-#First change names according to Ackerfield
-allIDs <- unique(synonyms.plantsyn$ID) # all the unique IDs within both USDA plant list and 
-
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
+str(synonyms.plantsyn.accpt)
+synonyms.plantsyn.accpt$ID   <- as.numeric(synonyms.plantsyn.accpt$ID)
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
 
 
 # sp.10plus == merge.name but might need to check it here, not made yet
 missingIDs <- setdiff(unique(sp.10plus$ID),accptIds)
+unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, collapse="|"),
+                                                       merge.name$ID, value=TRUE)])
 
-missingnames <- unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collapse="|"),
-                                 sp.10plus$ID, value=TRUE)])
+missingIDs[1] # Carex atrata L. non should be Carex heteroneura
+synonyms[synonyms$ID == missingIDs[1],]
+synonyms[synonyms$SYNONYMS == "Carex heteroneura",]
+bloom.sp[bloom.sp$ID == missingIDs[2],]
+synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],]  
+
+plantsyn[plantsyn$Scientific.Name == "Carex heteroneura",]
+plantsyn[plantsyn$Accepted.Symbol == "CAHE8",]
 
 
-unique(merge.name$scientificName[merge.name$ID %in% missingfromALL])
+synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$Scientific.Name %in% synonyms.plantsyn.accpt$SYNONYMS[synonyms$ID == missingIDs[2]],]
+
+plantsyn[plantsyn$Scientific.Name %in% synonyms$SYNONYMS[synonyms$ID == missingIDs[2]],]
+synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2],]
+
 ```
 
+# Need to check Family names are the accepted names!!
+
+# Names missing from plantsyn (but they ARE there?!) somehow not merged with sp.10plus == merge.name
+[1] "Potentilla fruticosa"  "Antennaria parvifolia" "Antennaria umbrinella"       
+"Chlorocrepis tristis"      "Carex atrata"          "Carex micropoda"      
+"Veratrum californicum"     "Hieracium triste"  [9] "Dasiphora fruticosa"        
+"Veratrum tenuipetalum"
+
+
+# Names that were in bloom2 (herbarium sheets) but not in synonym list
  [1] "Ligularia bigelovii"                     "Noccaea montana"                        
  [3] "Eritrichium aretioides"                  "Aster foliaceus"                        
  [5] "Eutrema edwardsii"                       "Salix arctica"                          
