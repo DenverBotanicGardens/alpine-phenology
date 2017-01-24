@@ -635,6 +635,13 @@ synonyms[synonyms$SYNONYMS ==  "Ligularia bigelovii" ,]
 synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <-
   synonyms.plantsyn$ID[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii"]
 
+rm(synonyms.plantsyn, synonyms.plantsyn.accpt)
+synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
+synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
+synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
+str(synonyms.plantsyn.accpt)
+synonyms.plantsyn.accpt$ID   <- as.numeric(synonyms.plantsyn.accpt$ID)
+
 ```
 
 #6
@@ -699,6 +706,14 @@ bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" &
 
 bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
 
+bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1998] <- 183
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 8 & bloom2$Year == 2001] <- 213 #Aug 1, 2001
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 66 & bloom2$Year == 2009] <- 184 #July 3, 2009
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 2004] <- 185 #July 3, 2004 leap year
+
 #synonyms is the current USDA plant list that we have at DBG
 bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 ```
@@ -762,7 +777,7 @@ species.per.year <- do.call(rbind,
                             }))
 
 #Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 604 in 1998
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
@@ -781,14 +796,12 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 473!!
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.03178
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
 length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 
-
-# Don't have accepted names START HERE
 
 ```
 
@@ -803,7 +816,7 @@ ggplot(sp.10plus, aes(Year, startDayOfYear))+
   theme_bw()+
   stat_smooth(method="lm")
 
-# Seems legit??
+# Maybe? March 11th
 sp.10plus[sp.10plus$startDayOfYear < 100,]
 ```
 
@@ -812,6 +825,49 @@ sp.10plus[sp.10plus$startDayOfYear < 100,]
 merge.name <- sp.10plus
 
 ```
+
+#10   
+Accpted name link it up!   
+START HERE!!!
+```{r}
+
+missingIDs <- setdiff(unique(sp.10plus$ID),accptIds)
+unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, collapse="|"),
+                                                       merge.name$ID, value=TRUE)])
+
+# All the names associated with IDs that are in sp.10plus but not in synonyms.plantsyn.accpt... need to have as accepted name
+#"Antennaria parvifolia" "Carex micropoda" "Veratrum californicum" "Veratrum tenuipetalum"
+#"Carex pyrenaica"-> C. micropoda anyway
+#"Carex pyrenaica ssp. pyrenaica" "Carex crandallii" 
+
+missingIDs[1] # 2389 # want to keep Antennaria parvifolia in despite Ackerfield's claim it's not above 3200m. It is in FNA and ITIS
+synonyms[synonyms$ID == missingIDs[1],]
+synonyms[synonyms$SYNONYMS == "Antennaria parvifolia",]
+bloom.sp[bloom.sp$ID == missingIDs[1],]
+synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[1],] 
+synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[1], ] 
+synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
+                                 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Antennaria parvifolia",])
+
+synonyms[synonyms$ID == missingIDs[2],] #8591
+synonyms[synonyms$SYNONYMS == "Carex micropoda",]
+bloom.sp[bloom.sp$ID == missingIDs[2],]
+synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],] 
+synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2], ] 
+synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
+                                 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",])
+
+synonyms[synonyms$ID == missingIDs[3],] #46683
+synonyms[synonyms$SYNONYMS == "Veratrum californicum",]
+bloom.sp[bloom.sp$ID == missingIDs[3],]
+synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[3],] 
+synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[3], ] 
+merge.name[merge.name$ID == missingIDs[3],]
+
+merge.name[merge.name$scientificName == "Veratrum tenuipetalum",] 
+```
+
+
 
 #Figure 2 Year x Bloom date
 ```{r}
