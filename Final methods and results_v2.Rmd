@@ -227,6 +227,7 @@ bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
 rm(tonumeric)
 ```
 
+#1
 ## 3. Remove any herbarium specimens with Genus only
 remove genus only, 241 records of only genus
 ```{r}
@@ -313,7 +314,8 @@ fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/Spellin
 
 ```
 
-#  #2 - after finding names that are on herbarium sheets but not in the USDA list (for a unique ID per name with synonyms and nativity, habit....) then use nomenclature from Jennifer Ackerfield's Flora (2015) and link. 
+#2
+#  after finding names that are on herbarium sheets but not in the USDA list (for a unique ID per name with synonyms and nativity, habit....) then use nomenclature from Jennifer Ackerfield's Flora (2015) and link. 
 9/30/2016 add Melissa's corrections (synonyms2) to bloom2 and synonyms (and plantsyn) before linking by  names
 # Bloom2 first
 ```{r}
@@ -347,7 +349,7 @@ bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$s
 
 ```
 
-
+#3
 Replace names with accepted by Ackerfield
 ```{r}
 synonyms2 <- read.csv("Q:/Research/Projects/alpine-phenology/synonyms2_MI.csv")
@@ -484,7 +486,7 @@ length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480
 ```
 
 
-
+#5
 #############################################################################################
 #############################################################################################
 # Select the accepted name (according to USDA)
@@ -635,6 +637,7 @@ synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <-
 
 ```
 
+#6
 # Bloom2 Final
 Found issues from 480 - will be down a few but do again after synonyms and plantsyn have been 'fixed' with accepted name
 ```{r}
@@ -681,6 +684,7 @@ bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 
 ```
 
+#7
 #Bloom2 post Ackerfield nomenclature Final
 ```{r}
 bloom.aftercorrections <- bloom2
@@ -695,24 +699,18 @@ bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" &
 
 bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
 
-
-### START HERE!!! did all those fixes to synonyms.plantsyn.accpt should link to that instead of synonyms???
 #synonyms is the current USDA plant list that we have at DBG
-bloom.synonyms <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
-bloom.synonyms.plantsyn.accpt <- 
-  merge(bloom2, synonyms.plantsyn.accpt, by.x = "scientificName", by.y = "SYNONYMS")
-
 bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
-
 ```
 
+#8
 # find 10 years or more after final synonymy checked
 ```{r}
 bloom2 <- bloom.sp
 
 
 write.table(unique(bloom2[,c("ID","Family.Name","scientificName")]),
-            file="P:/hackathon/alpine-phenology/datasets/bloom2_synplaccpt.csv", sep=",")
+            file="P:/hackathon/alpine-phenology/datasets/bloom2.csv", sep=",")
 
 #Collection days each year, over the years for all herbarium records
 ggplot(bloom2, aes(Year, startDayOfYear))+
@@ -732,11 +730,12 @@ ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
 mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918
-length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 -> crap, when linked to synonyms.plantsyn.accpt have only 1268! should do that link later later later!
+length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 
 
 ```
 
+#9
 # how many years collected per species FINAL
 ```{r}
 
@@ -787,7 +786,9 @@ mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 ## START HERE update paper!
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 
+
+# Don't have accepted names START HERE
 
 ```
 
