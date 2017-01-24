@@ -393,7 +393,8 @@ bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 ```
 
 
-After combining datasets, find species with at least 10 years of data
+After combining datasets, find species with at least 10 years of data    
+Check on collections earlier than April 9/10 (Julian day 100) - not so likely to be in bloom colleciton, some are typos
 ```{r}
 bloom2 <- bloom.sp
 
@@ -533,16 +534,6 @@ synonyms[synonyms$ID == missingIDs[1],]
 synonyms[synonyms$SYNONYMS == "Carex heteroneura",]
 bloom.sp[bloom.sp$ID == missingIDs[2],]
 synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],]  
-
-plantsyn[plantsyn$Scientific.Name == "Carex heteroneura",]
-plantsyn[plantsyn$Accepted.Symbol == "CAHE8",]
-
-
-synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$Scientific.Name %in% synonyms.plantsyn.accpt$SYNONYMS[synonyms$ID == missingIDs[2]],]
-
-plantsyn[plantsyn$Scientific.Name %in% synonyms$SYNONYMS[synonyms$ID == missingIDs[2]],]
-synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2],]
-
 ```
 
 # Need to check Family names are the accepted names!!
@@ -553,7 +544,7 @@ synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2],]
 "Veratrum californicum"     "Hieracium triste"  [9] "Dasiphora fruticosa"        
 "Veratrum tenuipetalum"
 
-
+# Not the same - fixed above now??? 
 # Names that were in bloom2 (herbarium sheets) but not in synonym list
  [1] "Ligularia bigelovii"                     "Noccaea montana"                        
  [3] "Eritrichium aretioides"                  "Aster foliaceus"                        
@@ -566,18 +557,18 @@ synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2],]
 
 
 synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. aretioides" ,]
-synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,] #17900 !!
+synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,] #17900 !! now both 17897
 
-synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. aretioides"]<-
-synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]
+#synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. aretioides"]<-
+#synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]
 
+# Snow - synonyms, V. californicum accepted in Ackerfield
+synonyms[synonyms$SYNONYMS ==  "Veratrum californicum" ,] #46683
+synonyms[synonyms$SYNONYMS ==  "Veratrum tenuipetalum" ,] #46691
 
-synonyms[synonyms$SYNONYMS ==  "Veratrum californicum" ,]
-synonyms[synonyms$SYNONYMS ==  "Veratrum tenuipetalum" ,]
 plantsyn$Scientific.Name[grep("Veratrum tenuipetalum", plantsyn$Scientific.Name)] <- "Veratrum californicum"
-
 synonyms$ID[synonyms$SYNONYMS=="Veratrum tenuipetalum"]<-
-synonyms$ID[synonyms$SYNONYMS=="Veratrum californicum"]
+  synonyms$ID[synonyms$SYNONYMS=="Veratrum californicum"]
 
 synonyms[synonyms$SYNONYMS ==  "Carex micropoda" ,]
 plantsyn$Scientific.Name[grep("pyrenaica", plantsyn$Scientific.Name)] <- "Carex micropoda"
@@ -592,47 +583,46 @@ synonyms[synonyms$SYNONYMS ==  "Chlorocrepis tristis" ,]
 synonyms[synonyms$SYNONYMS ==  "Hieracium triste" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Chlorocrepis tristis"]<-
-synonyms$ID[synonyms$SYNONYMS=="Hieracium triste"]
+  synonyms$ID[synonyms$SYNONYMS=="Hieracium triste"]
 
 
 synonyms[synonyms$SYNONYMS ==  "Poa nervosa" ,]
 synonyms[synonyms$SYNONYMS ==  "Poa wheeleri" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Poa nervosa"]<-
-synonyms$ID[synonyms$SYNONYMS=="Poa wheeleri"]
+  synonyms$ID[synonyms$SYNONYMS=="Poa wheeleri"]
 
 
 synonyms[synonyms$SYNONYMS ==  "Salix arctica" ,]
 synonyms[synonyms$SYNONYMS ==  "Salix petrophila" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Salix arctica"]<-
-synonyms$ID[synonyms$SYNONYMS=="Salix petrophila"]
+  synonyms$ID[synonyms$SYNONYMS=="Salix petrophila"]
 
 synonyms[synonyms$SYNONYMS ==  "Eutrema edwardsii" ,]
 synonyms[synonyms$SYNONYMS ==  "Eutrema penlandii" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Eutrema edwardsii"]<-
-synonyms$ID[synonyms$SYNONYMS=="Eutrema penlandii"]
+  synonyms$ID[synonyms$SYNONYMS=="Eutrema penlandii"]
 
 synonyms[synonyms$SYNONYMS ==  "Aster foliaceus" ,]
 synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. apricum" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Aster foliaceus"]<-
-synonyms$ID[synonyms$SYNONYMS=="Symphyotrichum foliaceum var. apricum"]
-
+  synonyms$ID[synonyms$SYNONYMS=="Symphyotrichum foliaceum var. apricum"]
 
 synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,]
 synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. elongatum" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]<-
-synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. elongatum"]
+  synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. elongatum"]
 
 synonyms[synonyms$SYNONYMS ==  "Noccaea montana" ,]
 synonyms[synonyms$SYNONYMS ==  "Thlaspi montanum var. montanum" ,]
 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Thlaspi montanum var. montanum",]
 
 synonyms$ID[synonyms$SYNONYMS=="Noccaea montana"]<-
-synonyms$ID[synonyms$SYNONYMS=="Thlaspi montanum var. montanum"]
+  synonyms$ID[synonyms$SYNONYMS=="Thlaspi montanum var. montanum"]
 
 #should combine 
 synonyms[synonyms$SYNONYMS ==  "Ligularia bigelovii" ,]
@@ -640,9 +630,8 @@ synonyms[synonyms$SYNONYMS ==  "Senecio bigelovii var. hallii" ,]
 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii",]
 
 synonyms[synonyms$SYNONYMS ==  "Ligularia bigelovii" ,]
-synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <- synonyms.plantsyn$ID[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii"]
-
-tail(synonyms)
+synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <-
+  synonyms.plantsyn$ID[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii"]
 
 ```
 
@@ -707,8 +696,12 @@ bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" &
 bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
 
 
-
+### START HERE!!! did all those fixes to synonyms.plantsyn.accpt should link to that instead of synonyms???
 #synonyms is the current USDA plant list that we have at DBG
+bloom.synonyms <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
+bloom.synonyms.plantsyn.accpt <- 
+  merge(bloom2, synonyms.plantsyn.accpt, by.x = "scientificName", by.y = "SYNONYMS")
+
 bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 
 ```
@@ -719,7 +712,7 @@ bloom2 <- bloom.sp
 
 
 write.table(unique(bloom2[,c("ID","Family.Name","scientificName")]),
-            file="P:/hackathon/alpine-phenology/datasets/bloom2_170117.csv", sep=",")
+            file="P:/hackathon/alpine-phenology/datasets/bloom2_synplaccpt.csv", sep=",")
 
 #Collection days each year, over the years for all herbarium records
 ggplot(bloom2, aes(Year, startDayOfYear))+
@@ -740,7 +733,7 @@ mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918
-length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 -> crap, when linked to synonyms.plantsyn.accpt have only 1268! should do that link later later later!
 
 ```
 
@@ -794,7 +787,7 @@ mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 ## START HERE update paper!
 
 ```
 
@@ -858,11 +851,11 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #168.4098 -> 190.7869
+mean(earcol$Collections) #168.4098 -> 185.9672
 
 ```
      Year Collections
-1998 1998         406
+1998 1998         399
 
 
 #Figure 1A
