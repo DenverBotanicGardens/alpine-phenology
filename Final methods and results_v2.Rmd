@@ -99,10 +99,12 @@ colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,sep=" ")
 colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
 # Select only reprodutive or post reproductive records
-repro <- c("Flr","Bulblets","Seed","Fr")
+repro <- c("Flr","Bulblets","Seed","Fr","Bud")
 colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
                                                                 colo$Reproductive.Status,
-                                                                value=TRUE)),]
+                                                                value=TRUE,ignore.case = TRUE)),]
+
+table(colo.sm$Reproductive.Status)
 
 colo.sm <- colo[,c(1,5,40,13,31,32,21,22,23,24)] #added 5 = Authority
 names(colo.sm)
@@ -155,7 +157,6 @@ repro <- c("Fl","fr","Fert","fl","Fr")
 seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
                                                              seinet$reproductiveCondition,
                                                              value=TRUE)),]
-
 seinet.sm <- seinet[,c(12,14,13,56,63:64,31,73,34)]
 
 # get to 1950-2011
@@ -264,30 +265,16 @@ synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRU
 # Agroelymus adamsii is in there twice with all the same information
 synonyms <- unique(synonyms) # gets rid of 13 rows
 
-# Check for more than one ID for a species name 
-bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
-
-foo <- table(synonyms$SYNONYMS)
-foo[foo > 1]
-
-# Acarospora squamulosa twice, one with "sensu Th. Fr." two differnt IDs - lichen, remove all
-# Aletris japonica, "nom. obsc." with two same ID
-#Alisma lanceolatum either A. Gray or different ID with "With." <- git rid of "With."
-synonyms[synonyms$SYNONYMS == names(foo[foo>1][1]),]
-synonyms[synonyms$SYNONYMS == names(foo[foo>1][11]),]
-bloom2[bloom2$scientificName == names(foo[foo>1][2]),] #not in there, don't worry about it
-namesinbloom2 <- unique(bloom2$scientificName[bloom2$scientificName %in% names(foo[foo>1])])
-
 # find to get rid of thse but doesn't appear in herbarium records
-synonyms <- synonyms[synonyms$SYNONYMS != "Acarospora squamulosa",] #lichen
-synonyms <- synonyms[synonyms$AUTH != "Alisma lanceolatum With.",] #UDSA plants has this one only in CA
+#synonyms <- synonyms[synonyms$SYNONYMS != "Acarospora squamulosa",] #lichen
+#synonyms <- synonyms[synonyms$AUTH != "Alisma lanceolatum With.",] #UDSA plants has this one only in CA
 
 # These two do!
 synonyms <- synonyms[synonyms$AUTH != "Aster foliaceus Lindl. ex DC., database artifact",]
 takeoutAste <- which(synonyms$AUTH == "" & synonyms$SYNONYMS == "Astragalus tenellus")
 synonyms <- synonyms[-takeoutAste,]
 
-rm(bloom.sp)
+
 bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 
 ```
@@ -319,7 +306,7 @@ fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/Spellin
 9/30/2016 add Melissa's corrections (synonyms2) to bloom2 and synonyms (and plantsyn) before linking by  names
 # Bloom2 first
 ```{r}
-rm(bloom2)
+rm(bloom2, bloom.sp)
 bloom2 <- rbind(seinet.bind,colo.bind) 
 proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
 bloom2$Family.Name <- proper(bloom2$Family.Name)
@@ -365,11 +352,6 @@ bloom2$scientificName <- multisub(fixbloom2$Wrong.1,
                                     fixbloom2$Replacement,bloom2$scientificName)
 bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 
-# This was SpellingErrorCorrections_v3plus where I must have added to Melissa's version after losing some species. I think the loss is from linking to traits, will add that in after pick species iwth 10 years or more data
-
-#bloom2$scientificName <- multisub(fixbloom3$Wrong,
-#                                    fixbloom3$Replacement,bloom2$scientificName)
-#bloom2 <- bloom2[!is.na(bloom2$scientificName),]
 ```
 
 #4e
@@ -388,6 +370,13 @@ bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" &
 
 bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
 
+bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1998] <- 183
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 8 & bloom2$Year == 2001] <- 213 #Aug 1, 2001
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 66 & bloom2$Year == 2009] <- 184 #July 3, 2009
+
+bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 2004] <- 185 #July 3, 2004 leap year
 
 
 #synonyms is the current USDA plant list that we have at DBG
@@ -396,13 +385,15 @@ bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 
 
 After combining datasets, find species with at least 10 years of data    
-Check on collections earlier than April 9/10 (Julian day 100) - not so likely to be in bloom colleciton, some are typos
+Check on collections earlier than April 9/10 (Julian day 100) - not so likely to be in bloom colleciton, some are typos  
+mean collection date for all herbarium records (not just >10 years of data)
 ```{r}
+rm(bloom2)
 bloom2 <- bloom.sp
 
 
-write.table(unique(bloom2[,c("ID","Family.Name","scientificName")]),
-            file="P:/hackathon/alpine-phenology/datasets/bloom2_170116.csv", sep=",")
+write.table(unique(bloom2),
+            file="P:/hackathon/alpine-phenology/datasets/bloom2_170125.csv", sep=",")
 
 #Collection days each year, over the years for all herbarium records
 ggplot(bloom2, aes(Year, startDayOfYear))+
@@ -419,7 +410,7 @@ ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
   ylab("Flowering day")+
   xlab("")
 
-mean(bloom2$startDayOfYear, na.rm = TRUE)
+mean(bloom2$startDayOfYear, na.rm = TRUE) #207.588
 
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918
@@ -430,11 +421,6 @@ length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1570
 
 # how many years collected per species
 ```{r}
-
-temp.split <- split(bloom2, bloom2$ID)
-temp.split$`43359`
-id <- temp.split$`43359`[order(temp.split$`43359`$Year),]
-id
 
 earl.sp.yr <- do.call(rbind,
                       lapply(split(bloom2, bloom2$ID), function(id){
@@ -517,7 +503,6 @@ synonyms$ID <- as.numeric(synonyms$ID)
 synonyms$ID[synonyms$SYNONYMS == "Carex atrata"] <- synonyms$ID[synonyms$SYNONYMS == "Carex heteroneura"]
 synonyms$SYNONYMS[synonyms$SYNONYMS == "Carex atrata"] <- synonyms$SYNONYMS[synonyms$SYNONYMS == "Carex heteroneura"]
 
-rm(synonyms.plantsyn, synonyms.plantsyn.accpt)
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
@@ -527,18 +512,21 @@ accptIds <- unique(synonyms.plantsyn.accpt$ID)
 
 
 # sp.10plus == merge.name but might need to check it here, not made yet
+sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
 missingIDs <- setdiff(unique(sp.10plus$ID),accptIds)
-unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, collapse="|"),
-                                                       merge.name$ID, value=TRUE)])
+unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collapse="|"),
+                                                       sp.10plus$ID, value=TRUE)])
 
-missingIDs[1] # Carex atrata L. non should be Carex heteroneura
-synonyms[synonyms$ID == missingIDs[1],]
-synonyms[synonyms$SYNONYMS == "Carex heteroneura",]
-bloom.sp[bloom.sp$ID == missingIDs[2],]
-synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],]  
+###when clearing at the beginning (rm(ls)), get stuck here, this was circular! Taking this from below
 ```
 
 # Need to check Family names are the accepted names!!
+
+# Names missing 
+"Antennaria parvifolia"             "Carex atrata"        "Carex micropoda"     "Eritrichium aretioides"     
+"Eritrichium nanum var. aretioides" "Eutrema edwardsii"   "Chlorocrepis tristis"     
+"Noccaea montana"                   "Poa nervosa"         "Salix arctica"       "Ligularia bigelovii"     
+"Aster foliaceus"                   "Symphyotrichum foliaceum var. foliaceum"   "Veratrum californicum" 
 
 # Names missing from plantsyn (but they ARE there?!) somehow not merged with sp.10plus == merge.name
 [1] "Potentilla fruticosa"  "Antennaria parvifolia" "Antennaria umbrinella"       
@@ -568,7 +556,9 @@ synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,] #17900 !! now both 17
 synonyms[synonyms$SYNONYMS ==  "Veratrum californicum" ,] #46683
 synonyms[synonyms$SYNONYMS ==  "Veratrum tenuipetalum" ,] #46691
 
-plantsyn$Scientific.Name[grep("Veratrum tenuipetalum", plantsyn$Scientific.Name)] <- "Veratrum californicum"
+plantsyn[grep("Veratrum tenuipetalum", plantsyn$Scientific.Name),]
+plantsyn$Scientific.Name[grep("Veratrum tenuipetalum", plantsyn$Scientific.Name)] <- 
+  "Veratrum californicum"
 synonyms$ID[synonyms$SYNONYMS=="Veratrum tenuipetalum"]<-
   synonyms$ID[synonyms$SYNONYMS=="Veratrum californicum"]
 
@@ -805,6 +795,12 @@ length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472
 
 ```
 
+Previous naming conventions switched between 'merge.name' and 'sp.10plus' They are the same
+```{r}
+merge.name <- sp.10plus
+
+```
+
 
 #Results: 3rd para
 ```{r}
@@ -821,19 +817,28 @@ sp.10plus[sp.10plus$startDayOfYear < 100,]
 ```
 
 
-```{r}
-merge.name <- sp.10plus
-
-```
-
 #10   
 Accpted name link it up!   
 START HERE!!!
+merge.name and sp.10plus are identical
 ```{r}
-
-missingIDs <- setdiff(unique(sp.10plus$ID),accptIds)
+accptIds <- unique(synonyms.plantsyn.accpt$ID)
+missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # what is in sp.10plus that isn't in accptIds
 unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, collapse="|"),
                                                        merge.name$ID, value=TRUE)])
+
+#but are they in synonyms.plantsyn??
+accptIDs.synpla <- unique(synonyms.plantsyn$ID)
+missingIDs.synpla <- setdiff(unique(sp.10plus$ID),accptIDs.synpla)
+unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs.synpla, collapse="|"),
+                                                       merge.name$ID, value=TRUE)])
+
+###  [1] "Carex atrata"                           "Carex pyrenaica"                        
+###  [3] "Eritrichium aretioides"                 "Eritrichium nanum var. aretioides"      
+###  [5] "Eutrema edwardsii"                      "Chlorocrepis tristis"                   
+###  [7] "Noccaea montana"                        "Poa nervosa"                            
+###  [9] "Salix arctica"                          "Ligularia bigelovii"                    
+###  [11] "Aster foliaceus"                       "Symphyotrichum foliaceum var. foliaceum"
 
 # All the names associated with IDs that are in sp.10plus but not in synonyms.plantsyn.accpt... need to have as accepted name
 #"Antennaria parvifolia" "Carex micropoda" "Veratrum californicum" "Veratrum tenuipetalum"
@@ -849,13 +854,18 @@ synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[1], ]
 synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
                                  synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Antennaria parvifolia",])
 
-synonyms[synonyms$ID == missingIDs[2],] #8591
-synonyms[synonyms$SYNONYMS == "Carex micropoda",]
-bloom.sp[bloom.sp$ID == missingIDs[2],]
-synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],] 
-synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2], ] 
-synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
-                                 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",])
+####################################################################
+#### START HERE ### once synonomy (accpted names) are set, then can go through and finish info for paper!!
+bloom.sp[bloom.sp$ID == 8105,]
+
+# Not in the list anymore!!! ARRRGGGG 
+#synonyms[synonyms$ID == missingIDs[2],] #8591
+#synonyms[synonyms$SYNONYMS == "Carex micropoda",]
+#bloom.sp[bloom.sp$ID == missingIDs[2],]
+#synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],] 
+#synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2], ] 
+#synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
+#                                 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",])
 
 synonyms[synonyms$ID == missingIDs[3],] #46683
 synonyms[synonyms$SYNONYMS == "Veratrum californicum",]
