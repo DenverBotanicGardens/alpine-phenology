@@ -388,12 +388,13 @@ After combining datasets, find species with at least 10 years of data
 Check on collections earlier than April 9/10 (Julian day 100) - not so likely to be in bloom colleciton, some are typos  
 mean collection date for all herbarium records (not just >10 years of data)
 ```{r}
+bloomfoo <- bloom2
 rm(bloom2)
 bloom2 <- bloom.sp
 
 
 write.table(unique(bloom2),
-            file="P:/hackathon/alpine-phenology/datasets/bloom2_170125.csv", sep=",")
+            file="P:/hackathon/alpine-phenology/datasets/bloom2_170126.csv", sep=",")
 
 #Collection days each year, over the years for all herbarium records
 ggplot(bloom2, aes(Year, startDayOfYear))+
@@ -434,7 +435,7 @@ earl.sp.yr <- do.call(rbind,
                         })
 )
 
-earl.sp.yr[earl.sp.yr$startDayOfYear < 100,]
+earl.sp.yr[earl.sp.yr$startDayOfYear < 100,] # Abies concolor, Picea engelmannii, and Tetradymia stenolepis
 
 #How many species were collected each year? For all specimens
 byyr <- split(earl.sp.yr, earl.sp.yr$Year, drop=TRUE)
@@ -484,6 +485,9 @@ plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510
 f <- sapply(plantsyn, is.factor)
 plantsyn[f] <- lapply(plantsyn[f], as.character)
 
+#A. Remove Antennaria parvifolia sensu Greene, non Nutt. 
+plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author != "sensu Greene, non Nutt.",]
+
 #Remove auct. non. 
 plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
                        grep("auct.", plantsyn$Genera.Binomial.Author,
@@ -523,7 +527,7 @@ unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collaps
 # Need to check Family names are the accepted names!!
 
 # Names missing 
-"Antennaria parvifolia"             "Carex atrata"        "Carex micropoda"     "Eritrichium aretioides"     
+"Antennaria parvifolia" (A above)   "Carex atrata"        "Carex micropoda"     "Eritrichium aretioides"     
 "Eritrichium nanum var. aretioides" "Eutrema edwardsii"   "Chlorocrepis tristis"     
 "Noccaea montana"                   "Poa nervosa"         "Salix arctica"       "Ligularia bigelovii"     
 "Aster foliaceus"                   "Symphyotrichum foliaceum var. foliaceum"   "Veratrum californicum" 
@@ -544,6 +548,15 @@ unique(sp.10plus$scientificName[sp.10plus$ID %in% grep(paste(missingIDs, collaps
 [11] "Veratrum californicum"                   "Hieracium triste"                       
 [13] "Eritrichium nanum var. aretioides"
 ```{r}
+missingIDs[2] #8105
+synonyms[synonyms$ID == 8105,] #not in there!
+bloom.sp[bloom.sp$ID == 8105,]
+plantsyn[plantsyn$Scientific.Name == "Antennaria parvifolia",]
+
+
+synonyms[synonyms$ID == 2389,]
+bloom.sp[bloom.sp$ID == 2389,]
+plantsyn[plantsyn$Scientific.Name == "Antennaria parvifolia",]
 
 
 synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. aretioides" ,]
@@ -819,7 +832,6 @@ sp.10plus[sp.10plus$startDayOfYear < 100,]
 
 #10   
 Accpted name link it up!   
-START HERE!!!
 merge.name and sp.10plus are identical
 ```{r}
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
@@ -857,6 +869,7 @@ synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt,
 ####################################################################
 #### START HERE ### once synonomy (accpted names) are set, then can go through and finish info for paper!!
 bloom.sp[bloom.sp$ID == 8105,]
+
 
 # Not in the list anymore!!! ARRRGGGG 
 #synonyms[synonyms$ID == missingIDs[2],] #8591

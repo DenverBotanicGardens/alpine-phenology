@@ -1,0 +1,38 @@
+---
+title: "Code in one block"
+author: "Michelle DePrenger-Levin"
+date: "January 27, 2017"
+output: html_document
+---
+load libraries   
+```{r}
+library(RCurl)
+library(ggplot2)
+library(data.table)
+library(raster)
+require(rgdal)
+library(devtools)
+# devtools::install_github("ropensci/prism")
+library(prism)
+library(polynom)
+library(MASS)
+# install.packages("segmented")
+library(segmented)
+library(Taxonstand)
+```
+
+#Fresh start
+Save the GDD variables - those take hours to calculate/extract
+```{r, eval=FALSE}
+rm(list= setdiff(ls(), c("avgTemps.max","avgTemps.min","tmps","HDD","HDD.all", "HDD.yrs")))
+```
+
+Herbarium collections linked with synonomy
+```{r}
+
+
+
+```
+
+
+Figures and Tables
