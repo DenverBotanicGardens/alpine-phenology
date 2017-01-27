@@ -597,6 +597,8 @@ synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica"] <-
   synonyms$ID[synonyms$SYNONYMS == "Carex micropoda"] 
 synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <- 
   synonyms$ID[synonyms$SYNONYMS == "Carex micropoda"] 
+synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Carex crandallii"] 
 
   
 
@@ -798,7 +800,7 @@ species.per.year <- do.call(rbind,
                             }))
 
 #Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 in 1998
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 (604) in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
@@ -846,6 +848,9 @@ unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, colla
 # Carex pyrenaica and C. pyrenaica ssp. pyrenaica shoudl be C. micropoda 
 #[1] "Carex atrata"  =8105     "Carex pyrenaica"  =8590   "Carex pyrenaica ssp. pyrenaica" =8592
 #[4] "Carex crandallii" = 8592
+
+bloom2[bloom2$scientificName == "Carex crandallii",] #8592
+synonyms[synonyms$ID == 8592,]
 
 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",] #8591, want 8590 and 8592 to both be 8591
 
@@ -899,6 +904,8 @@ merge.name[merge.name$ID == missingIDs[3],]
 
 merge.name[merge.name$scientificName == "Veratrum tenuipetalum",] 
 ```
+
+
 
 
 # To the manuscript! 
