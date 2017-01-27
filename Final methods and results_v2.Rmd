@@ -504,8 +504,16 @@ plantsyn <- rbind(plantsyn, c("HITR2","","HITR2","Hieracium triste","","Hieraciu
                               "",""))
 
 synonyms$ID <- as.numeric(synonyms$ID)
-synonyms$ID[synonyms$SYNONYMS == "Carex atrata"] <- synonyms$ID[synonyms$SYNONYMS == "Carex heteroneura"]
-synonyms$SYNONYMS[synonyms$SYNONYMS == "Carex atrata"] <- synonyms$SYNONYMS[synonyms$SYNONYMS == "Carex heteroneura"]
+
+######## do this to bloom2 ###########
+bloom2 <- bloom2[bloom2$scientificName != "Carex atrata",]
+
+bloom2[bloom2$scientificName == "Carex atrata",]
+plantsyn[plantsyn$Scientific.Name == "Carex atrata",]
+plantsyn[plantsyn$Scientific.Name == "Carex heteroneura var. epapillosa",] #syn according to USDA Plants only
+
+bloom2[bloom2$ID == 8105,]
+synonyms[synonyms$ID == 8105,]
 
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
@@ -558,12 +566,17 @@ synonyms[synonyms$ID == 2389,]
 bloom.sp[bloom.sp$ID == 2389,]
 plantsyn[plantsyn$Scientific.Name == "Antennaria parvifolia",]
 
-
+# Eritrichium aretioides and Eritrichium nanum var. aretioides; Snow -> Eritrichium nanum var. elongatum from Eritrichium nanum var. aretioides and Eritrichum aretioides; Ackerfield -> Eritrichium nanum var. elongatum
 synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. aretioides" ,]
 synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,] #17900 !! now both 17897
+bloom2[bloom2$ID == 17897,]
+plantsyn[grep("Eritrichium", plantsyn$Scientific.Name),]
 
-#synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. aretioides"]<-
-#synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]
+synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,]
+synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. elongatum" ,]
+
+synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]<-
+  synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. elongatum"]
 
 # Snow - synonyms, V. californicum accepted in Ackerfield
 synonyms[synonyms$SYNONYMS ==  "Veratrum californicum" ,] #46683
@@ -575,6 +588,8 @@ plantsyn$Scientific.Name[grep("Veratrum tenuipetalum", plantsyn$Scientific.Name)
 synonyms$ID[synonyms$SYNONYMS=="Veratrum tenuipetalum"]<-
   synonyms$ID[synonyms$SYNONYMS=="Veratrum californicum"]
 
+# "Carex atrata" - throw it out, auct p.p. non L. 
+# Carex micropoda in Snow: -> Carex pyrenaica ssp pyrenaica; Plants -> C. pyrenaica ssp micropoda but not in CO;  Ackerfield -> C. micropoda accpt (from C. pyrenaica Wahl.)
 synonyms[synonyms$SYNONYMS ==  "Carex micropoda" ,]
 plantsyn$Scientific.Name[grep("pyrenaica", plantsyn$Scientific.Name)] <- "Carex micropoda"
 
@@ -583,27 +598,28 @@ synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. foliaceum" ,]
 
 synonyms <- synonyms[synonyms$SYNONYMS!="Symphyotrichum foliaceum var. foliaceum",]
 
-
+# Ackerfield
 synonyms[synonyms$SYNONYMS ==  "Chlorocrepis tristis" ,]
 synonyms[synonyms$SYNONYMS ==  "Hieracium triste" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Chlorocrepis tristis"]<-
   synonyms$ID[synonyms$SYNONYMS=="Hieracium triste"]
 
-
+# good
 synonyms[synonyms$SYNONYMS ==  "Poa nervosa" ,]
 synonyms[synonyms$SYNONYMS ==  "Poa wheeleri" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Poa nervosa"]<-
   synonyms$ID[synonyms$SYNONYMS=="Poa wheeleri"]
 
-
+# good
 synonyms[synonyms$SYNONYMS ==  "Salix arctica" ,]
 synonyms[synonyms$SYNONYMS ==  "Salix petrophila" ,]
 
 synonyms$ID[synonyms$SYNONYMS=="Salix arctica"]<-
   synonyms$ID[synonyms$SYNONYMS=="Salix petrophila"]
 
+# Ackerfield has E. penlandii
 synonyms[synonyms$SYNONYMS ==  "Eutrema edwardsii" ,]
 synonyms[synonyms$SYNONYMS ==  "Eutrema penlandii" ,]
 
@@ -616,12 +632,7 @@ synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. apricum" ,]
 synonyms$ID[synonyms$SYNONYMS=="Aster foliaceus"]<-
   synonyms$ID[synonyms$SYNONYMS=="Symphyotrichum foliaceum var. apricum"]
 
-synonyms[synonyms$SYNONYMS ==  "Eritrichium aretioides" ,]
-synonyms[synonyms$SYNONYMS ==  "Eritrichium nanum var. elongatum" ,]
-
-synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]<-
-  synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. elongatum"]
-
+# 
 synonyms[synonyms$SYNONYMS ==  "Noccaea montana" ,]
 synonyms[synonyms$SYNONYMS ==  "Thlaspi montanum var. montanum" ,]
 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Thlaspi montanum var. montanum",]
@@ -748,8 +759,8 @@ ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
 mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
-length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916
-length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 
+length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916 (1917)
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 (1563)
 
 ```
 
@@ -780,7 +791,7 @@ species.per.year <- do.call(rbind,
                             }))
 
 #Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 in 1998
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 (604) in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
@@ -799,12 +810,12 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 (473)
 mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.03178
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 (473)
 
 ```
 
@@ -812,21 +823,6 @@ Previous naming conventions switched between 'merge.name' and 'sp.10plus' They a
 ```{r}
 merge.name <- sp.10plus
 
-```
-
-
-#Results: 3rd para
-```{r}
-# earliest collections for species with 10+ yrs data
-summary(lm(startDayOfYear~Year, data=sp.10plus))
-
-ggplot(sp.10plus, aes(Year, startDayOfYear))+
-  geom_point()+
-  theme_bw()+
-  stat_smooth(method="lm")
-
-# Maybe? March 11th
-sp.10plus[sp.10plus$startDayOfYear < 100,]
 ```
 
 
@@ -838,6 +834,13 @@ accptIds <- unique(synonyms.plantsyn.accpt$ID)
 missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # what is in sp.10plus that isn't in accptIds
 unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, collapse="|"),
                                                        merge.name$ID, value=TRUE)])
+
+# want to take out C. atrata, remove 8105
+# Carex pyrenaica and C. pyrenaica ssp. pyrenaica shoudl be C. micropoda 
+#[1] "Carex atrata"  =8105     "Carex pyrenaica"  =8590   "Carex pyrenaica ssp. pyrenaica" =8592
+#[4] "Carex crandallii" = 8592
+
+synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",] #8591, want 8590 and 8592 to both be 8591
 
 #but are they in synonyms.plantsyn??
 accptIDs.synpla <- unique(synonyms.plantsyn$ID)
@@ -891,6 +894,78 @@ merge.name[merge.name$scientificName == "Veratrum tenuipetalum",]
 ```
 
 
+# To the manuscript! 
+Herbarium specimen data   
+```{r}
+# average XX species were collected per year
+#How many species were collected each year? For species with 10 or more years
+byyr.10 <- split(earl.sp.yr[earl.sp.yr$DataYrs >= 10,], earl.sp.yr$Year[earl.sp.yr$DataYrs >= 10], drop=TRUE)
+
+species.per.year.10 <- do.call(rbind,
+                            lapply(byyr.10, function(x){
+                              data.frame(SpeciesTotal = length(unique(x$ID)), Year = unique(x$Year))
+                            }))
+
+species.per.year.10[which.max(species.per.year.10$SpeciesTotal),] # 400 in 1998
+mean(species.per.year.10$SpeciesTotal) # 186
+
+```
+
+Figure 1a
+Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
+```{r}
+
+earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
+                                                merge.name$Year)))
+sort(unique(merge.name$DataYrs))
+
+earcol <- data.frame(Year = row.names(earliestcollection),
+                     Collections = earliestcollection)
+colnames(earcol)[2] <- "Collections"
+earcol[,1] <- as.numeric(levels(earcol[,1]))
+earcol[which.max(earcol$Collections),]
+mean(earcol$Collections) #168.4098 -> 185.9672
+
+```
+
+#Figure 1A
+```{r}
+dpi = 1200
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(earcol, aes(Year, Collections))+
+  geom_bar(stat="identity")+
+  xlab("Year")+
+  ylab("Number of species collected")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10)) +
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
+
+dev.off()
+```
+
+
+###########START HERE##############
+Peak collection period, which day is the peak collection day each year
+
+#Results: 3rd para
+```{r}
+# earliest collections for species with 10+ yrs data
+summary(lm(startDayOfYear~Year, data=sp.10plus))
+
+ggplot(sp.10plus, aes(Year, startDayOfYear))+
+  geom_point()+
+  theme_bw()+
+  stat_smooth(method="lm")
+
+# Maybe? March 11th
+sp.10plus[sp.10plus$startDayOfYear < 100,] # Picea engelmannii
+```
+
+
+
 
 #Figure 2 Year x Bloom date
 ```{r}
@@ -915,46 +990,6 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 
 
 
-Of the first bloom data of species that matched sampling critera, the hightest diversity of species collections were made in the 1990s and early 2000s with a peak of 449 species collected in 1998. Average over the study period was 211 alpine/subalpine species collected per year. 
-```{r}
-
-#merge.name has only one collection per species ID per year?
-foo <- data.frame(table(merge.name$Year,merge.name$ID))
-head(foo[foo$Freq>1,])
-
-earliestcollection <- data.frame(colSums(table(merge.name$ID, #should be only one name now
-                                                merge.name$Year)))
-sort(unique(merge.name$DataYrs))
-
-earcol <- data.frame(Year = row.names(earliestcollection),
-                     Collections = earliestcollection)
-colnames(earcol)[2] <- "Collections"
-earcol[,1] <- as.numeric(levels(earcol[,1]))
-earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #168.4098 -> 185.9672
-
-```
-     Year Collections
-1998 1998         399
-
-
-#Figure 1A
-```{r}
-dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
-
-ggplot(earcol, aes(Year, Collections))+
-  geom_bar(stat="identity")+
-  xlab("Year")+
-  ylab("Number of Study Species")+
-  theme_bw()+
-  theme(axis.text.x = element_text(angle=90, hjust=1))+
-  scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2010, by=10)) +
-  theme(axis.text=element_text(size=7),
-        axis.title=element_text(size=9))
-
-dev.off()
-```
 
 Average number of collections over the study period was 187 species collected per year
 ```{r}
