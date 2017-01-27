@@ -593,6 +593,13 @@ synonyms$ID[synonyms$SYNONYMS=="Veratrum tenuipetalum"]<-
 synonyms[synonyms$SYNONYMS ==  "Carex micropoda" ,]
 plantsyn$Scientific.Name[grep("pyrenaica", plantsyn$Scientific.Name)] <- "Carex micropoda"
 
+synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Carex micropoda"] 
+synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Carex micropoda"] 
+
+  
+
 #remove!
 synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. foliaceum" ,]
 
@@ -791,7 +798,7 @@ species.per.year <- do.call(rbind,
                             }))
 
 #Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 (604) in 1998
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
@@ -810,12 +817,12 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 (473)
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.03178
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.03602
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472 (473)
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472
 
 ```
 
