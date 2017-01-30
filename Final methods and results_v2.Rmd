@@ -670,6 +670,17 @@ synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <-
 synonyms$ID[synonyms$SYNONYMS == "Carex atrata"] <- 
   synonyms$ID[synonyms$SYNONYMS == "Carex chalciolepis"]
 
+
+synonyms$ID[synonyms$SYNONYMS == "Carex crandallii"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Carex micropoda"]
+
+
+synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Carex micropoda"]
+
+synonyms[synonyms$ID == 8591,]
+synonyms[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica",]
+
 rm(synonyms.plantsyn, synonyms.plantsyn.accpt)
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
@@ -781,7 +792,7 @@ mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916 (1917)
-length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 (1562)
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 (1561)
 
 ```
 
@@ -812,7 +823,7 @@ species.per.year <- do.call(rbind,
                             }))
 
 #Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 in 1998
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 602 in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
@@ -831,12 +842,12 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 -> 471
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.07219
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 -> 470
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.08085
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 471
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 470
 
 ```
 
@@ -852,9 +863,7 @@ Accpted name link it up!
 merge.name and sp.10plus are identical
 ```{r}
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
-missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # what is in sp.10plus that isn't in accptIds
-unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, collapse="|"),
-                                                       merge.name$ID, value=TRUE)])
+missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # None!! Yay!
 
 # want to take out C. atrata, remove 8105
 # Carex pyrenaica and C. pyrenaica ssp. pyrenaica shoudl be C. micropoda 
@@ -862,17 +871,17 @@ unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, colla
 #    "Carex pyrenaica ssp. pyrenaica" =8592
 #[4] "Carex crandallii" = 8592
 
+bloom2[bloom2$scientificName == "Carex pyrenaica ssp. pyrenaica",]
 bloom2[bloom2$scientificName == "Carex crandallii",] #8592
 synonyms[synonyms$ID == 8592,]
 
-synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",] #8591, want 8590 and 8592 to both be 8591
+synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",] #8591, want 8592 to be 8591
 
-missingIDs[1] # 2389 # want to keep Antennaria parvifolia in despite Ackerfield's claim it's not above 3200m. It is in FNA and ITIS
-synonyms[synonyms$ID == missingIDs[1],]
-synonyms[synonyms$SYNONYMS == "Antennaria parvifolia",]
-bloom.sp[bloom.sp$ID == missingIDs[1],]
-synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[1],] 
-synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[1], ] 
+missingIDs #8592
+synonyms[synonyms$ID == missingIDs,]
+bloom.sp[bloom.sp$ID == missingIDs,]
+synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs,] 
+synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs, ] 
 synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
                                  synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Antennaria parvifolia",])
 
