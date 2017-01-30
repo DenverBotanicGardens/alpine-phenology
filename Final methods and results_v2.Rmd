@@ -506,14 +506,23 @@ plantsyn <- rbind(plantsyn, c("HITR2","","HITR2","Hieracium triste","","Hieraciu
 synonyms$ID <- as.numeric(synonyms$ID)
 
 ######## do this to bloom2 ###########
-bloom2 <- bloom2[bloom2$scientificName != "Carex atrata",]
+TPL("Carex atrata")
+synonyms[synonyms$SYNONYMS == "Carex atrata",] #8105
+synonyms[synonyms$ID == 8105,]
+# bloom2 <- bloom2[bloom2$scientificName != "Carex atrata",] # No, it should be fine...
 
+# Per Melissa - lump Carex atrata under chalciolepis!
 bloom2[bloom2$scientificName == "Carex atrata",]
 plantsyn[plantsyn$Scientific.Name == "Carex atrata",]
 plantsyn[plantsyn$Scientific.Name == "Carex heteroneura var. epapillosa",] #syn according to USDA Plants only
+bloom2[bloom2$scientificName == "Carex chalciolepis",] #8325
+
+synonyms[synonyms$ID == 8325,]
 
 bloom2[bloom2$ID == 8105,]
 synonyms[synonyms$ID == 8105,]
+plantsyn[plantsyn$Scientific.Name == "Carex atrata",]
+
 
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
@@ -658,6 +667,9 @@ synonyms[synonyms$SYNONYMS ==  "Ligularia bigelovii" ,]
 synonyms$ID[synonyms$SYNONYMS ==  "Ligularia bigelovii"] <-
   synonyms.plantsyn$ID[synonyms.plantsyn$SYNONYMS == "Senecio bigelovii var. hallii"]
 
+synonyms$ID[synonyms$SYNONYMS == "Carex atrata"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Carex chalciolepis"]
+
 rm(synonyms.plantsyn, synonyms.plantsyn.accpt)
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
@@ -769,7 +781,7 @@ mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916 (1917)
-length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 (1563)
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 (1562)
 
 ```
 
@@ -800,7 +812,7 @@ species.per.year <- do.call(rbind,
                             }))
 
 #Before refining data to species with 10 or more years of data, peak of XX species collected in XX year
-species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 (604) in 1998
+species.per.year[which.max(species.per.year$SpeciesTotal),] #357, 398 -> 593 species total for all specimens 603 in 1998
 
 ggplot(species.per.year, aes( Year,SpeciesTotal))+
   geom_point()+
@@ -819,12 +831,12 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.03602
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 -> 471
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.07219
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 472
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 471
 
 ```
 
@@ -846,31 +858,14 @@ unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs, colla
 
 # want to take out C. atrata, remove 8105
 # Carex pyrenaica and C. pyrenaica ssp. pyrenaica shoudl be C. micropoda 
-#[1] "Carex atrata"  =8105     "Carex pyrenaica"  =8590   "Carex pyrenaica ssp. pyrenaica" =8592
+#[1] "Carex atrata"  =8105 fixed    "Carex pyrenaica"  =8590 (not in list anymore)  
+#    "Carex pyrenaica ssp. pyrenaica" =8592
 #[4] "Carex crandallii" = 8592
 
 bloom2[bloom2$scientificName == "Carex crandallii",] #8592
 synonyms[synonyms$ID == 8592,]
 
 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",] #8591, want 8590 and 8592 to both be 8591
-
-#but are they in synonyms.plantsyn??
-accptIDs.synpla <- unique(synonyms.plantsyn$ID)
-missingIDs.synpla <- setdiff(unique(sp.10plus$ID),accptIDs.synpla)
-unique(merge.name$scientificName[merge.name$ID %in% grep(paste(missingIDs.synpla, collapse="|"),
-                                                       merge.name$ID, value=TRUE)])
-
-###  [1] "Carex atrata"                           "Carex pyrenaica"                        
-###  [3] "Eritrichium aretioides"                 "Eritrichium nanum var. aretioides"      
-###  [5] "Eutrema edwardsii"                      "Chlorocrepis tristis"                   
-###  [7] "Noccaea montana"                        "Poa nervosa"                            
-###  [9] "Salix arctica"                          "Ligularia bigelovii"                    
-###  [11] "Aster foliaceus"                       "Symphyotrichum foliaceum var. foliaceum"
-
-# All the names associated with IDs that are in sp.10plus but not in synonyms.plantsyn.accpt... need to have as accepted name
-#"Antennaria parvifolia" "Carex micropoda" "Veratrum californicum" "Veratrum tenuipetalum"
-#"Carex pyrenaica"-> C. micropoda anyway
-#"Carex pyrenaica ssp. pyrenaica" "Carex crandallii" 
 
 missingIDs[1] # 2389 # want to keep Antennaria parvifolia in despite Ackerfield's claim it's not above 3200m. It is in FNA and ITIS
 synonyms[synonyms$ID == missingIDs[1],]
