@@ -950,10 +950,15 @@ peak.yr$Var1 <- as.numeric(levels(peak.yr$Var1))[peak.yr$Var1]
 mean(peak.yr$Var1) #195.5738
 ```
 
+Average number of collections over the study period was 187 species collected per year
+```{r}
+mean(earcol$Collections) # 186.1639
+```
 
 
 
-#Figure 2 Year x Bloom date
+
+#Figure 4
 ```{r}
 dpi = 1200
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
@@ -974,13 +979,6 @@ summary(lm(startDayOfYear~Year, data=merge.name))
 
 ```
 
-
-
-
-Average number of collections over the study period was 187 species collected per year
-```{r}
-mean(earcol$Collections) # 186.1639
-```
  
 ```{r}
 allcollections <- data.frame(colSums(table(bloom2$ID,bloom2$Year)))
