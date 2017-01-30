@@ -864,49 +864,6 @@ merge.name and sp.10plus are identical
 ```{r}
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
 missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # None!! Yay!
-
-# want to take out C. atrata, remove 8105
-# Carex pyrenaica and C. pyrenaica ssp. pyrenaica shoudl be C. micropoda 
-#[1] "Carex atrata"  =8105 fixed    "Carex pyrenaica"  =8590 (not in list anymore)  
-#    "Carex pyrenaica ssp. pyrenaica" =8592
-#[4] "Carex crandallii" = 8592
-
-bloom2[bloom2$scientificName == "Carex pyrenaica ssp. pyrenaica",]
-bloom2[bloom2$scientificName == "Carex crandallii",] #8592
-synonyms[synonyms$ID == 8592,]
-
-synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",] #8591, want 8592 to be 8591
-
-missingIDs #8592
-synonyms[synonyms$ID == missingIDs,]
-bloom.sp[bloom.sp$ID == missingIDs,]
-synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs,] 
-synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs, ] 
-synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
-                                 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Antennaria parvifolia",])
-
-####################################################################
-#### START HERE ### once synonomy (accpted names) are set, then can go through and finish info for paper!!
-bloom.sp[bloom.sp$ID == 8105,]
-
-
-# Not in the list anymore!!! ARRRGGGG 
-#synonyms[synonyms$ID == missingIDs[2],] #8591
-#synonyms[synonyms$SYNONYMS == "Carex micropoda",]
-#bloom.sp[bloom.sp$ID == missingIDs[2],]
-#synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[2],] 
-#synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[2], ] 
-#synonyms.plantsyn.accpt <- rbind(synonyms.plantsyn.accpt, 
-#                                 synonyms.plantsyn[synonyms.plantsyn$SYNONYMS == "Carex micropoda",])
-
-synonyms[synonyms$ID == missingIDs[3],] #46683
-synonyms[synonyms$SYNONYMS == "Veratrum californicum",]
-bloom.sp[bloom.sp$ID == missingIDs[3],]
-synonyms.plantsyn[synonyms.plantsyn$ID == missingIDs[3],] 
-synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$ID == missingIDs[3], ] 
-merge.name[merge.name$ID == missingIDs[3],]
-
-merge.name[merge.name$scientificName == "Veratrum tenuipetalum",] 
 ```
 
 
@@ -924,7 +881,7 @@ species.per.year.10 <- do.call(rbind,
                               data.frame(SpeciesTotal = length(unique(x$ID)), Year = unique(x$Year))
                             }))
 
-species.per.year.10[which.max(species.per.year.10$SpeciesTotal),] # 400 in 1998
+species.per.year.10[which.max(species.per.year.10$SpeciesTotal),] # 398 in 1998
 mean(species.per.year.10$SpeciesTotal) # 186
 
 ```
@@ -942,7 +899,7 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #168.4098 -> 185.9672
+mean(earcol$Collections) #168.4098 -> 185.541
 
 ```
 
@@ -964,8 +921,6 @@ ggplot(earcol, aes(Year, Collections))+
 dev.off()
 ```
 
-
-###########START HERE##############
 Peak collection period, which day is the peak collection day each year
 
 #Results: 3rd para
@@ -980,6 +935,19 @@ ggplot(sp.10plus, aes(Year, startDayOfYear))+
 
 # Maybe? March 11th
 sp.10plus[sp.10plus$startDayOfYear < 100,] # Picea engelmannii
+
+#average of each year's average
+meancollday <- aggregate(sp.10plus$startDayOfYear, list(sp.10plus$Year), mean)
+mean(meancollday$x) # 202.1087
+
+#overall average
+mean(sp.10plus$startDayOfYear) #200.663
+
+#peak 
+col.yr <- data.frame(table(sp.10plus$startDayOfYear, sp.10plus$Year))
+peak.yr <- do.call(rbind, lapply(split(col.yr, col.yr$Var2), function(x) x[which.max(x$Freq),]))
+peak.yr$Var1 <- as.numeric(levels(peak.yr$Var1))[peak.yr$Var1]
+mean(peak.yr$Var1) #195.5738
 ```
 
 
