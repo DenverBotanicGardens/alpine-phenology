@@ -1143,71 +1143,6 @@ summary(lm(Raw_Precip~Year, data = unbloom))
 
 
 
-#Figure 4A  
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
-
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
-  geom_point(shape=1,size=0.5)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree~C))+
-  ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=6),
-        axis.title=element_text(size=7))
-
-
-dev.off()
-
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
-
-```
-
-
-
-
-#Figure 4B
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
-
-ggplot(merge.name, aes(Avg_Lo, startDayOfYear))+
-  geom_point(shape=1, size= 0.5)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Low Temperature") +
-  xlab(expression("Average low"~degree~C))+
-  ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=7))
-
-dev.off()
-
-summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
-```
-
-
-#Figure 4C
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
-
-ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
-  geom_point(shape=1,size=0.25)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Precipitation") +
-  xlab("Precipitation (mm)")+
-  ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=7))
-
-dev.off()
-
-summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
-
-```
-
-
 
 Growing Degree Days   
 ```{r, eval=FALSE}
@@ -1285,39 +1220,26 @@ write.table(tmps, file="P:/hackathon/alpine-phenology/datasets/tmps.csv", sep=",
 
 min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
-length(unique(min1950GDD_2$day)) #1137
-length(unique(min1950GDD_2$scientificName)) #641
-length(unique(min1950GDD_2$ID)) #473
+length(unique(min1950GDD_2$day)) #1130
+length(unique(min1950GDD_2$scientificName)) #639
+length(unique(min1950GDD_2$ID)) #470
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
 yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)
-nrow(yrspsp[yrspsp$x>=10,]) #308 -> 375 -> 370
+
+head(colSums(table(min1950GDD_2$Year,min1950GDD_2$ID)))
+head(yrspsp)
+
+nrow(yrspsp[yrspsp$x>=10,]) #308 -> 375 -> 368
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="ID",by.y="Group.1")
-length(unique(min1950GDD_2_10$ID)) #375 -> 370
-```
-
-```{r}
-avg.HDD.yrs <- lapply(HDD.yrs, function(x){
-  mean(x)
-})
-
-avg.yrs <- do.call(c, avg.HDD.yrs)
-hddyrs <- data.frame(Year=1981:2011, avgHDD = avg.yrs)
-```
-
-correlations with GDD and climate factors
-```{r}
-unbloomGDD <- merge(unbloom,hddyrs,by="Year")
-cor(unbloomGDD[,-1])
-cor.test(unbloomGDD$avgHDD,unbloomGDD$Raw_Precip)
-cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Hi)
-cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
+length(unique(min1950GDD_2_10$ID)) #375 -> 368
 
 ```
+
 
 #Figure 5A   
 Average GDD for the ealiest collection date did! change significantly over the study years, just the r^2 is next to nothing
@@ -1338,6 +1260,223 @@ dev.off()
 
 
 summary(lm(HDD~Year, data=min1950GDD_2_10))
+```
+
+
+
+
+On average, ordinal day XX () has the highest number of specimen records and this day has not moved signficantly over time...   
+```{r}
+ggplot(merge.name, aes(Year, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  theme_bw()
+
+#Same
+summary(lm(startDayOfYear ~ Year, data = merge.name))
+summary(lm(startDayOfYear ~ Year, data = sp.10plus))
+
+identical(merge.name[,-c((length(sp.10plus)+1):length(merge.name))], sp.10plus)
+setdiff(merge.name$ID, sp.10plus$ID)
+
+#average of each year's average
+meancollday <- aggregate(sp.10plus$startDayOfYear, list(sp.10plus$Year), mean)
+mean(meancollday$x) # 202.1087
+
+head(meancollday)
+summary(lm(x~Group.1, data=meancollday))
+ggplot(meancollday, aes(Group.1, x))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+meancollday[which.max(meancollday$x),]
+meancollday[which.min(meancollday$x),]
+```
+
+
+```{r}
+avg.HDD.yrs <- lapply(HDD.yrs, function(x){
+  mean(x)
+})
+
+avg.yrs <- do.call(c, avg.HDD.yrs)
+hddyrs <- data.frame(Year=1981:2011, avgHDD = avg.yrs)
+```
+
+correlations with GDD and climate factors
+```{r}
+unbloomGDD <- merge(unbloom,hddyrs,by="Year")
+cor(unbloomGDD[,-1])
+cor.test(unbloomGDD$avgHDD,unbloomGDD$Raw_Precip)
+cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Hi)
+cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
+
+```
+
+############################################################################################
+############################################################################################
+
+Phenology summary tables    
+```{r}
+yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
+
+nrow(yr.1950_2) #470
+
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
+
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #413
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #57
+
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
+
+#earlier
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #56
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5555133
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-33.88631
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2231147
+
+#later
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->1
+unique(bloom2$AUTH[bloom2$scientificName %in% grep(paste(
+  yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]
+  ,
+                                        collapse="|"), yr.1950_2$Species, value=TRUE)])
+
+merge.name[merge.name$scientificName == "Achillea lanulosa",
+           c("Year","ID","scientificName","startDayOfYear")]
+
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.8793068
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])*61
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.2976751
+
+```
+
+Any different names since Melissa first looked at the list?
+```{r}
+checksame <- read.csv("Q:/Research/Projects/alpine-phenology/phensum_yr.mi_samelist.csv")
+head(checksame)
+
+
+yr.1950_2[grep("Veronica", yr.1950_2$Species),]
+
+writeClipboard(setdiff(yr.1950_2$Species, checksame$Species))
+length(setdiff(yr.1950_2$Species, checksame$Species))
+
+# Names needing some action
+synnames <- checksame$SYNONYMS[checksame$SYNONYMS != "" & !is.na(checksame$SYNONYMS)]
+
+yr.1950_2[yr.1950_2$Species %in% synnames,]
+
+inyr.notcheck <- setdiff(yr.1950_2$Species, checksame$Species)
+
+inyr.notcheck[inyr.notcheck %in% synnames]
+
+#Which are in that first list that are no longer in the current list
+write.table(yr.1950_2[yr.1950_2$Species %in% checksame$Species,], 
+            file = "Q:/Research/Projects/alpine-phenology/Sameaspreviouslist.csv", sep=",")
+
+nrow(yr.1950_2[yr.1950_2$Species %in% checksame$Species,]) # 399
+
+setdiff(checksame$Species,yr.1950_2$Species)
+```
+
+###START HERE!!!
+
+#Year later
+```{r}
+ggplot(merge.name[merge.name$ID %in% 
+                    grep(paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                              yr.1950_2$Slope>=0],
+                                          collapse="|"),yr.1950_2$ID,
+                         value=TRUE),], 
+       aes(Year, startDayOfYear, colour = ID))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
+#Year earlier
+```{r}
+ggplot(merge.name[merge.name$ID %in%
+                    grep(paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                              yr.1950_2$Slope<0],
+                               collapse="|"),yr.1950_2$ID,
+                         value=TRUE),], 
+       aes(Year, startDayOfYear, colour = as.factor(ID)))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
+
+Average high
+#Figure 5A  
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name, aes(Avg_Hi, startDayOfYear))+
+  geom_point(shape=1,size=0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression("Average high"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=7))
+
+
+dev.off()
+
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+
+```
+
+
+#Figure 5B
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name, aes(Avg_Lo, startDayOfYear))+
+  geom_point(shape=1, size= 0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Low Temperature") +
+  xlab(expression("Average low"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
+
+dev.off()
+
+summary(lm(startDayOfYear~Avg_Lo, data = merge.name))
+```
+
+#Figure 5C
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name, aes(Raw_Precip, startDayOfYear))+
+  geom_point(shape=1,size=0.25)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average Precipitation") +
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
+
+dev.off()
+
+summary(lm(startDayOfYear~Raw_Precip, data = merge.name))
+
 ```
 
 
@@ -1537,76 +1676,6 @@ summary(lm(HDD~Year+Family, data=min1950GDD_2_10))
 
 
 
-############################################################################################
-############################################################################################
-
-
-Phenology summary tables    
-```{r}
-yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
-
-nrow(yr.1950_2) #473
-
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
-
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #416
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #57
-
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
-
-#earlier
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #57
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #--0.5440048
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2231147
-
-#later
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->1
-unique(bloom2$AUTH[bloom2$scientificName %in% grep(paste(
-  yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]
-  ,
-                                        collapse="|"), yr.1950_2$Species, value=TRUE)])
-
-merge.name[merge.name$scientificName == "Achillea lanulosa",
-           c("Year","ID","scientificName","startDayOfYear")]
-
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.8793068
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #0.2976751
-
-```
-
-#Year later
-```{r}
-ggplot(merge.name[merge.name$ID %in% 
-                    grep(paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
-                                              yr.1950_2$Slope>=0],
-                                          collapse="|"),yr.1950_2$ID,
-                         value=TRUE),], 
-       aes(Year, startDayOfYear, colour = ID))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm", alpha=0.05)+
-  theme_bw()+
-  xlab("Year")+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-```
-
-#Year earlier
-```{r}
-ggplot(merge.name[merge.name$ID %in%
-                    grep(paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
-                                              yr.1950_2$Slope<0],
-                               collapse="|"),yr.1950_2$ID,
-                         value=TRUE),], 
-       aes(Year, startDayOfYear, colour = ID))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm", alpha=0.05)+
-  theme_bw()+
-  xlab("Year")+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-```
 
 ###High Temperature     
 ```{r}
