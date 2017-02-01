@@ -45,14 +45,17 @@ JulBloomDate.min1950 <- function(variable,dataset){
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),
-                                    blnew$scientificName[1],
+                                    blnew$AUTH[1],
                                     blnew$Family[1],
                                     foo1$adj.r.squared,
-                                    blnew$ID[1]))
+                                    blnew$ID[1],
+                                    blnew$Duration[1],
+                                    blnew$Growth.Habit[1]))
     })
   JYC <- do.call(rbind, JYC)
   colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
-                   "F Stat", "numDF","denDF", "Species", "Fam", "adj.r.squ","ID")
+                   "F Stat", "numDF","denDF", "Species", "Fam", "adj.r.squ","ID",
+                   "Duration","GrowthHabit")
   JYC
 }
 
@@ -505,6 +508,7 @@ plantsyn <- rbind(plantsyn, c("HITR2","","HITR2","Hieracium triste","","Hieraciu
 
 synonyms$ID <- as.numeric(synonyms$ID)
 
+
 ######## do this to bloom2 ###########
 TPL("Carex atrata")
 synonyms[synonyms$SYNONYMS == "Carex atrata",] #8105
@@ -615,6 +619,16 @@ synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <-
 synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. foliaceum" ,]
 
 synonyms <- synonyms[synonyms$SYNONYMS!="Symphyotrichum foliaceum var. foliaceum",]
+
+
+#Combine Achillea millefolium var. occidentalis with Achillea millefolium
+plantsyn[grep("Achillea millefolium", plantsyn$Scientific.Name),]
+synonyms[synonyms$SYNONYMS == "Achillea millefolium var. occidentalis",] #544
+synonyms[synonyms$SYNONYMS == "Achillea millefolium",] #534
+synonyms$ID[synonyms$SYNONYMS=="Achillea millefolium var. occidentalis"]<-
+  synonyms$ID[synonyms$SYNONYMS=="Achillea millefolium"]
+
+
 
 # Ackerfield
 synonyms[synonyms$SYNONYMS ==  "Chlorocrepis tristis" ,]
@@ -882,7 +896,7 @@ species.per.year.10 <- do.call(rbind,
                             }))
 
 species.per.year.10[which.max(species.per.year.10$SpeciesTotal),] # 398 in 1998
-mean(species.per.year.10$SpeciesTotal) # 186
+mean(species.per.year.10$SpeciesTotal) # 185.5246
 
 ```
 
@@ -899,7 +913,7 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #168.4098 -> 185.541
+mean(earcol$Collections) #168.4098 -> 185.5246
 
 ```
 
@@ -938,7 +952,7 @@ sp.10plus[sp.10plus$startDayOfYear < 100,] # Picea engelmannii
 
 #average of each year's average
 meancollday <- aggregate(sp.10plus$startDayOfYear, list(sp.10plus$Year), mean)
-mean(meancollday$x) # 202.1087
+mean(meancollday$x) # 202.107
 
 #overall average
 mean(sp.10plus$startDayOfYear) #200.663
@@ -952,7 +966,7 @@ mean(peak.yr$Var1) #195.5738
 
 Average number of collections over the study period was 187 species collected per year
 ```{r}
-mean(earcol$Collections) # 186.1639
+mean(earcol$Collections) # 185.5246
 ```
 
 
@@ -1024,6 +1038,7 @@ coll.per.julianday <- aggregate(collJ.sp$Freq, list(collJ.sp$Var2), sum)
 coll.per.julianday[which.max(coll.per.julianday$x),]
 
 # split the number of collections per Julian day by year, find which day had the most each year
+# "Peak" or mode, not average
 collJ.max <- lapply(split(collJ.sp, collJ.sp$Var1), function(x) x[which.max(x$Freq),])
 collmax <- do.call(rbind,collJ.max)
 collmax[,1:2]<-sapply(collmax[,1:2], function(x) as.numeric(as.character(x)))
@@ -1316,9 +1331,21 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 ############################################################################################
 ############################################################################################
 
+
+#Need to merge the accepted names with merge.name
+```{r}
+merge.name.accpt <- merge(merge.name, synonyms.plantsyn.accpt, by = "ID")
+head(merge.name.accpt)
+
+# USDA has Achillea millefolium L. var. occidentails DC. we want Achillea millefolium 
+
+
+
+```
+
 Phenology summary tables    
 ```{r}
-yr.1950_2 <- JulBloomDate.min1950("Year",merge.name)
+yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
 nrow(yr.1950_2) #470
 
@@ -1327,7 +1354,7 @@ write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.
 nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #413
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #57
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1212766
 
 #earlier
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #56
@@ -1337,10 +1364,10 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2231147
 
 #later
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->1
-unique(bloom2$AUTH[bloom2$scientificName %in% grep(paste(
-  yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]
-  ,
-                                        collapse="|"), yr.1950_2$Species, value=TRUE)])
+
+unique(merge.name$ID[merge.name$scientificName %in% grep(paste(
+  yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0],
+  collapse="|"), yr.1950_2$Species, value=TRUE)])
 
 merge.name[merge.name$scientificName == "Achillea lanulosa",
            c("Year","ID","scientificName","startDayOfYear")]
@@ -1380,16 +1407,14 @@ nrow(yr.1950_2[yr.1950_2$Species %in% checksame$Species,]) # 399
 setdiff(checksame$Species,yr.1950_2$Species)
 ```
 
-###START HERE!!!
 
-#Year later
+
+#Year later  
+Just Achillia lanulosa
 ```{r}
-ggplot(merge.name[merge.name$ID %in% 
-                    grep(paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
-                                              yr.1950_2$Slope>=0],
-                                          collapse="|"),yr.1950_2$ID,
-                         value=TRUE),], 
-       aes(Year, startDayOfYear, colour = ID))+
+ggplot(merge.name[merge.name$ID == paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                       yr.1950_2$Slope>=0],collapse="|"),],
+       aes(Year, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
@@ -1401,11 +1426,8 @@ ggplot(merge.name[merge.name$ID %in%
 
 #Year earlier
 ```{r}
-ggplot(merge.name[merge.name$ID %in%
-                    grep(paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
-                                              yr.1950_2$Slope<0],
-                               collapse="|"),yr.1950_2$ID,
-                         value=TRUE),], 
+ggplot(merge.name[which(merge.name$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                              yr.1950_2$Slope<0]),],
        aes(Year, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
@@ -1416,6 +1438,81 @@ ggplot(merge.name[merge.name$ID %in%
 
 ```
 
+```{r}
+ggplot(merge.name[which(merge.name$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05]),],
+       aes(Year, startDayOfYear, colour = Family.Name))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+```
+
+###High Temperature     
+```{r}
+high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
+
+nrow(high.1950_2) #470
+write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
+
+nrow(high.1950_2[high.1950_2$p.value<0.05,]) #79
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
+
+#earlier
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #67
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.80244
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2381122
+
+#later
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
+unique(bloom2$AUTH[bloom2$scientificName %in% 
+                     grep(paste(high.1950_2$Species[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0],
+                                collapse="|"), high.1950_2$Species, value=TRUE)])
+
+merge.name[merge.name$scientificName == "Askellia nana",] #
+merge.name[merge.name$ID == 12586,]
+
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #8.893071
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3145635
+
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
+nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8292079
+
+```
+
+
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
+                                                                high.1950_2$Slope<0], 
+                               collapse="|"), "$", sep=""),high.1950_2$Species,
+                         value=TRUE),], 
+       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab(expression("Average high"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
+
+```{r}
+ggplot(merge.name[merge.name$scientificName %in% 
+                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
+                                                                high.1950_2$Slope>=0], 
+                               collapse="|"), "$", sep=""),high.1950_2$Species,
+                         value=TRUE),], 
+       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab(expression("Average high"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")
+
+```
 
 Average high
 #Figure 5A  
@@ -1675,71 +1772,6 @@ summary(lm(HDD~Year+Family, data=min1950GDD_2_10))
 
 
 
-
-
-###High Temperature     
-```{r}
-high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
-
-nrow(high.1950_2) #404
-write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
-
-nrow(high.1950_2[high.1950_2$p.value<0.05,]) #69
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
-
-#earlier
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #67
-mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.60067
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2187695
-
-#later
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
-unique(bloom2$AUTH[bloom2$scientificName %in% 
-                     grep(paste(high.1950_2$Species[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0],
-                                collapse="|"), high.1950_2$Species, value=TRUE)])
-
-merge.name[merge.name$scientificName == "Askellia nana",c("startDayOfYear","Year")] ##NOOO, doubles!
-
-mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #8.893071
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3145635
-
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
-nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8292079
-
-```
-
-
-```{r}
-ggplot(merge.name[merge.name$scientificName %in% 
-                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
-                                                                high.1950_2$Slope<0], 
-                               collapse="|"), "$", sep=""),high.1950_2$Species,
-                         value=TRUE),], 
-       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm", alpha=0.05)+
-  theme_bw()+
-  xlab(expression("Average high"~degree~C))+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-```
-
-```{r}
-ggplot(merge.name[merge.name$scientificName %in% 
-                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
-                                                                high.1950_2$Slope>=0], 
-                               collapse="|"), "$", sep=""),high.1950_2$Species,
-                         value=TRUE),], 
-       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
-  geom_point(shape=1)+
-  stat_smooth(method="lm", alpha=0.05)+
-  theme_bw()+
-  xlab(expression("Average high"~degree~C))+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
-
-```
 
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name)
