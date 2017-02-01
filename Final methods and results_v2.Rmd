@@ -45,7 +45,8 @@ JulBloomDate.min1950 <- function(variable,dataset){
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),
-                                    blnew$AUTH[1],
+                                    blnew$AUTH.y[1],
+                                    blnew$scientificName[1],
                                     blnew$Family[1],
                                     foo1$adj.r.squared,
                                     blnew$ID[1],
@@ -54,7 +55,7 @@ JulBloomDate.min1950 <- function(variable,dataset){
     })
   JYC <- do.call(rbind, JYC)
   colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
-                   "F Stat", "numDF","denDF", "Species", "Fam", "adj.r.squ","ID",
+                   "F Stat", "numDF","denDF", "SpeciesAuthority","Species", "Fam", "adj.r.squ","ID",
                    "Duration","GrowthHabit")
   JYC
 }
@@ -613,7 +614,17 @@ synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <-
 synonyms$ID[synonyms$SYNONYMS == "Carex pyrenaica ssp. pyrenaica"] <- 
   synonyms$ID[synonyms$SYNONYMS == "Carex crandallii"] 
 
-  
+
+synonyms[grep("Agoseris aurantiaca", synonyms$SYNONYMS),]  # 
+synonyms$ID[synonyms$SYNONYMS == "Agoseris aurantiaca var. purpurea"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Agoseris aurantiaca"] 
+ 
+synonyms$ID[synonyms$SYNONYMS == "Agoseris aurantiaca var. aurantiaca"] <- 
+  synonyms$ID[synonyms$SYNONYMS == "Agoseris aurantiaca"] 
+
+plantsyn[grep("Agoseris aurantiaca", plantsyn$Scientific.Name),]
+plantsyn <- plantsyn[plantsyn$Scientific.Name != "Agoseris aurantiaca var. aurantiaca",]
+plantsyn <- plantsyn[plantsyn$Scientific.Name != "Agoseris aurantiaca var. purpurea",]
 
 #remove!
 synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. foliaceum" ,]
@@ -626,6 +637,9 @@ plantsyn[grep("Achillea millefolium", plantsyn$Scientific.Name),]
 synonyms[synonyms$SYNONYMS == "Achillea millefolium var. occidentalis",] #544
 synonyms[synonyms$SYNONYMS == "Achillea millefolium",] #534
 synonyms$ID[synonyms$SYNONYMS=="Achillea millefolium var. occidentalis"]<-
+  synonyms$ID[synonyms$SYNONYMS=="Achillea millefolium"]
+
+synonyms$ID[synonyms$SYNONYMS=="Achillea lanulosa"]<-
   synonyms$ID[synonyms$SYNONYMS=="Achillea millefolium"]
 
 
@@ -806,12 +820,13 @@ mean(bloom2$startDayOfYear, na.rm = TRUE)
 
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916 (1917)
-length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563 (1561)
+length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563, 1559
 
 ```
 
 #9
-# how many years collected per species FINAL
+# how many years collected per species FINAL   
+bloom2 == bloom.sp which was linked to synonyms
 ```{r}
 
 earl.sp.yr <- do.call(rbind,
@@ -856,12 +871,12 @@ spyears <- do.call(rbind,
 # Still all species, not just ones with 10+ years
 spyears[which.max(spyears$DataYrs),] # 51
 spyears[which.min(spyears$DataYrs),] # 1
-nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 -> 470
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.08085
+nrow(spyears[spyears$DataYrs>=10,]) #414 -> 402 -> 300, 346 -> 468 -> 480 -> 472 -> 470 -> 467
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #24.15632
 
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
-length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 470
+length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480 -> 473 -> 467
 
 ```
 
@@ -877,7 +892,9 @@ Accpted name link it up!
 merge.name and sp.10plus are identical
 ```{r}
 accptIds <- unique(synonyms.plantsyn.accpt$ID)
-missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # None!! Yay!
+missingIDs <- setdiff(unique(sp.10plus$ID),accptIds) # None!! Yay! 544 -Achillea 
+
+bloom2[bloom2$ID == missingIDs,]
 ```
 
 
@@ -896,7 +913,7 @@ species.per.year.10 <- do.call(rbind,
                             }))
 
 species.per.year.10[which.max(species.per.year.10$SpeciesTotal),] # 398 in 1998
-mean(species.per.year.10$SpeciesTotal) # 185.5246
+mean(species.per.year.10$SpeciesTotal) # 185.2623
 
 ```
 
@@ -913,7 +930,7 @@ earcol <- data.frame(Year = row.names(earliestcollection),
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
 earcol[which.max(earcol$Collections),]
-mean(earcol$Collections) #168.4098 -> 185.5246
+mean(earcol$Collections) #168.4098 -> 184.9344
 
 ```
 
@@ -954,10 +971,23 @@ sp.10plus[sp.10plus$startDayOfYear < 100,] # Picea engelmannii
 meancollday <- aggregate(sp.10plus$startDayOfYear, list(sp.10plus$Year), mean)
 mean(meancollday$x) # 202.107
 
-#overall average
-mean(sp.10plus$startDayOfYear) #200.663
+#Has this average moved?
+summary(lm(x~Group.1, data=meancollday))
 
-#peak 
+#Earliest average collection day was what in what year?
+meancollday[which.min(meancollday$x),]
+#Latest average colleciton day
+meancollday[which.max(meancollday$x),]
+
+
+# 469 species with 10 or more years of collections
+summary(lm(startDayOfYear~Year, data = merge.name))
+
+#overall average
+mean(sp.10plus$startDayOfYear) #200.6033
+
+
+#peak as mode
 col.yr <- data.frame(table(sp.10plus$startDayOfYear, sp.10plus$Year))
 peak.yr <- do.call(rbind, lapply(split(col.yr, col.yr$Var2), function(x) x[which.max(x$Freq),]))
 peak.yr$Var1 <- as.numeric(levels(peak.yr$Var1))[peak.yr$Var1]
@@ -966,10 +996,8 @@ mean(peak.yr$Var1) #195.5738
 
 Average number of collections over the study period was 187 species collected per year
 ```{r}
-mean(earcol$Collections) # 185.5246
+mean(earcol$Collections) # 184.9344
 ```
-
-
 
 
 #Figure 4
@@ -1043,7 +1071,7 @@ collJ.max <- lapply(split(collJ.sp, collJ.sp$Var1), function(x) x[which.max(x$Fr
 collmax <- do.call(rbind,collJ.max)
 collmax[,1:2]<-sapply(collmax[,1:2], function(x) as.numeric(as.character(x)))
 
-mean(collmax$Var2)
+mean(collmax$Var2) #206.541
 collmax[which.min(collmax$Var2),] # smallest Julian day with most collections
 collmax[which.max(collmax$Var2),] # biggest julian day with most collections
 summary(lm(Var2~Var1, data=collmax))
@@ -1235,9 +1263,9 @@ write.table(tmps, file="P:/hackathon/alpine-phenology/datasets/tmps.csv", sep=",
 
 min1950GDD_2 <- mergeMinGDD(merge.name,tmps)
 
-length(unique(min1950GDD_2$day)) #1130
-length(unique(min1950GDD_2$scientificName)) #639
-length(unique(min1950GDD_2$ID)) #470
+length(unique(min1950GDD_2$day)) #1130  1128
+length(unique(min1950GDD_2$scientificName)) #639  638
+length(unique(min1950GDD_2$ID)) #467
 
 #Years of data for GDD years per species
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
@@ -1246,12 +1274,12 @@ yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)
 head(colSums(table(min1950GDD_2$Year,min1950GDD_2$ID)))
 head(yrspsp)
 
-nrow(yrspsp[yrspsp$x>=10,]) #308 -> 375 -> 368
+nrow(yrspsp[yrspsp$x>=10,]) #308 -> 375 -> 366
 
 ### Reduce min1950GDD_2 to only species where 10 or more years of data
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="ID",by.y="Group.1")
-length(unique(min1950GDD_2_10$ID)) #375 -> 368
+length(unique(min1950GDD_2_10$ID)) #375 -> 366
 
 ```
 
@@ -1296,7 +1324,7 @@ setdiff(merge.name$ID, sp.10plus$ID)
 
 #average of each year's average
 meancollday <- aggregate(sp.10plus$startDayOfYear, list(sp.10plus$Year), mean)
-mean(meancollday$x) # 202.1087
+mean(meancollday$x) # 202.052
 
 head(meancollday)
 summary(lm(x~Group.1, data=meancollday))
@@ -1334,12 +1362,25 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 
 #Need to merge the accepted names with merge.name
 ```{r}
-merge.name.accpt <- merge(merge.name, synonyms.plantsyn.accpt, by = "ID")
+
+head(table(synonyms.plantsyn.accpt$ID,synonyms.plantsyn.accpt$SYNONYMS))
+
+names.p.ID <- colSums(table(synonyms.plantsyn.accpt$SYNONYMS,synonyms.plantsyn.accpt$ID))
+names.p.ID[names.p.ID > 1] #534
+
+synonyms.plantsyn.accpt <- 
+  synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$SYNONYMS != "Achillea millefolium var. occidentalis",]
+
+synonyms.plantsyn.accpt[grep("Agoseris",synonyms.plantsyn.accpt$SYNONYMS),]
+
+head(synonyms.plantsyn.accpt[synonyms.plantsyn.accpt$SYNONYMS %in% merge.name$scientificName,])
+
+merge.name.accpt <- merge(merge.name, synonyms.plantsyn.accpt, by = "ID") 
 head(merge.name.accpt)
 
 # USDA has Achillea millefolium L. var. occidentails DC. we want Achillea millefolium 
 
-
+length(unique(merge.name.accpt$ID)) #467
 
 ```
 
@@ -1347,14 +1388,14 @@ Phenology summary tables
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
-nrow(yr.1950_2) #470
+nrow(yr.1950_2) #467
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #413
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #57
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #411
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #56
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1212766
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
 
 #earlier
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #56
@@ -1363,7 +1404,7 @@ mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-33.88631
 mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2231147
 
 #later
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->1
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->0
 
 unique(merge.name$ID[merge.name$scientificName %in% grep(paste(
   yr.1950_2$Species[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0],
@@ -1384,10 +1425,10 @@ checksame <- read.csv("Q:/Research/Projects/alpine-phenology/phensum_yr.mi_samel
 head(checksame)
 
 
-yr.1950_2[grep("Veronica", yr.1950_2$Species),]
+yr.1950_2[grep("Agoseris", yr.1950_2$Species),]
 
 writeClipboard(setdiff(yr.1950_2$Species, checksame$Species))
-length(setdiff(yr.1950_2$Species, checksame$Species))
+length(setdiff(yr.1950_2$Species, checksame$Species)) #63
 
 # Names needing some action
 synnames <- checksame$SYNONYMS[checksame$SYNONYMS != "" & !is.na(checksame$SYNONYMS)]
@@ -1396,20 +1437,20 @@ yr.1950_2[yr.1950_2$Species %in% synnames,]
 
 inyr.notcheck <- setdiff(yr.1950_2$Species, checksame$Species)
 
-inyr.notcheck[inyr.notcheck %in% synnames]
+inyr.notcheck[inyr.notcheck %in% synnames] # "Draba cana"         "Cymopterus alpinus"
 
 #Which are in that first list that are no longer in the current list
 write.table(yr.1950_2[yr.1950_2$Species %in% checksame$Species,], 
             file = "Q:/Research/Projects/alpine-phenology/Sameaspreviouslist.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$Species %in% checksame$Species,]) # 399
+nrow(yr.1950_2[yr.1950_2$Species %in% checksame$Species,]) # 1 -> 404
 
 setdiff(checksame$Species,yr.1950_2$Species)
 ```
 
 
 
-#Year later  
+#Year later  - NONE!
 Just Achillia lanulosa
 ```{r}
 ggplot(merge.name[merge.name$ID == paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
@@ -1451,18 +1492,18 @@ ggplot(merge.name[which(merge.name$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05])
 
 ###High Temperature     
 ```{r}
-high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name)
+high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name.accpt)
 
-nrow(high.1950_2) #470
+nrow(high.1950_2) #467
 write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2.csv", sep=",")
 
-nrow(high.1950_2[high.1950_2$p.value<0.05,]) #79
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
+nrow(high.1950_2[high.1950_2$p.value<0.05,]) #78
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1670236
 
 #earlier
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #67
-mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.80244
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2381122
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #76
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.79536
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2375394
 
 #later
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
@@ -1474,7 +1515,7 @@ merge.name[merge.name$scientificName == "Askellia nana",] #
 merge.name[merge.name$ID == 12586,]
 
 mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #8.893071
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3145635
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0]) #0.3025555
 
 nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.1707921
 nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8292079
