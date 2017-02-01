@@ -1522,14 +1522,11 @@ nrow(high.1950_2[high.1950_2$p.value>=0.05,])/nrow(high.1950_2) #0.8292079
 
 ```
 
-
+Later with heat
 ```{r}
-ggplot(merge.name[merge.name$scientificName %in% 
-                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
-                                                                high.1950_2$Slope<0], 
-                               collapse="|"), "$", sep=""),high.1950_2$Species,
-                         value=TRUE),], 
-       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+ggplot(merge.name[which(merge.name$ID %in% high.1950_2$ID[high.1950_2$p.value<0.05 &
+                                                          high.1950_2$Slope>=0]),],
+       aes(Avg_Hi, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
@@ -1539,13 +1536,11 @@ ggplot(merge.name[merge.name$scientificName %in%
 
 ```
 
+earlier  with heat
 ```{r}
-ggplot(merge.name[merge.name$scientificName %in% 
-                    grep(paste("^", paste(high.1950_2$Species[high.1950_2$p.value<0.05 &
-                                                                high.1950_2$Slope>=0], 
-                               collapse="|"), "$", sep=""),high.1950_2$Species,
-                         value=TRUE),], 
-       aes(Avg_Hi, startDayOfYear, colour = scientificName))+
+ggplot(merge.name[which(merge.name$ID %in% high.1950_2$ID[high.1950_2$p.value<0.05 &
+                                                          high.1950_2$Slope<0]),],
+       aes(Avg_Hi, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
@@ -1554,6 +1549,7 @@ ggplot(merge.name[merge.name$scientificName %in%
   theme(legend.position="none")
 
 ```
+
 
 Average high
 #Figure 5A  
