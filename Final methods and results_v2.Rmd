@@ -1465,19 +1465,37 @@ ggplot(merge.name[merge.name$ID == paste(yr.1950_2$ID[yr.1950_2$p.value<0.05 &
 
 ```
 
+```{r}
+unique(merge.name.accpt$SYNONYMS[merge.name.accpt$Bloom.Period == ""])
+
+```
+
 #Year earlier
 ```{r}
-ggplot(merge.name[which(merge.name$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
                                               yr.1950_2$Slope<0]),],
-       aes(Year, startDayOfYear, colour = as.factor(ID)))+
+       aes(Year, startDayOfYear, colour = Bloom.Period))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
   xlab("Year")+
-  ylab("Ordinal Date")+
-  theme(legend.position="none")
+  ylab("Ordinal Date")
 
 ```
+
+
+```{r}
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                              yr.1950_2$Slope<0]),],
+       aes(Year, startDayOfYear, colour = Family))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+```
+
 
 ```{r}
 ggplot(merge.name[which(merge.name$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05]),],
@@ -1535,6 +1553,7 @@ ggplot(merge.name[which(merge.name$ID %in% high.1950_2$ID[high.1950_2$p.value<0.
   theme(legend.position="none")
 
 ```
+
 
 earlier  with heat
 ```{r}
@@ -1871,11 +1890,11 @@ ggplot(merge.name[merge.name$scientificName %in%
 
 ### Precipitation
 ```{r}
-precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name)
+precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name.accpt)
 precip.1950_2[,c("Species")]<-sapply(precip.1950_2[,c("Species")], function(ch) as.character(ch))
 write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2.Table4.csv", sep=",")
 
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #35
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #42
 nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.08663366
 
 mean(precip.1950_2$Slope)
@@ -1883,28 +1902,24 @@ mean(precip.1950_2$Slope)
 
 #earlier
 ### ISSUE with exact match!
-nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0,]) #2
-unique(bloom2$AUTH[bloom2$scientificName %in% 
-                     grep(paste(
-          precip.1950_2$Species[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]
-          ,
-                                collapse="|"), precip.1950_2$Species, value=TRUE)])
-mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # -0.06062124
-mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2277311
+nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0,]) #1
+unique(merge.name.accpt$SYNONYMS[which(merge.name.accpt$ID %in% 
+                               precip.1950_2$ID[precip.1950_2$p.value<0.05 & 
+                                                  precip.1950_2$Slope<0])]) 
+# Oxytropis borealis var. viscida
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # -0.06341651
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2961746
 
 #later
-nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #33
-mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.08322917
-mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2431201
+nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #41
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.09132756
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2560726
 ```
 
 ```{r}
-ggplot(merge.name[merge.name$scientificName %in% 
-                    grep(paste("^", paste(precip.1950_2$Species[precip.1950_2$p.value<0.05 &
-                                                       precip.1950_2$Slope>0], 
-                               collapse="|"), "$", sep=""),precip.1950_2$Species,
-                         value=TRUE),], 
-       aes(Raw_Precip, startDayOfYear, colour = scientificName))+
+ggplot(merge.name[which(merge.name$ID %in% precip.1950_2$ID[precip.1950_2$p.value<0.05 &
+                                                       precip.1950_2$Slope>0]),],
+       aes(Raw_Precip, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
