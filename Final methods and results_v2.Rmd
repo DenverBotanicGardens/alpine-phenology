@@ -104,7 +104,8 @@ colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
 # Select only reprodutive or post reproductive records
 repro <- c("Flr","Bulblets","Seed","Fr","Bud")
-colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
+colo.sm <- colo[colo
+                $Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
                                                                 colo$Reproductive.Status,
                                                                 value=TRUE,ignore.case = TRUE)),]
 
@@ -407,6 +408,10 @@ ggplot(bloom2, aes(Year, startDayOfYear))+
   theme_bw()
 
 summary(lm(startDayOfYear~Year,data=bloom2)) 
+
+mean(bloom2$startDayOfYear)
+mean.per.year <- aggregate(bloom2$startDayOfYear, list(bloom2$Year), mean)
+mean(mean.per.year$x) #207.6
 
 #Peak collection period throughout the study
 ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
