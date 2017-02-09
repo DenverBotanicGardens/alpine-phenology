@@ -1939,6 +1939,8 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.2729272
 
 #later
 nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #1
+unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in% 
+                             rst$ID[rst$p.value<0.05 & rst$Slope>=0])]) #Sambucus racemosa L. var. racemosa
 mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) # 0.06436998
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) #0.2293882
 
@@ -1955,7 +1957,7 @@ ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
   geom_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab("Ordinal Date")+
-  xlab("Maximum annual GDD (by ordinal day 273)")+
+  xlab("Maximum annual GDD")+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
 
@@ -1965,30 +1967,29 @@ summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
 
 ```
 
-#SYNONYMS is accepted name, need to worry about accepted family too
-
+Earlier with hotter overall
 ```{r}
-ggplot(min1950GDDmax[min1950GDDmax$ID %in% 
-                    grep(paste(rst$ID[rst$p.value<0.05 & rst$Slope<0], 
-                               collapse="|"),rst$ID,
-                         value=TRUE),], 
-       aes(MaxGDD, startDayOfYear, colour = ID))+
+ggplot(min1950GDDmax[which(min1950GDDmax$ID %in% 
+                             rst$ID[rst$p.value<0.05 & rst$Slope<0]),], 
+       aes(MaxGDD, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
-  xlab("Maximum annual GDD (by ordinal day 273)")+
+  xlab("Maximum annual GDD")+
   ylab("Ordinal Date")+
   theme(legend.position="none")
 
 ```
 
+later with hotter overall
 ```{r}
-ggplot(min1950GDDmax[min1950GDDmax$ID == "40268",], 
-       aes(MaxGDD, startDayOfYear, colour = ID))+
+ggplot(min1950GDDmax[which(min1950GDDmax$ID %in% 
+                             rst$ID[rst$p.value<0.05 & rst$Slope>=0]),], 
+       aes(MaxGDD, startDayOfYear, colour = as.factor(ID)))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
-  xlab("Maximum annual GDD (by ordinal day 273)")+
+  xlab("Maximum annual GDD")+
   ylab("Ordinal Date")+
   theme(legend.position="none")
 
@@ -2001,14 +2002,7 @@ ggplot(min1950GDDmax[min1950GDDmax$ID == "40268",],
 
 
 
-
-
-
-
-
-
-
-
+##START HERE
 NPN species   
 (from Climate)    
 ```{r}
@@ -2409,10 +2403,6 @@ ggplot(npn.min1950[npn.min1950$ID %in%
   theme(legend.position="none")
 
 ```
-
-
-
-
 
 
 ###NPN Growing Degree Days     
