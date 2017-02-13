@@ -2009,109 +2009,118 @@ npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
 
 #although lots of these might not have 10 years    
 #Match names - synonyms and all
+npn.big2 <- intersect(npn.all$SciName, merge.name$scientificName)
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big) #68 -> 76
+length(npn.big2) #28
+length(npn.big) #68 -> 75
 
 npn.all$SciName <- multisub(synonyms2$Species,
                                     synonyms2$SYNONYMS,npn.all$SciName)
 npn.all <- npn.all[!is.na(npn.all$SciName),]
 
+npn.big2 <- intersect(npn.all$SciName, merge.name$scientificName)
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big) #68 -> 76
+length(npn.big2) #28
+length(npn.big) #68 -> 75
 
 npn.min1950 <- merge(npn.all, merge.name, by.x = "SciName", by.y = "scientificName")
-length(unique(npn.min1950$ID)) #29
+length(unique(npn.min1950$ID)) #28
+
+28/467
 ```
 
 ############################################################################################
 ############################################################################################
 
+
+
+```{r}
+GH <- data.frame(table(merge.name.accpt$Growth.Habit[!duplicated(merge.name.accpt$ID)]))
+GH[GH$Freq>0,]
+sum(GH$Freq)#488 -> 467
+
+# Number of Families represented!
+length(table(merge.name.accpt$Family[!duplicated(merge.name.accpt$ID)])) #45
+
+# Growth Habit numbers
+table(merge.name.accpt$Growth.Habit[!duplicated(merge.name.accpt$ID)])
+merge.name.accpt[merge.name.accpt$Growth.Habit == "",]
+merge.name.accpt$Growth.Habit[merge.name.accpt$Growth.Habit == ""] <- "Forb/herb"
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #337 Forb/herbs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #32 shrubs/subshrubs
+
+sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #3 trees
+
+
+GD <- data.frame(table(merge.name.accpt$Duration[!duplicated(merge.name.accpt$ID)]))
+GD[GH$Freq>0,]
+sum(GD$Freq)#487 -> 467
+
+# Duration
+table(merge.name.accpt$Duration[!duplicated(merge.name.accpt$ID)])
+merge.name.accpt$Duration[merge.name.accpt$Duration == ""] <- "Perennial"
+
+sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #12
+
+NAT <- data.frame(table(merge.name.accpt$Native.Status[!duplicated(merge.name.accpt$ID)]))
+NAT[NAT$Freq>0,]
+sum(NAT$Freq)#487 -> 467
+
+# Native status
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #466
+sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #1
+
+merge.name.accpt[which(merge.name.accpt$Native.Status %in% "I"),] # none, all native
+
+merge.name.accpt$Family.Name[merge.name.accpt$Family.Name == ""] <- "Boraginaceae"
+
+
+```
+
 # How many forbs vs. grasses vs. tree? How many 
 #Smaller groups for Growth.Habit
 ```{r}
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Graminoid",merge.name$Growth.Habit, value=TRUE)] <- "Graminoid"
+unique(merge.name.accpt$Growth.Habit[which(merge.name.accpt$Growth.Habit %in% "Graminoid")])
 
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
-                             grep("Forb",merge.name$Growth.Habit, value=TRUE)] <- "Forb"
+merge.name.accpt$Growth.Habit.sm <- "Graminoid"
 
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+merge.name.accpt$Growth.Habit.sm[which(merge.name.accpt$Growth.Habit %in% 
+                                         "Graminoid")] <- "Graminoid"
+
+merge.name.accpt$Growth.Habit.sm[which(merge.name.accpt$Growth.Habit %in% "Forb")] <- "Forb"
+
+merge.name.accpt$Growth.Habit.sm[merge.name.accpt$Growth.Habit %in% 
                              grep("Forb", 
-                                  grep("shrub", merge.name$Growth.Habit, 
+                                  grep("shrub", merge.name.accpt$Growth.Habit, 
                                        value=TRUE, ignore.case=TRUE), 
                                   value=TRUE, invert=TRUE)] <- "Shrubs"
 
-merge.name$Growth.Habit.sm[merge.name$Growth.Habit %in% 
+merge.name.accpt$Growth.Habit.sm[merge.name.accpt$Growth.Habit %in% 
                              grep("Shrub", 
-                                  grep("Tree", merge.name$Growth.Habit, 
+                                  grep("Tree", merge.name.accpt$Growth.Habit, 
                                        value=TRUE, ignore.case=TRUE), 
                                   value=TRUE, invert=TRUE, ignore.case=TRUE)] <- "Trees"
 
 ```
 
-```{r}
-GH <- data.frame(table(merge.name$Growth.Habit[!duplicated(merge.name$ID)]))
-GH[GH$Freq>0,]
-sum(GH$Freq)#488 -> 487
-
-# Number of Families represented!
-length(table(merge.name$Family[!duplicated(merge.name$ID)]))
-
-# Growth Habit numbers
-table(merge.name$Growth.Habit[!duplicated(merge.name$ID)])
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", GH$Var1, value=TRUE)]) #348 Forb/herbs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Forb", grep("shrub", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #33 shrubs/subshrubs
-
-sum(  GH$Freq[GH$Var1 %in% grep("Shrub", grep("Tree", GH$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE, ignore.case=TRUE)]) #11->5 trees
-
-
-GD <- data.frame(table(merge.name$Duration[!duplicated(merge.name$ID)]))
-GD[GH$Freq>0,]
-sum(GD$Freq)#487 -> 300
-
-# Duration
-table(merge.name$Duration[!duplicated(merge.name$ID)])
-
-sum(GD$Freq[GD$Var1 %in% grep("Biennial", grep("Annual", GD$Var1, value=TRUE, ignore.case=TRUE), value=TRUE, invert=TRUE)]) #7
-
-NAT <- data.frame(table(merge.name$Native.Status[!duplicated(merge.name$ID)]))
-NAT[NAT$Freq>0,]
-sum(NAT$Freq)#487 -> 300
-
-# Native status
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE), "Freq"]) #300
-sum(NAT[NAT$Var1 %in% grep("L48", NAT$Var1, value=TRUE, ignore.case=TRUE, invert = TRUE), "Freq"]) #0
-
-#which are missing a native status?
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status)])) #427
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status)])) #477 native 
-length(unique(merge.name$ID[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-length(unique(merge.name$scientificName[grep("L48", merge.name$Native.Status,
-                                             invert=TRUE)])) #0 non-native
-
-```
-
 # By growth type
 ```{r}
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
+ggplot(merge.name.accpt, aes(Year, startDayOfYear, colour = Growth.Habit.sm))+
   geom_point(shape=1)+
   stat_smooth(method="lm",size = 0.5)+
   theme_bw()+
-#  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree*C))+
+  xlab(expression("Year"))+
   ylab("Ordinal Date")
 
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+summary(lm(startDayOfYear~Year, data=merge.name.accpt))
 
 ```
 
-# Need to pick accepted name and family names first!
-# By family
+
 ```{r}
-ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Family.Name))+
+ggplot(merge.name.accpt, aes(Avg_Hi, startDayOfYear, colour = Growth.Habit.sm))+
   geom_point(shape=1)+
   stat_smooth(method="lm",size = 0.5)+
   theme_bw()+
@@ -2119,7 +2128,29 @@ ggplot(merge.name, aes(Avg_Hi, startDayOfYear, colour = Family.Name))+
   xlab(expression("Average high"~degree*C))+
   ylab("Ordinal Date")
 
-summary(lm(startDayOfYear~Avg_Hi, data=merge.name))
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name.accpt))
+
+```
+
+
+# By family
+```{r}
+#install.packages("directlabels")
+#library(directlabels)
+
+ggplot(merge.name.accpt, aes(Year, startDayOfYear, colour = Family.Name))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm",size = 0.5, se=FALSE)+
+  theme_bw()+
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
+  xlab(expression("Average high"~degree*C))+
+  ylab("Ordinal Date")+
+  theme(legend.position="none")+
+  geom_dl(aes(label = Family.Name), method =  list(dl.combine("first.points","last.points"),
+                                                   cex = 0.5))
+  
+
+summary(lm(startDayOfYear~Year, data=merge.name.accpt))
 
 ```
 
