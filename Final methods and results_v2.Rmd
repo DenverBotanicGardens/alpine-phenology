@@ -2250,8 +2250,8 @@ nrow(rst.npn[rst.npn$p.value<0.05,]) #2
 
 #lower GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #2
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) #
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) #
+mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05419008
+mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.2762789
 unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in% 
                                 rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0])])
 
@@ -2263,79 +2263,32 @@ write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a.c
 ```
 
 
-### Startdayofyear ~ MaxGDD for that year 
-### CHANGE THIS TO INCLUDE ID
-```{r}
-minNPNGDD_2 <- mergeMinGDD(npn.min1950,tmps)
-rm(results,rst)
-minNPNGDD_2_max <- merge(totalGDDyr, minNPNGDD_2, by="Year")
-
-results.npn <- lapply(unique(minNPNGDD_2_max$scientificName), function(x){
-  if(nrow(minNPNGDD_2_max[minNPNGDD_2_max$scientificName==x,])>=10){
-  foo1 <- summary(lm(startDayOfYear~MaxGDD,
-                     data=minNPNGDD_2_max[minNPNGDD_2_max$scientificName==x,]))
-  JYC <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
-                          foo1$coefficients[1,1],
-                          t(foo1$fstatistic),
-                          Species = x,
-                          foo1$adj.r.squared,
-                          N = nrow(minNPNGDD_2_max[minNPNGDD_2_max$scientificName==x,]),
-                          unique(minNPNGDD_2_max$Family[minNPNGDD_2_max$scientificName==x])),
-                    unique(minNPNGDD_2_max$ID[minNPNGDD_2_max$scientificName==x]))
-  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
-                   "F Stat", "numDF","denDF", "Species", "adj.r.squ","N","Fam","ID")
-  JYC
-  }
-  })
-
-rst.npn <- do.call(rbind,results.npn)
-
-nrow(rst.npn) #22
-rst.npn[rst.npn$p.value<0.05,] #Zigadenus elegans
-nrow(rst.npn[rst.npn$p.value<0.05,]) #1
-
-#earlier
-nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #1
-unique(bloom2$AUTH[bloom2$scientificName %in% 
-                     grep(paste(
-      rst.npn$Species[rst.npn$p.value<0.05 & rst.npn$Slope < 0]
-      ,
-                                collapse="|"), rst.npn$Species, value=TRUE)])
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05142886
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) #0.3363666
-
-#later
-nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) 
-rst.npn$genus <- gsub(" .*$", "", rst.npn$Species)
-
-write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a_MaxGDD.csv", sep=",")
-```
 
 
 ```{r}
-ggplot(minNPNGDD_2_max, aes(MaxGDD, startDayOfYear))+
+ggplot(minNPNGDDmax, aes(MaxGDD, startDayOfYear))+
   geom_point(shape=1)+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab("Ordinal Date")+
   xlab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))
 
-summary(lm(startDayOfYear~MaxGDD, data = minNPNGDD_2_max))
+summary(lm(startDayOfYear~MaxGDD, data = minNPNGDDmax))
 ```
 
 #NPN low earlier
 ```{r}
-ggplot(minNPNGDD_2_max[minNPNGDD_2_max$ID %in%
-                    grep(paste(rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0],
-                               collapse="|"),rst.npn$ID,
-                         value=TRUE),], 
-       aes(MaxGDD, startDayOfYear, colour = ID))+
+ggplot(minNPNGDDmax[which(minNPNGDDmax$ID %in% 
+                            rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0]),], 
+       aes(MaxGDD, startDayOfYear, colour = AUTH.y))+
   geom_point(shape=1)+
   stat_smooth(method="lm", alpha=0.05)+
   theme_bw()+
   ylab("Ordinal Date")+
   xlab(expression(paste("GDD at collection date (T"[base] == 0, degree*C,")")))+
-  theme(legend.position="none")
+  theme(legend.position="none")+
+  geom_dl(aes(label = AUTH.y), method = list(dl.combine("first.points","last.points"),
+                                             ces = 0.75)) 
 
 ```
 
