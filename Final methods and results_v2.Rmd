@@ -98,6 +98,7 @@ seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotani
 ```
 
 Manipulate dates and names to be consistant before rbind databases
+Retain the herbarium from which the collection was taken - colo was all Colo! shocker
 ```{r}
 colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,sep=" ")
 colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
@@ -158,11 +159,14 @@ pull out names to match colo.sm and have data needed to subset
 seinet <- seinet[seinet$scientificName!="",]
 seinet$reproductiveCondition <- as.character(seinet$reproductiveCondition)
 
+table(seinet$institutionCode)
+which(names(seinet)=="institutionCode")
+
 repro <- c("Fl","fr","Fert","fl","Fr")
 seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
                                                              seinet$reproductiveCondition,
                                                              value=TRUE)),]
-seinet.sm <- seinet[,c(12,14,13,56,63:64,31,73,34)]
+seinet.sm <- seinet[,c(12,14,13,56,63:64,31,73,34,2)]
 
 # get to 1950-2011
 seinet.sm <- seinet.sm[seinet.sm$year >=1950,]
@@ -179,9 +183,10 @@ barplot(table(seinet.sm$startDayOfYear))
 ```
 
 ```{r}
-names <- names(colo.sm[,c(1:3,5:6,11:13)]) 
+colo.sm$institutionCode <- "COLO"
+names <- names(colo.sm[,c(1:3,5:6,11:14)]) 
 #names(seinet.sm[,c(1:4,7,5,8)])
-colo.bind <- colo.sm[,c(1:3,5:6,11:13)]
+colo.bind <- colo.sm[,c(1:3,5:6,11:14)]
 seinet.bind <- seinet.sm[,-4] #take out state
 names(seinet.bind) <- names
 
@@ -220,13 +225,13 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                pattern = "Eritrichum",
                                replacement = "Eritrichium"))
 
-tochar <- c(1:3) #added authority
+tochar <- c(1:3,9) #added authority
 bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
   as.character(ch)
 })
 rm(tochar)
 
-tonumeric <- c(4:length(bloom2))
+tonumeric <- c(4:(length(bloom2)-1))
 bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
   as.numeric(as.character(s))
 })
@@ -324,13 +329,13 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                replacement = "Eritrichium"))
 
 str(bloom2)
-tochar <- c(1:3) #added authority
+tochar <- c(1:3,9) #added authority
 bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
   as.character(ch)
 })
 rm(tochar)
 
-tonumeric <- c(4:length(bloom2))
+tonumeric <- c(4:(length(bloom2)-1))
 bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
   as.numeric(as.character(s))
 })
@@ -479,6 +484,8 @@ mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
 # Now 10 plus years
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,]
 length(unique(sp.10plus$ID)) #414 -> 402 -> 300, 480
+
+table(sp.10plus$institutionCode)
 ```
 
 
@@ -680,7 +687,10 @@ synonyms$ID[synonyms$SYNONYMS=="Eutrema edwardsii"]<-
 synonyms[synonyms$SYNONYMS ==  "Aster foliaceus" ,]
 synonyms[synonyms$SYNONYMS ==  "Symphyotrichum foliaceum var. apricum" ,]
 
-synonyms$ID[synonyms$SYNONYMS=="Aster foliaceus"]<-
+#Error? WTF dcbrtccklrdnl?
+
+synonyms$ID[synonyms$SYNONYMS=="Aster foliaceus"]<- #dcbrtccklrdnl
+
   synonyms$ID[synonyms$SYNONYMS=="Symphyotrichum foliaceum var. apricum"]
 
 # 
@@ -740,13 +750,13 @@ bloom2 <- as.data.frame(sapply(bloom2, gsub,
                                replacement = "Eritrichium"))
 
 str(bloom2)
-tochar <- c(1:3) #added authority
+tochar <- c(1:3,9) #added authority
 bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
   as.character(ch)
 })
 rm(tochar)
 
-tonumeric <- c(4:length(bloom2))
+tonumeric <- c(4:(length(bloom2)-1))
 bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
   as.numeric(as.character(s))
 })
@@ -779,9 +789,10 @@ bloom.aftercorrections <- bloom2
 bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1996] <- 184
 
 #entered wrong in SEINet
-bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" & 
-                        bloom2$Year == 1999 &
-                        bloom2$startDayOfYear < 100] <- 203
+#bloom2$startDayOfYear[bloom2$scientificName == "Androsace septentrionalis" & 
+#                        bloom2$Year == 1999 &
+#                        bloom2$startDayOfYff
+#                      ear < 100] <- 203
 
 bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
 
@@ -942,6 +953,7 @@ mean(earcol$Collections) #168.4098 -> 184.9344
 ```
 
 #Figure 1A
+cnrt+enter to see just ggplot
 ```{r}
 dpi = 1200
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
@@ -970,6 +982,8 @@ ggplot(sp.10plus, aes(Year, startDayOfYear))+
   geom_point()+
   theme_bw()+
   stat_smooth(method="lm")
+
+summary(lm(startDayOfYear~Year, data=sp.10plus))
 
 # Maybe? March 11th
 sp.10plus[sp.10plus$startDayOfYear < 100,] # Picea engelmannii
@@ -1274,6 +1288,10 @@ tmps$HDD <- HDD.all
 write.table(tmps, file="P:/hackathon/alpine-phenology/datasets/tmps.csv", sep=",")
 ```
 
+```{r}
+tmps <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/tmps.csv"))
+```
+
 
 
 On average, ordinal day XX () has the highest number of specimen records and this day has not moved signficantly over time...   
@@ -1331,7 +1349,7 @@ cor.test(unbloomGDD$avgHDD,unbloomGDD$Avg_Lo)
 #Need to merge the accepted names with merge.name
 ```{r}
 
-head(table(synonyms.plantsyn.accpt$ID,synonyms.plantsyn.accpt$SYNONYMS))
+#head(table(synonyms.plantsyn.accpt$ID,synonyms.plantsyn.accpt$SYNONYMS))
 
 names.p.ID <- colSums(table(synonyms.plantsyn.accpt$SYNONYMS,synonyms.plantsyn.accpt$ID))
 names.p.ID[names.p.ID > 1] #534
@@ -1362,6 +1380,20 @@ write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr.
 
 nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #411
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #56
+
+match(yr.1950_2$Species[yr.1950_2$p.value<0.05],yr.1950_2$Species[yr.1950_2$p.value>=0.05])
+
+# select random subset of 20 species that did signficantly change over time and 20 that did not
+
+sig.rows <- which(yr.1950_2$p.value<0.05)
+set.seed(123)
+yr.1950_2[sample(sig.rows,20,replace=FALSE),c("Species","ID")]
+nonsig.rows <- which(yr.1950_2$p.value>=0.05)
+set.seed(123)
+non.sig.sp <- yr.1950_2[sample(nonsig.rows,20,replace=FALSE),c("Species","ID")]
+synonyms.plantsyn[synonyms.plantsyn$ID %in% non.sig.sp$ID,]
+synonyms[synonyms$SYNONYMS == "Senecio fremontii var. blitoides",]
+sig.sp <- c(9042,1125,8243,6934,45837,17265,14088,35604,41517)  ###START HERE
 
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.119403
 
@@ -1406,7 +1438,7 @@ synnames <- checksame$SYNONYMS[checksame$SYNONYMS != "" & !is.na(checksame$SYNON
 nrow(yr.1950_2[yr.1950_2$Species %in% synnames,]) #53
 
 inyr.notcheck <- setdiff(yr.1950_2$Species, checksame$Species)
-length(inyr.notcheck) 63
+length(inyr.notcheck) #63
 
 inyr.notcheck[inyr.notcheck %in% synnames] # "Draba cana"         "Cymopterus alpinus"
 
@@ -1416,7 +1448,13 @@ write.table(yr.1950_2[yr.1950_2$Species %in% checksame$Species,],
 
 nrow(yr.1950_2[yr.1950_2$Species %in% checksame$Species,]) # 1 -> 404 already dealt with these, plust the 63 that haven't been checked before gets to all 467 species
 
-setdiff(checksame$Species,yr.1950_2$Species)
+setdiff(checksame$Species,yr.1950_2$Species) # where'd the blank one come from!?
+
+
+### Species, native status, duration, life form, blooming period per species
+appendixA <- merge(yr.1950_2, synonyms.plantsyn, by = "ID") 
+appendixA <- appendixA[,c(1,10:11,41:47)]
+write.table(appendixA, file = "Q:/Research/Projects/alpine-phenology/AppendixA.csv", sep=",")
 ```
 
 
@@ -2440,3 +2478,59 @@ appendixA$NPN[appendixA$Sp %in% grep(paste("^", paste(npn.min1950$SciName, colla
 write.table(appendixA,file="Q:/Research/Projects/alpine-phenology/AppendixA.csv", sep=",")
 ```
 
+```{r}
+npn_0303 <- read.csv("Q:/Research/Projects/alpine-phenology/NPN spp download 20170303/status_intensity_observation_data.csv")
+
+head(npn_0303)
+names(npn_0303)
+table(npn_0303$Phenophase_Name,npn_0303$Phenophase_Status)
+table(npn_0303$Phenophase_Description,npn_0303$Phenophase_Status)
+table(npn_0303$Phenophase_Category,npn_0303$Phenophase_Status)
+
+unique(npn_0303$scientificName)
+unique(npn_0303$USDA_PLANTS_Symbol)
+
+
+npn_0303$Ordinal <- as.numeric(format(as.Date(npn_0303$Observation_Date, 
+                                              format = "%Y-%m-%d"),"%j"))
+npn_0303$Year <- as.numeric(format(as.Date(npn_0303$Observation_Date,
+                                           fomat = "%Y-%m-%d"), "%Y"))
+
+# of the 29 species, seems only 25 have data
+
+ggplot(npn_0303[npn_0303$Phenophase_Status == 1,], 
+       aes(Year,Ordinal,colour = Phenophase_Category))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  scale_x_continuous(breaks = c(2008:2017))
+
+summary(lm(Ordinal~Year, data = npn_0303[npn_0303$Phenophase_Status == 1 &
+                                    npn_0303$Phenophase_Category == "Fruits",]))
+
+```
+Select the earliest collection per species per year for these NPN species
+```{r}
+npn.earl.sp.yr <- do.call(rbind,
+                          lapply(split(npn_0303[npn_0303$Phenophase_Status == 1,],
+                                       npn_0303$Common_Name[npn_0303$Phenophase_Status == 1]), function(name){
+                            name <- name[order(name$Year),]
+                            name$DataYrs <- nrow(name[!duplicated(name$Year) & !is.na(name$Year),])
+                            rows <- aggregate(Ordinal~Year, name, FUN=min)
+                            out <- merge(name,rows,by=c("Ordinal","Year"))
+                            out <- out[order(out$Year),]
+                            out <- out[!duplicated(out$Year),]
+                            out
+                          }))
+
+head(npn.earl.sp.yr)
+
+ggplot(npn.earl.sp.yr[npn.earl.sp.yr$Phenophase_Status == 1 &
+                        npn.earl.sp.yr$Year < 2017,],aes(Year,Ordinal))+
+  geom_point()+
+  stat_smooth(method = "lm")+
+  scale_x_continuous(breaks = c(2008:2017))
+
+
+summary(lm(Ordinal~Year, data = npn.earl.sp.yr[npn.earl.sp.yr$Phenophase_Status == 1 &
+                                                 npn.earl.sp.yr$Year < 2017,]))
+```
