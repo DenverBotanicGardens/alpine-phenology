@@ -31,7 +31,8 @@ library(directlabels)
 #Fresh start
 Save the GDD variables - those take hours to calculate/extract
 ```{r, eval=FALSE}
-rm(list= setdiff(ls(), c("avgTemps.max","avgTemps.min","tmps","HDD","HDD.all", "HDD.yrs")))
+rm(list= setdiff(ls(), c("avgTemps.max","avgTemps.min","tmps","HDD","HDD.all", "HDD.yrs",
+                         "merge.name","sp.10plus")))
 ```
 
 ## load functions   
@@ -865,18 +866,33 @@ mean(bloom2$startDayOfYear)
 mean.per.year <- aggregate(bloom2$startDayOfYear, list(bloom2$Year), mean)
 mean(mean.per.year$x) #207.6
 
-#Peak collection period throughout the study
-ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
-  geom_boxplot()+
-  theme_bw()+
-  ylab("Flowering day")+
-  xlab("")
-
-mean(bloom2$startDayOfYear, na.rm = TRUE)
-
 #how many species in dataset
 length(unique(bloom2$scientificName)) #1820 -> 1588, 1703, 1918 -> 1916 (1917)
 length(unique(bloom2$ID)) #1516 -> 1319, 1371, 1563, 1559
+```
+
+```{r}
+#Want numbers for all data, not just 467 species  
+# Answer, is this a change in colleciton patterns?
+#Peak collection period throughout the study
+
+dpi = 1200
+tiff("Q:/Research/Projects/alpine-phenology/Fig_ChangeinCollectionpatterns.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(bloom2, aes(as.factor(Year), startDayOfYear))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab("Ordinal date")+
+  xlab("Year")+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+#  scale_x_discrete(limits = c(1950,2011), breaks = seq(1950,2010, by=10)) +
+  theme(axis.text=element_text(size=7),axis.title=element_text(size=9))
+
+dev.off()
+
+mean(bloom2$startDayOfYear, na.rm = TRUE)
+summary(lm(Year~startDayOfYear, data=bloom2))
+length(unique(bloom2$ID))
 
 ```
 
@@ -1358,7 +1374,7 @@ meancollday[which.max(meancollday$x),]
 meancollday[which.min(meancollday$x),]
 ```
 
-
+# This is lost from before!!
 ```{r}
 avg.HDD.yrs <- lapply(HDD.yrs, function(x){
   mean(x)
