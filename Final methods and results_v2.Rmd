@@ -74,6 +74,7 @@ multisub <- function(pattern,replacement,x){
   result
 }
 
+
 appd <- function(x){
   x <- merge(x,merge.name[!duplicated(merge.name$ID),c("ID","scientificName","AUTH",
                                                        "Growth.Habit","Duration")], 
