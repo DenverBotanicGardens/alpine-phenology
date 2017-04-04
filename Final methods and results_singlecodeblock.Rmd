@@ -745,6 +745,11 @@ npn_0303$SciName <- apply(npn_0303[,c("Genus","Species")], 1,
 
 #although lots of these might not have 10 years    
 #Match names - synonyms and all
+npn_0303npn.big2 <- intersect(npn_0303$SciName, merge.name.accpt$scientificName)
+npn_0303npn.big <- intersect(npn_0303$SciName, bloom2$scientificName) 
+length(npn_0303npn.big2) #22
+length(npn_0303npn.big) #21
+
 npn.big2 <- intersect(npn.all$SciName, merge.name.accpt$scientificName)
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
 length(npn.big2) #23
