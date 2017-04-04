@@ -736,45 +736,164 @@ npn.all <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/NPN data/
 npn.all$SciName <- apply(npn.all[,c("Genus","Species")], 1,
                          function(x) paste(x[1],x[2], collapse=" "))
 
-
-# Or an NPN list that Becky pulled down, instead of the other one that Mary got
-npn_0303 <- read.csv("Q:/Research/Projects/alpine-phenology/NPN spp download 20170303/status_intensity_observation_data.csv")
-npn_0303$SciName <- apply(npn_0303[,c("Genus","Species")], 1,
-                         function(x) paste(x[1],x[2], collapse=" "))
-
-
-#although lots of these might not have 10 years    
-#Match names - synonyms and all
-npn_0303npn.big2 <- intersect(npn_0303$SciName, merge.name.accpt$scientificName)
-npn_0303npn.big <- intersect(npn_0303$SciName, bloom2$scientificName) 
-length(npn_0303npn.big2) #22
-length(npn_0303npn.big) #21
+npn.all$SciName <- multisub(synonyms2$Species,
+                            synonyms2$SYNONYMS,npn.all$SciName)
+npn.all <- npn.all[!is.na(npn.all$SciName),]
 
 npn.big2 <- intersect(npn.all$SciName, merge.name.accpt$scientificName)
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big2) #23
-length(npn.big) #71
+length(npn.big2) #27
+length(npn.big) #75
 
-npn.all$SciName <- multisub(synonyms2$Species,
-                                    synonyms2$SYNONYMS,npn.all$SciName)
-npn.all <- npn.all[!is.na(npn.all$SciName),]
-
-npn.big2 <- intersect(npn.all$SciName, merge.name$scientificName)
-npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big2) #28
-length(npn.big) #68 -> 75
-
-head(synonyms.plantsyn.accpt)
-npn.big3 <- intersect(npn.all$SciName, synonyms.plantsyn$SYNONYMS)
-length(npn.big3) #214
 
 npn.ID <- merge(npn.all, synonyms, by.x = "SciName", by.y = "SYNONYMS")
 length(unique(npn.ID$ID)) #716
 
 npn.min1950 <- merge(npn.ID, merge.name.accpt, by ="ID")
-length(unique(npn.min1950$ID)) #29
-
+length(unique(npn.min1950$ID)) #28
+unique(npn.min1950$SciName)
 
 ```
+
+Table NPN year ordinal
+```{r}
+yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
+
+nrow(yr.npn_2) #28 
+mean(yr.npn_2$Slope) #-0.2734498
+
+write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr_28.csv", sep=",")
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,]) #5
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1785714
+
+#earlier
+nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) #5
+unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in%
+                                       yr.npn_2$ID[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0])])
+#Salix petrophila Rydb.                     
+#Salix planifolia Pursh                     
+#Castilleja miniata Douglas ex Hook.        
+#Calamagrostis canadensis (Michx.) P. Beauv.
+#Aquilegia coerulea James  
+
+mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #-0.5049358
+mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #0.1831828
+
+#later
+nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0,]) #0
+```
+
+Table NPN high
+```{r}
+high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
+
+nrow(high.npn_2) #28
+
+write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2_28.csv", sep=",")
+
+nrow(high.npn_2[high.npn_2$p.value<0.05,]) #5
+
+#earlier
+nrow(high.npn_2[high.npn_2$p.value<0.05 & high.npn_2$Slope<0,]) #5
+
+unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in%
+                                       high.npn_2$ID[high.npn_2$p.value<0.05 &
+                                                       high.npn_2$Slope<0])])
+#Mimulus guttatus DC.                               
+#Picea engelmannii Parry ex Engelm. var. engelmannii
+#Salix planifolia Pursh                             
+#Achillea millefolium L.                            
+#Lonicera involucrata (Richardson) Banks ex Spreng.
+
+mean(high.npn_2$Slope[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #-13.82806
+mean(high.npn_2$adj.r.squ[high.npn_2$p.value<0.05 & high.npn_2$Slope<0]) #0.2228063
+
+#later
+nrow(high.npn_2[high.npn_2$p.value<0.05 & high.npn_2$Slope>=0,]) #0
+
+```
+Table NPN low
+```{r}
+low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
+
+nrow(low.npn_2) #28
+mean(low.npn_2$Slope) #-6.216788
+
+write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2_28.csv", sep=",")
+
+nrow(low.npn_2[low.npn_2$p.value<0.05,]) #8
+nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2) #0.2857143
+
+#earlier
+nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope<0,]) # 8
+
+mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #-10.32498
+mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #0.1659896
+
+#later
+nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0,]) #0
+```
+
+Table NPN precip
+```{r}
+precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
+
+nrow(precip.NPN_2) #28
+
+write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_28.csv", sep=",")
+
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #2
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.07142857
+
+#earlier
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0,]) #1
+mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #-0.05341472
+mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #0.1559357
+
+#later
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #1
+unique(merge.name.accpt$AUTH.x[which(merge.name.accpt$ID %in%
+                                 precip.NPN_2$ID[precip.NPN_2$p.value<0.05 &
+                                                   precip.NPN_2$Slope>=0])])
+#Erythronium grandiflorum Pursh
+mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.09425329
+mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.4683842
+
+```
+
+NPN Growing Degree Days
+```{r}
+minNPNGDDmax <- merge(minNPNGDD_2,totalGDDyr, by="Year")
+
+npngdd <- data.frame(table(minNPNGDDmax$Year,minNPNGDDmax$ID))
+names(npngdd)
+colSums(table(minNPNGDDmax$Year,minNPNGDDmax$ID)) >=10
+
+ID.10 <- aggregate(npngdd$Freq, list(npngdd$Var2), sum)
+minNPNGDD_2 <- merge(minNPNGDDmax, ID.10[ID.10$x >=10,], by.x = "ID", by.y = "Group.1")
+
+length(unique(minNPNGDD_2$ID)) #23
+
+rst.npn <- JulBloomDate.min1950("MaxGDD", minNPNGDD_2)
+
+nrow(rst.npn) #23
+nrow(rst.npn[rst.npn$p.value<0.05,]) #2
+
+#lower GDD
+nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #2
+mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05419008
+mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.2762789
+unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in% 
+                                rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0])])
+
+#bigger GDD
+nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) #0
+
+
+write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a.csv", sep=",")
+
+```
+
+
 
 
