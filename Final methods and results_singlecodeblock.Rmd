@@ -67,24 +67,6 @@ multisub <- function(pattern, replacement, x){
   result
 }
 
-
-appd <- function(x){
-  x <- merge(x,merge.name[!duplicated(merge.name$ID),c("ID","scientificName","AUTH",
-                                                       "Growth.Habit","Duration")], 
-                      by.x = "Species", by.y = "scientificName")
-  lmodel <- paste("F(",x$numDF,",",x$denDF,") = ",round(x$`F Stat`,2),
-                  ", Slope = ",round(x$Slope,2),
-                  ", p-value = ", round(x$p.value,2),
-                  ", r2 = ", round(x$adj.r.squ,2), 
-                  sep = "")
-  data.frame(Family = x$Fam,
-             Species = x$AUTH,
-             Sp = x$Species,
-             GrowthHabit = x$Growth.Habit,
-             Duration = x$Duration,
-             CollectionDate = lmodel)
-  }
-
 ```
 
 Herbarium collections linked with synonomy
@@ -863,34 +845,33 @@ mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) 
 
 NPN Growing Degree Days
 ```{r}
-minNPNGDDmax <- merge(minNPNGDD_2,totalGDDyr, by="Year")
+minNPNGDDmax <- merge(totalGDDyr,npn.min1950, by="Year")
 
 npngdd <- data.frame(table(minNPNGDDmax$Year,minNPNGDDmax$ID))
-names(npngdd)
-colSums(table(minNPNGDDmax$Year,minNPNGDDmax$ID)) >=10
 
 ID.10 <- aggregate(npngdd$Freq, list(npngdd$Var2), sum)
 minNPNGDD_2 <- merge(minNPNGDDmax, ID.10[ID.10$x >=10,], by.x = "ID", by.y = "Group.1")
 
-length(unique(minNPNGDD_2$ID)) #23
+length(unique(minNPNGDD_2$ID)) #24
 
 rst.npn <- JulBloomDate.min1950("MaxGDD", minNPNGDD_2)
 
-nrow(rst.npn) #23
+nrow(rst.npn) #24
 nrow(rst.npn[rst.npn$p.value<0.05,]) #2
 
 #lower GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #2
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05419008
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.2762789
+mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05353431
+mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.1801672
 unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in% 
                                 rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0])])
+#Achillea millefolium L.                    
+#Calamagrostis canadensis (Michx.) P. Beauv.
 
 #bigger GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) #0
 
-
-write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_table5a.csv", sep=",")
+write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_24.csv", sep=",")
 
 ```
 
