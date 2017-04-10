@@ -24,7 +24,7 @@ library(directlabels)
 #Fresh start
 Save the GDD variables - those take hours to calculate/extract
 ```{r, eval=FALSE}
-rm(list= setdiff(ls(), c("avgTemps.max","avgTemps.min","tmps","HDD","HDD.all", "HDD.yrs")))
+rm(list=ls())
 ```
 
 Functions
@@ -35,6 +35,31 @@ JulBloomDate.min1950 <- function(variable,dataset){
   JYC <- lapply(namesID, function(x){
     blnew <- dataset[dataset$ID == x,]
     foo1 <- summary(lm(blnew$startDayOfYear~blnew[,colnum]))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
+                                    foo1$coefficients[1,1],
+                                    t(foo1$fstatistic),
+                                    blnew$AUTH.x[1],
+                                    blnew$scientificName[1],
+                                    blnew$Family[1],
+                                    foo1$adj.r.squared,
+                                    blnew$ID[1],
+                                    blnew$Duration[1],
+                                    blnew$Growth.Habit[1]))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c("Slope", "StErr", "t.value", "p.value", "Intercept", 
+                   "F Stat", "numDF","denDF", "SpeciesAuthority","Species", "Fam", "adj.r.squ","ID",
+                   "Duration","GrowthHabit")
+  JYC
+}
+
+# lm with elevation as covariate
+JulBloomDate.elevation <- function(variable,dataset){
+  namesID <- unique(dataset$ID)
+  colnum <- match(variable,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$ID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~(blnew[,colnum]+blnew$elevation)^2))
     jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])),
                                     foo1$coefficients[1,1],
                                     t(foo1$fstatistic),
@@ -74,7 +99,29 @@ Herbarium collections linked with synonomy
 colo <- read.csv("P:/hackathon/alpine-phenology/datasets/Complete COLO DB .csv") 
 seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/CO_SEINet_3200_20160304.csv"))
 
-colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,sep=" ")
+colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,colo$InfraInfo,sep=" ")
+
+#trim leading trailing whitespace
+colo$scientificName <- trimws(colo$scientificName)
+
+#remove authoritiy... just keep the first 4 words Genus species var. variety
+colo$scientificName <- sapply(1:length(colo$scientificName),
+                              function(x){
+  newname <- if(sapply(gregexpr("\\W+", colo$scientificName[x]), length) + 1 > 2) {
+        ul <- unlist(strsplit(colo$scientificName[x], split="\\s+"))[1:4]
+        paste(ul,collapse = " ")
+        } else {
+          colo$scientificName[x]
+        }
+  newname
+  })
+
+
+colo$scientificName <- gsub(pattern = "var", replacement = "var.",
+                            colo$scientificName)
+colo$scientificName <- gsub(pattern = "ssp", replacement = "ssp.",
+                            colo$scientificName)
+
 colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
 # Select only reprodutive or post reproductive records
@@ -128,6 +175,8 @@ seinet.sm <- seinet.sm[seinet.sm$year >=1950,]
 seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
 # Elevation over 3200 meters - was gathered from SEINet with that limitation. 
 seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
+#Mt Elbert is highest peak at 14,439ft == 4401meters
+seinet.sm <- seinet.sm[seinet.sm$minimumElevationInMeters < 4402,]
 # Remove any rows missing startDayOfYear
 seinet.sm <- seinet.sm[!is.na(seinet.sm$startDayOfYear),]
 
@@ -286,7 +335,7 @@ earl.sp.yr <- do.call(rbind,
 )
 
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,] #413
-merge.name.accpt <- merge(sp.10plus, synonyms.plantsyn.accpt, by = "ID") #390
+merge.name.accpt <- merge(sp.10plus, synonyms.plantsyn.accpt, by = "ID") #389
 
 ##########################################################
 earliestcollection <- data.frame(colSums(table(merge.name.accpt$ID,
@@ -296,8 +345,8 @@ earcol <- data.frame(Year = row.names(earliestcollection),
                      Collections = earliestcollection)
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
-earcol[which.max(earcol$Collections),] # 1998 342
-mean(earcol$Collections) #168.4098 -> 165.0656
+earcol[which.max(earcol$Collections),] # 1998 346
+mean(earcol$Collections) #165.4262
 
 
 allcollections <- data.frame(colSums(table(bloom.sp$ID,bloom.sp$Year)))
@@ -331,10 +380,14 @@ min1950GDD_2 <- mergeMinGDD(merge.name.accpt,tmps)
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
 yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
-                         by.x="ID",by.y="Group.1") #312
+                         by.x="ID",by.y="Group.1") #313
 min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
 
 ```
+
+
+
+
 
 
 
@@ -385,32 +438,20 @@ Table Year and Ordinal day
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
-nrow(yr.1950_2) #390
+nrow(yr.1950_2) #389
 
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_390.csv", sep=",")
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_389.csv", sep=",")
 
 nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #344
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #46
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #45
 
-# select random subset of 20 species that did signficantly change over time and 20 that did not
-
-sig.rows <- which(yr.1950_2$p.value<0.05)
-set.seed(123)
-yr.1950_2[sample(sig.rows,20,replace=FALSE),c("Species","ID")]
-nonsig.rows <- which(yr.1950_2$p.value>=0.05)
-set.seed(123)
-non.sig.sp <- yr.1950_2[sample(nonsig.rows,20,replace=FALSE),c("Species","ID")]
-synonyms.plantsyn[synonyms.plantsyn$ID %in% non.sig.sp$ID,]
-synonyms[synonyms$SYNONYMS == "Senecio fremontii var. blitoides",]
-sig.sp <- c(9042,1125,8243,6934,45837,17265,14088,35604,41517)  ###START HERE
-
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1179487
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1156812
 
 #earlier
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #46
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5320037
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-32.45222
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2201669
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #45
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5275986
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-32.18351
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2173058
 
 #later
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->0
@@ -528,16 +569,16 @@ Table Ordinal by high temp
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name.accpt)
 
-nrow(high.1950_2) #390
-write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_390.csv", sep=",")
+nrow(high.1950_2) #389
+write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_389.csv", sep=",")
 
-nrow(high.1950_2[high.1950_2$p.value<0.05,]) #78
+nrow(high.1950_2[high.1950_2$p.value<0.05,]) #81
 nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.2
 
 #earlier
-nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #76
-mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.73682
-mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2187169
+nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #79
+mean(high.1950_2$Slope[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) # -10.44416
+mean(high.1950_2$adj.r.squ[high.1950_2$p.value<0.05 & high.1950_2$Slope<0]) #0.2189276
 
 #later
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope>=0,]) # 2
@@ -557,18 +598,18 @@ Table Ordinal by low temp
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name.accpt)
 
-nrow(low.1950_2) #390
+nrow(low.1950_2) #389
 
-write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_390.csv", sep=",")
+write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_389.csv", sep=",")
 
-nrow(low.1950_2[low.1950_2$p.value<0.05,]) #73
-nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1871795
-mean(low.1950_2$Slope) #-4.317658
+nrow(low.1950_2[low.1950_2$p.value<0.05,]) #72
+nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.18509
+mean(low.1950_2$Slope) #-4.272713
 
 #earlier
-nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #72
-mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #-9.367761
-mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #0.1693134
+nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope<0,]) #71
+mean(low.1950_2$Slope[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #-9.258539
+mean(low.1950_2$adj.r.squ[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]) #0.1717332
 
 #later
 nrow(low.1950_2[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0,]) #1
@@ -585,11 +626,11 @@ Table Ordinal on Precip
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name.accpt)
 
-write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2_390.csv", sep=",")
+write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2_389.csv", sep=",")
 
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #35
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.08974359
-mean(precip.1950_2$Slope) #0.02084484
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #37
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.09511568
+mean(precip.1950_2$Slope) #0.02095683
 
 
 #earlier
@@ -602,9 +643,9 @@ mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # 
 mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2260552
 
 #later
-nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #33
-mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.07953377
-mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2242796
+nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #35
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.07915495
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2274481
 
 ```
 
@@ -612,7 +653,7 @@ Table Ordinal by maxGDD
 ```{r}
 rst <- JulBloomDate.min1950("MaxGDD", min1950GDDmax)
 
-nrow(rst) #312
+nrow(rst) #313
 nrow(rst[rst$p.value<0.05,]) #65
 
 #earlier
@@ -628,9 +669,75 @@ mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) # 0.06436998
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) #0.2293882
 
 
-write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max_312.csv", sep=",")
+write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max_313.csv", sep=",")
 
 ```
+
+
+Methods and Results     
+```{r}
+length(unique(merge.name.accpt$ID)) #389
+nrow(yr.1950_2) #389
+nrow(low.1950_2) #389
+nrow(yr.npn_2) #28
+length(unique(min1950GDDmax$ID)) #313
+
+#How many years have each species been collected?
+bysp <- split(merge.name.accpt, merge.name.accpt$ID, drop=TRUE)
+
+spyears <- do.call(rbind,
+                   lapply(bysp, function(x){
+                     data.frame(DataYrs = length(unique(x$Year)),ID = unique(x$ID))
+                     })
+                   )
+
+# 389 species
+spyears[which.max(spyears$DataYrs),] # 54
+spyears[which.min(spyears$DataYrs),] # 10
+nrow(spyears[spyears$DataYrs>=10,]) #389
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
+
+# species collected per year (from 10 years or more, 389 species)
+sp.p.year <- data.frame(table(merge.name.accpt$ID,merge.name.accpt$Year))
+sp.p.year.1 <- sp.p.year[sp.p.year$Freq>0,]
+sum.p.year <- aggregate(sp.p.year.1$Freq, list(sp.p.year.1$Var2), length)
+mean(sum.p.year$x) #165.4
+sum.p.year[which.max(sum.p.year$x),]
+rm(sp.p.year,sp.p.year.1)
+
+# peak collection period (over the year) for all herbarium specimens. 
+col.yr <- data.frame(table(bloom.sp$startDayOfYear, bloom.sp$Year))
+peak.yr <- do.call(rbind, lapply(split(col.yr, col.yr$Var2), function(x) x[which.max(x$Freq),]))
+peak.yr$Var1 <- as.numeric(levels(peak.yr$Var1))[peak.yr$Var1]
+mean(peak.yr$Var1) #206.541
+rm(col.yr, peak.yr)
+
+# The mean colleciton for all specimens of all species (389) used in analyses...      
+#    so the IDs from merge.name.accpt but all specimens from bloom.sp
+bloom.sp.389 <- bloom.sp[bloom.sp$ID %in% unique(merge.name.accpt$ID),]
+col.period <- data.frame(table(bloom.sp.389$startDayOfYear, bloom.sp.389$Year))
+col.period <- col.period[col.period$Freq>0,]
+col.period[,1:2] <- sapply(col.period[,1:2], function(x) as.numeric(as.character(x)))
+
+peak.yr <- aggregate(col.period$Var1, list(col.period$Var2), mean)
+mean(peak.yr$x) #208.9292
+
+summary(lm(startDayOfYear~Year, data=bloom.sp.389))
+
+peak.yr[which.min(peak.yr$x),]
+as.Date(sprintf("%05d", 74198), format= "%y%j")
+peak.yr[which.max(peak.yr$x),]
+as.Date(sprintf("%05d", 79223), format= "%y%j")
+
+ggplot(bloom.sp.389, aes(Year,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+# just the first collection date, moving over time?
+summary(lm(startDayOfYear~Year, data=merge.name.accpt))
+
+```
+
 
 Figure 5a
 ```{r}
@@ -696,7 +803,7 @@ Figure 5d
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(min1950GDDmax, aes( MaxGDD, startDayOfYear))+
+ggplot(min1950GDDmax, aes(MaxGDD, startDayOfYear))+
   geom_point(shape=1, size=0.5)+
   geom_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
@@ -725,7 +832,7 @@ npn.all <- npn.all[!is.na(npn.all$SciName),]
 npn.big2 <- intersect(npn.all$SciName, merge.name.accpt$scientificName)
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
 length(npn.big2) #27
-length(npn.big) #75
+length(npn.big) #72
 
 
 npn.ID <- merge(npn.all, synonyms, by.x = "SciName", by.y = "SYNONYMS")
@@ -742,24 +849,23 @@ Table NPN year ordinal
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
 nrow(yr.npn_2) #28 
-mean(yr.npn_2$Slope) #-0.2734498
+mean(yr.npn_2$Slope) #-0.2664686
 
 write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr_28.csv", sep=",")
-nrow(yr.npn_2[yr.npn_2$p.value<0.05,]) #5
-nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1785714
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,]) #4
+nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1428571
 
 #earlier
-nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) #5
+nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0,]) #4
 unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in%
                                        yr.npn_2$ID[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0])])
 #Salix petrophila Rydb.                     
 #Salix planifolia Pursh                     
 #Castilleja miniata Douglas ex Hook.        
 #Calamagrostis canadensis (Michx.) P. Beauv.
-#Aquilegia coerulea James  
 
-mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #-0.5049358
-mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #0.1831828
+mean(yr.npn_2$Slope[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #-0.5272818
+mean(yr.npn_2$adj.r.squ[yr.npn_2$p.value<0.05 & yr.npn_2$Slope<0]) #0.1863358
 
 #later
 nrow(yr.npn_2[yr.npn_2$p.value<0.05 & yr.npn_2$Slope>=0,]) #0
@@ -808,9 +914,12 @@ nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2) #0.2857143
 
 #earlier
 nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope<0,]) # 8
+unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in%
+                                       low.npn_2$ID[low.npn_2$p.value<0.05 &
+                                                       low.npn_2$Slope<0])])
 
-mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #-10.32498
-mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #0.1659896
+mean(low.npn_2$Slope[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #-10.27738
+mean(low.npn_2$adj.r.squ[low.npn_2$p.value<0.05 & low.npn_2$Slope<0]) #0.164536
 
 #later
 nrow(low.npn_2[low.npn_2$p.value<0.05 & low.npn_2$Slope>=0,]) #0
@@ -829,6 +938,11 @@ nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.07142857
 
 #earlier
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0,]) #1
+
+unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in%
+                                       precip.NPN_2$ID[precip.NPN_2$p.value<0.05 &
+                                                      precip.NPN_2$Slope<0])])
+
 mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #-0.05341472
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #0.1559357
 
@@ -857,16 +971,18 @@ length(unique(minNPNGDD_2$ID)) #24
 rst.npn <- JulBloomDate.min1950("MaxGDD", minNPNGDD_2)
 
 nrow(rst.npn) #24
-nrow(rst.npn[rst.npn$p.value<0.05,]) #2
+nrow(rst.npn[rst.npn$p.value<0.05,]) #4
 
 #lower GDD
-nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #2
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05353431
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.1801672
+nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #4
+mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05148802
+mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.1728869
 unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in% 
                                 rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0])])
 #Achillea millefolium L.                    
 #Calamagrostis canadensis (Michx.) P. Beauv.
+#Aquilegia coerulea James
+#Carex aquatilis Wahlenb.
 
 #bigger GDD
 nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) #0
@@ -876,5 +992,153 @@ write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_24.csv", 
 ```
 
 
+# For CPC talk    
+Table: how did the first bloom of species change with elevation collected?
+```{r}
+elevation <- JulBloomDate.min1950("elevation", merge.name.accpt)
+
+nrow(elevation)
+
+nrow(elevation[elevation$p.value>=0.05,]) #339
+nrow(elevation[elevation$p.value<0.05,]) #51
+mean(elevation$Slope)
+0.004399*61
+
+nrow(elevation[elevation$p.value<0.05,])/nrow(elevation) #0.1307692
+
+#earlier higher up
+nrow(elevation[elevation$p.value<0.05 & elevation$Slope<0,]) #5
+mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope<0]) #-0.07245611
+mean(elevation$adj.r.squ[elevation$p.value<0.05 & elevation$Slope<0]) #0.312673
+
+#later higher up
+nrow(elevation[elevation$p.value<0.05 & elevation$Slope>=0,]) #46
+
+mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope>=0]) #0.04792669
+mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope>=0])*61 #2.923528
+mean(elevation$adj.r.squ[elevation$p.value<0.05 & elevation$Slope>=0]) #0.201321
 
 
+ggplot(merge.name.accpt[merge.name.accpt$elevation<4300,], aes(elevation, startDayOfYear))+
+  geom_point(shape=1, size= 0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  theme_bw()+
+  xlab("Elevation")+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
+
+
+####
+# Bloom over time given elevation
+yr.elevation <- JulBloomDate.elevation("Year", merge.name.accpt)
+high.elevation <- JulBloomDate.elevation("Avg_Hi", merge.name.accpt)
+low.elevation <- JulBloomDate.elevation("Avg_Lo", merge.name.accpt)
+precip.elevation <- JulBloomDate.elevation("Raw_Precip", merge.name.accpt)
+
+nrow(yr.elevation[yr.elevation$p.value<0.05,]) #26
+nrow(yr.elevation[yr.elevation$p.value<0.05,])/nrow(yr.elevation) # 0.06666667
+
+
+#####################
+#####################
+# select random subset of 20 species that did signficantly change over time and 20 that did not
+
+sig.rows <- which(yr.1950_2$p.value<0.05)
+set.seed(123)
+yr.1950_2[sample(sig.rows,20,replace=FALSE),c("Species","ID")]
+nonsig.rows <- which(yr.1950_2$p.value>=0.05)
+set.seed(123)
+non.sig.sp <- yr.1950_2[sample(nonsig.rows,20,replace=FALSE),c("Species","ID")]
+synonyms.plantsyn[synonyms.plantsyn$ID %in% non.sig.sp$ID,]
+synonyms[synonyms$SYNONYMS == "Senecio fremontii var. blitoides",]
+sig.sp <- c(9042,1125,8243,6934,45837,17265,14088,35604,41517)  
+```
+
+Paste it down in the console to spit out in plot
+```{r}
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                                elevation$ID[elevation$p.value<0.05 &
+                                               elevation$Slope<0]),],
+       aes(Year, startDayOfYear, colour = SYNONYMS))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                                elevation$ID[elevation$p.value<0.05 &
+                                               elevation$Slope<0]),],
+       aes(elevation, startDayOfYear, colour = SYNONYMS))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Elevation")+
+  ylab("Ordinal Date")
+
+
+# are there ones going later over time? Not significnatly 
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                                       yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                                       yr.1950_2$Slope>=0]),],
+       aes(Year, startDayOfYear, colour = SYNONYMS))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+head(merge.name.accpt)
+#Insignificantly later in bloom date
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                                       yr.1950_2$ID[yr.1950_2$Slope>=0]),],
+       aes(Year, startDayOfYear, colour = Family))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                                elevation$ID[elevation$p.value<0.05 &
+                                               elevation$Slope>=0]),],
+       aes(Year, startDayOfYear, colour = SYNONYMS))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                                elevation$ID[elevation$p.value<0.05 &
+                                               elevation$Slope>=0]),],
+       aes(elevation, startDayOfYear, colour = SYNONYMS))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab("Elevation")+
+  ylab("Ordinal Date")
+
+
+###
+ggplot(merge.name.accpt, aes(elevation, startDayOfYear))+
+  geom_point(shape=1,size=0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  theme_bw()+
+  xlab("Elevation")+
+  ylab("Ordinal Date")
+
+summary(lm(startDayOfYear~elevation, data=merge.name.accpt))
+summary(lm(startDayOfYear~(Year+elevation)^2, data=merge.name.accpt))
+
+ggplot(merge.name.accpt, aes(Year, elevation))+
+  geom_point(shape=1,size=0.5)+
+  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Elevation")
+
+
+
+```
