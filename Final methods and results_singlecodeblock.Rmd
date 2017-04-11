@@ -299,6 +299,8 @@ plantsyn <- rbind(plantsyn, c("HITR2","","HITR2","Hieracium triste","","Hieraciu
                               "L48 (N), AK (N), CAN (N)", "Late Summer",
                               "",""))
 
+#could add Erigeron peregrinus ssp. callianthemus, only have E. peregrinus ssp. callianthemus var. callianthemus... not doing it now.
+
 
 plantsyn$Scientific.Name <- multisub(synonyms2$Species,
                      synonyms2$SYNONYMS, plantsyn$Scientific.Name)
@@ -387,7 +389,40 @@ min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
 
 
 
+Testing
+```{r}
+unique(merge.name.accpt$scientificName[grep("Calamagrostis", merge.name.accpt$scientificName)])
+unique(bloom2$scientificName[grep("Calamagrostis", bloom2$scientificName)]) 
+table(bloom2$Year[grep("Erigeron gl", bloom2$scientificName)]) #plenty
 
+synonyms.plantsyn
+unique(synonyms.plantsyn$SYNONYMS[grep("Erigeron pereg",
+                                       synonyms.plantsyn$SYNONYMS)]) #only E. peregrinus ssp. c var c - lost them here!!
+table(synonyms.plantsyn$Year[grep("Erigeron gl", synonyms.plantsyn$scientificName)]) #plenty
+
+
+unique(synonyms$SYNONYMS[grep("Castilleja min", synonyms$SYNONYMS)])
+
+synonyms[grep("Castilleja miniata", synonyms$SYNONYMS),]
+synonyms[synonyms$ID == 9042,]
+bloom.sp[bloom.sp$ID == 9042,]
+table(merge.name.accpt$Year[merge.name.accpt$ID == 9042])
+
+synonyms[grep("Salix pet", synonyms$SYNONYMS),]
+synonyms[synonyms$ID == 40051,]
+bloom.sp[bloom.sp$ID == 40051,]
+table(merge.name.accpt$Year[merge.name.accpt$ID == 40051])
+
+synonyms[grep("Mimulus guttatus", synonyms$SYNONYMS),]
+synonyms[synonyms$ID == 29350,]
+bloom.sp[bloom.sp$ID == 29350,]
+table(merge.name.accpt$Year[merge.name.accpt$ID == 29350])
+
+
+bloom.sp[grep("Erigeron", bloom.sp$scientificName),]
+
+table(bloom.sp$Year[grep("Erigeron", bloom.sp$scientificName),])
+```
 
 
 
