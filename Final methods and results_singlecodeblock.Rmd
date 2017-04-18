@@ -354,6 +354,7 @@ totalGDD <- lapply(split(tmps, tmps$Year), function(year){
 })
 totalGDDyr <- data.frame(Year=1981:2011, MaxGDD = do.call(rbind, totalGDD))
 
+
 min1950GDD_2 <- mergeMinGDD(merge.name.accpt,tmps)
 gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
 yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)

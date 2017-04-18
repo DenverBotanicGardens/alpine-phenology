@@ -87,6 +87,42 @@ JulBloomDate.elevation <- function(variable,dataset){
   JYC
 }
 
+# lm with covariates
+JulBloomDate.covariates <- function(variable1, variable2,dataset){
+  namesID <- unique(dataset$ID)
+  colnum1 <- match(variable1,names(dataset))
+  colnum2 <- match(variable2,names(dataset))
+  JYC <- lapply(namesID, function(x){
+    blnew <- dataset[dataset$ID == x,]
+    foo1 <- summary(lm(blnew$startDayOfYear~(blnew[,colnum1]*blnew[,colnum2])))
+    jul.yr.coef <- data.frame(cbind(data.frame(t(foo1$coefficients[2,])), #variable
+                                    data.frame(t(foo1$coefficients[3,])), #elevation
+                                    data.frame(t(foo1$coefficients[4,])), #interaction
+                                    foo1$coefficients[1,1],  #intercept
+                                    t(foo1$fstatistic),
+                                    blnew$AUTH.x[1],
+                                    blnew$scientificName[1],
+                                    blnew$Family[1],
+                                    foo1$adj.r.squared,
+                                    blnew$ID[1],
+                                    blnew$Duration[1],
+                                    blnew$Growth.Habit[1]))
+    })
+  JYC <- do.call(rbind, JYC)
+  colnames(JYC) <- c(paste(variable1,"Slope",sep=""),paste(variable1,"StErr",sep=""),
+                          paste(variable1,"t.value",sep=""),
+                          paste(variable1,"p.value",sep=""),
+                     paste(variable2,"Slope",sep=""),paste(variable2,"StErr",sep=""),
+                          paste(variable2,"t.value",sep=""),
+                          paste(variable2,"p.value",sep=""),
+                     "InteractionSlope", "InteractionStErr",
+                          "Interactiont.value","Interactionp.value",
+                     "Intercept", "F Stat", "numDF","denDF",
+                     "SpeciesAuthority","Species", "Fam",
+                     "adj.r.squ","ID","Duration","GrowthHabit")
+  JYC
+}
+
 mergeMinGDD <- function(mindates,GDD){
   merge(mindates, GDD, by.x = c("Year","startDayOfYear"), by.y = c("Year","Julian"))
 }
@@ -332,7 +368,7 @@ bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 ##########################################################
 ##########################################################
 ##########################################################
-# Just the first collection per species per year
+# Just the first collection per species per year 
 earl.sp.yr <- do.call(rbind,
                       lapply(split(bloom.sp, bloom.sp$ID), function(id){
                         id <- id[order(id$Year),]
@@ -367,6 +403,70 @@ colnames(allcol)[2] <- "collections"
 
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 allcol[,1] <- as.numeric.factor(allcol[,1])
+
+### NOW ADD ELEVATION ###
+##########################################################
+##########################################################
+##########################################################
+
+# split by elevational group
+table(bloom.sp$elevation)
+
+bloom.sp$BinElevation <- cut(bloom.sp$elevation,
+                             breaks=seq(3200, 4400, 100),
+                             labels=FALSE)
+
+
+# Just the first collection per species per year 
+elevation.earl.sp.yr <- do.call(rbind,
+                      lapply(split(bloom.sp, list(bloom.sp$ID,
+                                                  bloom.sp$BinElevation)),
+  function(id){
+    if(length(id$Year)>0){
+      id <- id[order(id$Year),]
+      id$DataYrs <- nrow(id[!duplicated(id$Year) &
+                              !is.na(id$Year),])
+      rows <- aggregate(startDayOfYear~Year, id,
+                        FUN=min)
+      out <- merge(id, rows, by=c("startDayOfYear","Year"))
+      out <- out[order(out$Year),]
+      out <- out[!duplicated(out$Year),]
+      out
+    }
+    })
+  )
+
+
+#### START AFTER HERE ####
+elevation.sp.10plus <- elevation.earl.sp.yr[elevation.earl.sp.yr$DataYrs>=10,] 
+length(unique(elevation.sp.10plus$ID))#230
+head(elevation.sp.10plus)
+
+elevation.merge.name.accpt <- merge(elevation.sp.10plus, synonyms.plantsyn.accpt, by = "ID") 
+length(unique(elevation.merge.name.accpt$ID))#219 (said 45 rows are identical??)
+
+##########################################################
+earliestcollection <- data.frame(colSums(table(merge.name.accpt$ID,
+                                               merge.name.accpt$Year)))
+
+earcol <- data.frame(Year = row.names(earliestcollection),
+                     Collections = earliestcollection)
+colnames(earcol)[2] <- "Collections"
+earcol[,1] <- as.numeric(levels(earcol[,1]))
+earcol[which.max(earcol$Collections),] # 1998 346
+mean(earcol$Collections) #165.4262
+
+
+allcollections <- data.frame(colSums(table(bloom.sp$ID,bloom.sp$Year)))
+allcol <- data.frame(Year = row.names(allcollections),
+                     allcollections)
+colnames(allcol)[2] <- "collections"
+
+as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
+allcol[,1] <- as.numeric.factor(allcol[,1])
+
+######### ELEVATION ########
+
 
 library(RCurl)
 bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/QR_final_R_plant_climate_data_2.csv"))
@@ -664,8 +764,8 @@ nrow(rst[rst$p.value<0.05,]) #65
 
 #earlier
 nrow(rst[rst$p.value<0.05 & rst$Slope < 0,]) #64
-mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -0.06205813
-mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.2570596
+mean(rst$Slope[rst$p.value<0.05 & rst$Slope < 0]) # -0.0621439
+mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope < 0]) #0.253648
 
 #later
 nrow(rst[rst$p.value<0.05 & rst$Slope >= 0,]) #1
@@ -1161,8 +1261,11 @@ nrow(yr.elevation[yr.elevation$p.value<0.05,])/nrow(yr.elevation) # 0.06666667
 
 sig.rows <- which(yr.1950_2$p.value<0.05)
 set.seed(123)
+yr.1950_2[sig.rows, "Species"]
 yr.1950_2[sample(sig.rows,20,replace=FALSE),c("Species","ID")]
 nonsig.rows <- which(yr.1950_2$p.value>=0.05)
+
+yr.1950_2[nonsig.rows, "Species"]
 set.seed(123)
 non.sig.sp <- yr.1950_2[sample(nonsig.rows,20,replace=FALSE),c("Species","ID")]
 synonyms.plantsyn[synonyms.plantsyn$ID %in% non.sig.sp$ID,]
@@ -1256,4 +1359,42 @@ ggplot(merge.name.accpt, aes(Year, elevation))+
 
 
 
+```
+
+
+
+#covariates?   
+```{r}
+min.precip <- JulBloomDate.covariates("Avg_Lo","Raw_Precip",merge.name.accpt)
+
+nrow(min.precip[min.precip$Avg_Lop.value>=0.05,]) #354
+nrow(min.precip[min.precip$Interactionp.value<0.05,]) #30
+
+
+nrow(min.precip[min.precip$Interactionp.value>=0.05,]) #359
+nrow(min.precip[min.precip$InteractionSlope < 0 &
+                  min.precip$Interactionp.value < 0.05,]) #3
+
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                min.precip$ID[min.precip$InteractionSlope < 0 &
+                                         min.precip$Interactionp.value < 0.05]),],
+       aes(Avg_Lo, startDayOfYear, colour=AUTH.x)) +
+  stat_smooth(method="lm", alpha=0.5)+
+  theme_bw()
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                min.precip$ID[min.precip$InteractionSlope < 0 &
+                                         min.precip$Interactionp.value < 0.05]),],
+       aes(Raw_Precip, startDayOfYear, colour=AUTH.x)) +
+  stat_smooth(method="lm", alpha=0.5)+
+  theme_bw()
+
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
+                min.precip$ID[min.precip$InteractionSlope < 0 &
+                                         min.precip$Interactionp.value < 0.05]),],
+       aes(Raw_Precip, Avg_Lo, colour=AUTH.x)) +
+  stat_smooth(method="lm", alpha=0.5)+
+  theme_bw()
 ```
