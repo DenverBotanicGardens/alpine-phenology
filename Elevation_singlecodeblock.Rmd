@@ -1273,6 +1273,13 @@ synonyms[synonyms$SYNONYMS == "Senecio fremontii var. blitoides",]
 sig.sp <- c(9042,1125,8243,6934,45837,17265,14088,35604,41517)  
 ```
 
+Check if species synonyms and accepted names match
+```{r}
+synonyms.plantsyn[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS),]
+
+```
+
+
 Paste it down in the console to spit out in plot
 ```{r}
 ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
