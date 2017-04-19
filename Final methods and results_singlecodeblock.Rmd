@@ -290,6 +290,7 @@ synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
 
 # Caught error in final table
 synonyms.plantsyn$ID[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS)] <- 9608
+synonyms.plantsyn$ID[grep("Carex scirpoi", synonyms.plantsyn$SYNONYMS)] <- 8637
 
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
 synonyms.plantsyn.accpt$ID   <- as.numeric(synonyms.plantsyn.accpt$ID)
@@ -416,14 +417,14 @@ Table Year and Ordinal day
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
-nrow(yr.1950_2) #389
+nrow(yr.1950_2) #387
 
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_388.csv", sep=",")
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_387.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #343
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #343 -> 342
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #45
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1159794
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1159794 -> 0.1162791
 
 #earlier
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #45
@@ -547,11 +548,11 @@ Table Ordinal by high temp
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name.accpt)
 
-nrow(high.1950_2) #388
-write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_388.csv", sep=",")
+nrow(high.1950_2) #388 -> 387
+write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_387.csv", sep=",")
 
 nrow(high.1950_2[high.1950_2$p.value<0.05,]) #81
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.2087629
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.2087629 -> 0.2093023
 
 #earlier
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #79
@@ -576,12 +577,12 @@ Table Ordinal by low temp
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name.accpt)
 
-nrow(low.1950_2) #389
+nrow(low.1950_2) #389 -> 387
 
-write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_388.csv", sep=",")
+write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_387.csv", sep=",")
 
 nrow(low.1950_2[low.1950_2$p.value<0.05,]) #73
-nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1881443
+nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1881443 -> 0.1886305
 mean(low.1950_2$Slope) #-4.268747
 
 #earlier
@@ -604,11 +605,11 @@ Table Ordinal on Precip
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name.accpt)
 
-write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2_388.csv", sep=",")
+write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2_387.csv", sep=",")
 
 nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #37
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.09536082
-mean(precip.1950_2$Slope) #0.02090737
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.09536082 -> 0.09560724
+mean(precip.1950_2$Slope) #0.02090737 -> 0.02091353
 
 
 #earlier
@@ -631,7 +632,7 @@ Table Ordinal by maxGDD
 ```{r}
 rst <- JulBloomDate.min1950("MaxGDD", min1950GDDmax)
 
-nrow(rst) #312
+nrow(rst) #312 -> 311
 nrow(rst[rst$p.value<0.05,]) #65
 
 #earlier

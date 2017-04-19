@@ -1275,7 +1275,16 @@ sig.sp <- c(9042,1125,8243,6934,45837,17265,14088,35604,41517)
 
 Check if species synonyms and accepted names match
 ```{r}
-synonyms.plantsyn[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS),]
+synonyms.plantsyn[grep("Carex scirpoi", synonyms.plantsyn$SYNONYMS),]
+
+synonyms.plantsyn$ID[grep("Carex scirpoi", synonyms.plantsyn$SYNONYMS)] <- 8637
+
+table(bloom.sp$scientificName[grep("Carex scirpoid",bloom.sp$scientificName)])
+
+synonyms.plantsyn$ID[grep("Carex scirpoidea")]
+
+
+synonyms.plantsyn$ID[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS)] <- 9608
 
 ```
 
