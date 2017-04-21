@@ -421,9 +421,9 @@ yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
 nrow(yr.1950_2) #387
 
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_387.csv", sep=",")
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_385.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #343 -> 342
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #343 -> 340
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #45
 
 nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1159794 -> 0.1162791
@@ -551,10 +551,10 @@ Table Ordinal by high temp
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name.accpt)
 
 nrow(high.1950_2) #388 -> 387
-write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_387.csv", sep=",")
+write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_385.csv", sep=",")
 
 nrow(high.1950_2[high.1950_2$p.value<0.05,]) #81
-nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.2087629 -> 0.2093023
+nrow(high.1950_2[high.1950_2$p.value<0.05,])/nrow(high.1950_2) #0.2087629 -> 0.2103896
 
 #earlier
 nrow(high.1950_2[high.1950_2$p.value<0.05 & high.1950_2$Slope<0,])  #79
@@ -581,10 +581,10 @@ low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name.accpt)
 
 nrow(low.1950_2) #389 -> 387
 
-write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_387.csv", sep=",")
+write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_385.csv", sep=",")
 
 nrow(low.1950_2[low.1950_2$p.value<0.05,]) #73
-nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1881443 -> 0.1886305
+nrow(low.1950_2[low.1950_2$p.value<0.05,])/nrow(low.1950_2) #0.1881443 -> 0.1896104
 mean(low.1950_2$Slope) #-4.268747
 
 #earlier
@@ -607,11 +607,11 @@ Table Ordinal on Precip
 ```{r}
 precip.1950_2 <- JulBloomDate.min1950("Raw_Precip", merge.name.accpt)
 
-write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2_387.csv", sep=",")
+write.table(precip.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_precip_2_385.csv", sep=",")
 
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #37
-nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.09536082 -> 0.09560724
-mean(precip.1950_2$Slope) #0.02090737 -> 0.02091353
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,]) #36
+nrow(precip.1950_2[precip.1950_2$p.value<0.05,])/nrow(precip.1950_2) # 0.09536082 -> 0.09350649
+mean(precip.1950_2$Slope) #0.02090737 -> 0.02073033
 
 
 #earlier
@@ -624,9 +624,9 @@ mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) # 
 mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]) #0.2260552
 
 #later
-nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #35
-mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.07915495
-mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2274481
+nrow(precip.1950_2[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0,]) #34
+mean(precip.1950_2$Slope[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.07871088
+mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]) #0.2203618
 
 ```
 
@@ -650,7 +650,7 @@ mean(rst$Slope[rst$p.value<0.05 & rst$Slope >= 0]) # 0.06436998
 mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) #0.2293882
 
 
-write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max_312.csv", sep=",")
+write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max_311.csv", sep=",")
 
 ```
 
@@ -749,16 +749,21 @@ npn.all <- npn.all[!is.na(npn.all$SciName),]
 
 npn.big2 <- intersect(npn.all$SciName, merge.name.accpt$scientificName)
 npn.big <- intersect(npn.all$SciName, bloom2$scientificName) 
-length(npn.big2) #27
+length(npn.big2) #27 -> 26
 length(npn.big) #72
 
+# match NPN names against all synonyms. Get those IDs, link those
 
-npn.ID <- merge(npn.all, synonyms, by.x = "SciName", by.y = "SYNONYMS")
-length(unique(npn.ID$ID)) #716
 
-npn.min1950 <- merge(npn.ID, merge.name.accpt, by ="ID")
+
+npn.ID <- merge(npn.all, synonyms.plantsyn, by.x = "SciName", by.y = "SYNONYMS")
+length(unique(npn.ID$ID)) #716 -> 215 when I use synonyms.plantsyn instead of synonyms
+
+npn.min1950 <- merge.name.accpt[merge.name.accpt$ID %in% unique(npn.ID$ID),]
+
+#npn.min1950 <- merge(npn.ID, merge.name.accpt, by ="ID")
 length(unique(npn.min1950$ID)) #28
-unique(npn.min1950$SciName)
+unique(npn.min1950$SYNONYMS)
 
 ```
 
@@ -766,10 +771,10 @@ Table NPN year ordinal
 ```{r}
 yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 
-nrow(yr.npn_2) #28 
-mean(yr.npn_2$Slope) #-0.2664686
+nrow(yr.npn_2) #28
+mean(yr.npn_2$Slope) #-0.2688984
 
-write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr_28.csv", sep=",")
+write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr_27.csv", sep=",")
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,]) #4
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1428571
 
@@ -795,7 +800,7 @@ high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
 
 nrow(high.npn_2) #28
 
-write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2_28.csv", sep=",")
+write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2_27.csv", sep=",")
 
 nrow(high.npn_2[high.npn_2$p.value<0.05,]) #5
 
@@ -823,7 +828,7 @@ Table NPN low
 low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
 
 nrow(low.npn_2) #28
-mean(low.npn_2$Slope) #-6.216788
+mean(low.npn_2$Slope) #-6.161866
 
 write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2_28.csv", sep=",")
 
@@ -851,8 +856,8 @@ nrow(precip.NPN_2) #28
 
 write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_28.csv", sep=",")
 
-nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #2
-nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.07142857
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #1
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.03571429
 
 #earlier
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0,]) #1
@@ -865,11 +870,11 @@ mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #-0.0
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope<0]) #0.1559357
 
 #later
-nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #1
+nrow(precip.NPN_2[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0,]) #1 -> 0
 unique(merge.name.accpt$AUTH.x[which(merge.name.accpt$ID %in%
                                  precip.NPN_2$ID[precip.NPN_2$p.value<0.05 &
                                                    precip.NPN_2$Slope>=0])])
-#Erythronium grandiflorum Pursh
+#Erythronium grandiflorum Pursh -> Not when combinded with subspecies. 
 mean(precip.NPN_2$Slope[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.09425329
 mean(precip.NPN_2$adj.r.squ[precip.NPN_2$p.value<0.05 & precip.NPN_2$Slope>=0]) #0.4683842
 
@@ -911,11 +916,11 @@ write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_24.csv", 
 
 Methods and Results     
 ```{r}
-length(unique(merge.name.accpt$ID)) #388
-nrow(yr.1950_2) #388
-nrow(low.1950_2) #388
+length(unique(merge.name.accpt$ID)) #388 -> 385
+nrow(yr.1950_2) #385
+nrow(low.1950_2) #385
 nrow(yr.npn_2) #28
-length(unique(min1950GDDmax$ID)) #313
+length(unique(min1950GDDmax$ID)) #311
 
 #How many years have each species been collected?
 bysp <- split(merge.name.accpt, merge.name.accpt$ID, drop=TRUE)
@@ -929,14 +934,14 @@ spyears <- do.call(rbind,
 # 389 species
 spyears[which.max(spyears$DataYrs),] # 54
 spyears[which.min(spyears$DataYrs),] # 10
-nrow(spyears[spyears$DataYrs>=10,]) #389
-mean(spyears$DataYrs[spyears$DataYrs>=10]) #23.77708
+nrow(spyears[spyears$DataYrs>=10,]) #385
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #26.04416
 
 # species collected per year (from 10 years or more, 389 species)
 sp.p.year <- data.frame(table(merge.name.accpt$ID,merge.name.accpt$Year))
 sp.p.year.1 <- sp.p.year[sp.p.year$Freq>0,]
 sum.p.year <- aggregate(sp.p.year.1$Freq, list(sp.p.year.1$Var2), length)
-mean(sum.p.year$x) #165.4
+mean(sum.p.year$x) #165.4 -> 164.377
 sum.p.year[which.max(sum.p.year$x),]
 rm(sp.p.year,sp.p.year.1)
 
@@ -955,7 +960,7 @@ col.period <- col.period[col.period$Freq>0,]
 col.period[,1:2] <- sapply(col.period[,1:2], function(x) as.numeric(as.character(x)))
 
 peak.yr <- aggregate(col.period$Var1, list(col.period$Var2), mean)
-mean(peak.yr$x) #208.9292
+mean(peak.yr$x) #208.9292 -> 208.9539
 
 summary(lm(startDayOfYear~Year, data=bloom.sp.389))
 
