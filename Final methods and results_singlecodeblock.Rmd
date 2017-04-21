@@ -291,6 +291,8 @@ synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
 # Caught error in final table
 synonyms.plantsyn$ID[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS)] <- 9608
 synonyms.plantsyn$ID[grep("Carex scirpoi", synonyms.plantsyn$SYNONYMS)] <- 8637
+synonyms.plantsyn$ID[synonyms.plantsyn$ID == 18057] <- 18059
+synonyms.plantsyn$ID[synonyms.plantsyn$ID == 36505] <- 36459
 
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
 synonyms.plantsyn.accpt$ID   <- as.numeric(synonyms.plantsyn.accpt$ID)
