@@ -419,7 +419,7 @@ Table Year and Ordinal day
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
-nrow(yr.1950_2) #387
+nrow(yr.1950_2) #385
 
 write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_385.csv", sep=",")
 
@@ -451,9 +451,8 @@ ggplot(unbloom, aes(Year,Avg_Hi))+
   geom_point(shape=1, size=0.5)+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
-#  labs(title="Average High Temperature by Year")+
   xlab("Year")+
-  ylab(expression("Average high"~degree*C)) + 
+  ylab(expression("Mean annual maximum temperature"~degree*C)) + 
   scale_x_continuous(breaks = seq(1950,2011,10))+
   theme(axis.text=element_text(size=6),
         axis.title=element_text(size=8))
@@ -473,7 +472,7 @@ ggplot(unbloom, aes(Year,Avg_Lo))+
   geom_point(shape=1, size = 0.5)+
   theme_bw()+
   xlab("Year")+
-  ylab(expression("Average low"~degree*C))+
+  ylab(expression("Mean annual minimum temperature"~degree*C))+
   scale_x_continuous(breaks = seq(1950,2011,10))+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
@@ -494,7 +493,7 @@ ggplot(unbloom, aes(Year,Raw_Precip))+
   geom_point(shape=1, size = 0.5)+
   theme_bw()+
   xlab("Year")+
-  ylab("Precipitation (mm)")+
+  ylab("Annual precipitation (mm)")+
   scale_x_continuous(breaks = seq(1950,2011,10))+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
@@ -515,7 +514,7 @@ ggplot(totalGDDyr, aes(Year,MaxGDD))+
   geom_point(size=0.5,shape=1)+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
-  ylab(expression(paste("Maximum GDD (T"[base] == 0, degree*C,")")))+
+  ylab("Annual maximum growing degree days")+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
 
@@ -550,7 +549,7 @@ Table Ordinal by high temp
 ```{r}
 high.1950_2 <- JulBloomDate.min1950("Avg_Hi", merge.name.accpt)
 
-nrow(high.1950_2) #388 -> 387
+nrow(high.1950_2) #388 -> 385
 write.table(high.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_summary_high_2_385.csv", sep=",")
 
 nrow(high.1950_2[high.1950_2$p.value<0.05,]) #81
@@ -579,7 +578,7 @@ Table Ordinal by low temp
 ```{r}
 low.1950_2 <- JulBloomDate.min1950("Avg_Lo", merge.name.accpt)
 
-nrow(low.1950_2) #389 -> 387
+nrow(low.1950_2) #389 -> 385
 
 write.table(low.1950_2, file = "Q:/Research/Projects/alpine-phenology/phen_sum_low_2_385.csv", sep=",")
 
@@ -667,7 +666,7 @@ ggplot(merge.name.accpt, aes(Avg_Hi, startDayOfYear))+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
-  xlab(expression("Average high"~degree~C))+
+  xlab(expression("Mean annual maximum temperature"~degree~C))+
   ylab("Ordinal Date")+
   theme(axis.text=element_text(size=6),
         axis.title=element_text(size=7))
@@ -688,7 +687,7 @@ ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Low Temperature") +
-  xlab(expression("Average low"~degree~C))+
+  xlab(expression("Mean annual minimum temperature"~degree~C))+
   ylab("Ordinal Date")+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
@@ -707,7 +706,7 @@ ggplot(merge.name.accpt, aes(Raw_Precip, startDayOfYear))+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average Precipitation") +
-  xlab("Precipitation (mm)")+
+  xlab("Annual precipitation (mm)")+
   ylab("Ordinal Date")+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
@@ -726,7 +725,7 @@ ggplot(min1950GDDmax, aes(MaxGDD, startDayOfYear))+
   geom_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
   ylab("Ordinal Date")+
-  xlab("Maximum annual GDD")+
+  xlab("Annual maximum growing degree days")+
   theme(axis.text=element_text(size=5),
         axis.title=element_text(size=7))
 
@@ -774,7 +773,7 @@ yr.npn_2 <- JulBloomDate.min1950("Year",npn.min1950)
 nrow(yr.npn_2) #28
 mean(yr.npn_2$Slope) #-0.2688984
 
-write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr_27.csv", sep=",")
+write.table(yr.npn_2, file = "Q:/Research/Projects/alpine-phenology/phenNPN_yr_28.csv", sep=",")
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,]) #4
 nrow(yr.npn_2[yr.npn_2$p.value<0.05,])/nrow(yr.npn_2) #0.1428571
 
@@ -800,7 +799,7 @@ high.npn_2 <- JulBloomDate.min1950("Avg_Hi", npn.min1950)
 
 nrow(high.npn_2) #28
 
-write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2_27.csv", sep=",")
+write.table(high.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_high_2_28.csv", sep=",")
 
 nrow(high.npn_2[high.npn_2$p.value<0.05,]) #5
 
@@ -830,7 +829,7 @@ low.npn_2 <- JulBloomDate.min1950("Avg_Lo", npn.min1950)
 nrow(low.npn_2) #28
 mean(low.npn_2$Slope) #-6.161866
 
-write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_2_28.csv", sep=",")
+write.table(low.npn_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_low_28.csv", sep=",")
 
 nrow(low.npn_2[low.npn_2$p.value<0.05,]) #8
 nrow(low.npn_2[low.npn_2$p.value<0.05,])/nrow(low.npn_2) #0.2857143
@@ -854,7 +853,7 @@ precip.NPN_2 <- JulBloomDate.min1950("Raw_Precip", npn.min1950)
 
 nrow(precip.NPN_2) #28
 
-write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_precip_28.csv", sep=",")
+write.table(precip.NPN_2, file = "Q:/Research/Projects/alpine-phenology/phen_NPN_prec_28.csv", sep=",")
 
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,]) #1
 nrow(precip.NPN_2[precip.NPN_2$p.value<0.05,])/nrow(precip.NPN_2) #0.03571429
@@ -977,5 +976,143 @@ ggplot(bloom.sp.389, aes(Year,startDayOfYear))+
 summary(lm(startDayOfYear~Year, data=merge.name.accpt))
 
 ```
+Additional questions/information  
+```{r}
+nrow(bloom2) #42757
+nrow(merge.name.accpt) #10134
+
+# data with lat long 
+## see CMIP_NCAR.Rmd for pulling lat longs
+
+#To Do
+# image of per species change over time (the 45 advancing over years) - done
+# pull list of 45 species - in excel "Species_sign_changes.xlsx"
+
+# do a temperature change over time period blocks. with precip, and snow if I can get it run. 
+```
+
+```{r}
+
+dpi = 1200
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_yr_45.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                              yr.1950_2$Slope<0]),],
+       aes(Year, startDayOfYear, colour = as.factor(ID)))+
+  geom_point(shape=1, size = 0.5)+
+  stat_smooth(method="lm", alpha=0.05, size = 0.5)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),axis.title=element_text(size=7))+
+  theme(legend.position="none")
+
+dev.off()
 
 
+write.table(unique(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
+                                              yr.1950_2$Slope<0]),c(2,4:5)]),
+            "clipboard", sep="\t")
+```
+
+```{r}
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_low_later.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+                                low.1950_2$ID[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]),],
+       aes(Avg_Lo, startDayOfYear, colour = AUTH.y))+
+  geom_point(shape=1)+
+  stat_smooth(method="lm", alpha=0.05)+
+  theme_bw()+
+  xlab(expression("Average low"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),axis.title=element_text(size=7))
+
+dev.off()
+
+```
+
+```{r}
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_low_early.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+                                low.1950_2$ID[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]),],
+       aes(Avg_Lo, startDayOfYear, colour = as.factor(ID)))+
+  geom_point(shape=1, size = 0.5)+
+  stat_smooth(method="lm", alpha=0.05, size = 0.5)+
+  theme_bw()+
+  xlab(expression("Average low"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),axis.title=element_text(size=7))+
+  theme(legend.position="none")
+
+dev.off()
+
+lowearly <- merge.name.accpt[which(merge.name.accpt$ID %in% 
+        low.1950_2$ID[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]),c(2,4:5)]
+
+length(unique(lowearly$ID))
+lowearly[!duplicated(lowearly$ID),]
+
+write.table(lowearly[!duplicated(lowearly$ID),],
+            "clipboard", sep="\t")
+
+```
+
+
+```{r}
+dpi = 1200
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_precip_early.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+   precip.1950_2$ID[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]),],
+       aes(Raw_Precip, startDayOfYear, colour = as.factor(ID)))+
+  geom_point(shape=1, size = 0.5)+
+  stat_smooth(method="lm", alpha=0.05, size = 0.5)+
+  theme_bw()+
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),axis.title=element_text(size=7))+
+  theme(legend.position="none")
+
+dev.off()
+
+precipearly <- merge.name.accpt[which(merge.name.accpt$ID %in% 
+        precip.1950_2$ID[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]),c(2,4:5)]
+
+length(unique(precipearly$ID))
+precipearly[!duplicated(precipearly$ID),]
+
+write.table(precipearly[!duplicated(precipearly$ID),],
+            "clipboard", sep="\t")
+
+```
+
+
+```{r}
+dpi = 1200
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_precip_later.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+   precip.1950_2$ID[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]),],
+       aes(Raw_Precip, startDayOfYear, colour = as.factor(ID)))+
+  geom_point(shape=1, size = 0.5)+
+  stat_smooth(method="lm", alpha=0.05, size = 0.5)+
+  theme_bw()+
+  xlab("Precipitation (mm)")+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=5),axis.title=element_text(size=7))+
+  theme(legend.position="none")
+
+dev.off()
+
+preciplater <- merge.name.accpt[which(merge.name.accpt$ID %in% 
+        precip.1950_2$ID[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]),c(2,4:5)]
+
+length(unique(preciplater$ID))
+preciplater[!duplicated(preciplater$ID),]
+
+write.table(preciplater[!duplicated(preciplater$ID),],
+            "clipboard", sep="\t")
+
+```
