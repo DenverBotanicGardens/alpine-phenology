@@ -372,7 +372,13 @@ min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
 ```
 
 
+# Start here after download from github
+```{r}
+merge.name.accpt <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
 
+min1950GDDmax <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmax.csv"))
+
+```
 
 
 
