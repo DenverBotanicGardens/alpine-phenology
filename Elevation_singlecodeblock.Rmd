@@ -356,6 +356,13 @@ synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]<-
 
 synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
 synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
+
+# Caught error in final table
+synonyms.plantsyn$ID[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS)] <- 9608
+synonyms.plantsyn$ID[grep("Carex scirpoi", synonyms.plantsyn$SYNONYMS)] <- 8637
+synonyms.plantsyn$ID[synonyms.plantsyn$ID == 18057] <- 18059
+synonyms.plantsyn$ID[synonyms.plantsyn$ID == 36505] <- 36459
+
 synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
 synonyms.plantsyn.accpt$ID   <- as.numeric(synonyms.plantsyn.accpt$ID)
 
@@ -368,7 +375,7 @@ bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
 ##########################################################
 ##########################################################
 ##########################################################
-# Just the first collection per species per year 
+# Just the first collection per species per year
 earl.sp.yr <- do.call(rbind,
                       lapply(split(bloom.sp, bloom.sp$ID), function(id){
                         id <- id[order(id$Year),]
@@ -403,70 +410,6 @@ colnames(allcol)[2] <- "collections"
 
 as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
 allcol[,1] <- as.numeric.factor(allcol[,1])
-
-### NOW ADD ELEVATION ###
-##########################################################
-##########################################################
-##########################################################
-
-# split by elevational group
-table(bloom.sp$elevation)
-
-bloom.sp$BinElevation <- cut(bloom.sp$elevation,
-                             breaks=seq(3200, 4400, 100),
-                             labels=FALSE)
-
-
-# Just the first collection per species per year 
-elevation.earl.sp.yr <- do.call(rbind,
-                      lapply(split(bloom.sp, list(bloom.sp$ID,
-                                                  bloom.sp$BinElevation)),
-  function(id){
-    if(length(id$Year)>0){
-      id <- id[order(id$Year),]
-      id$DataYrs <- nrow(id[!duplicated(id$Year) &
-                              !is.na(id$Year),])
-      rows <- aggregate(startDayOfYear~Year, id,
-                        FUN=min)
-      out <- merge(id, rows, by=c("startDayOfYear","Year"))
-      out <- out[order(out$Year),]
-      out <- out[!duplicated(out$Year),]
-      out
-    }
-    })
-  )
-
-
-#### START AFTER HERE ####
-elevation.sp.10plus <- elevation.earl.sp.yr[elevation.earl.sp.yr$DataYrs>=10,] 
-length(unique(elevation.sp.10plus$ID))#230
-head(elevation.sp.10plus)
-
-elevation.merge.name.accpt <- merge(elevation.sp.10plus, synonyms.plantsyn.accpt, by = "ID") 
-length(unique(elevation.merge.name.accpt$ID))#219 (said 45 rows are identical??)
-
-##########################################################
-earliestcollection <- data.frame(colSums(table(merge.name.accpt$ID,
-                                               merge.name.accpt$Year)))
-
-earcol <- data.frame(Year = row.names(earliestcollection),
-                     Collections = earliestcollection)
-colnames(earcol)[2] <- "Collections"
-earcol[,1] <- as.numeric(levels(earcol[,1]))
-earcol[which.max(earcol$Collections),] # 1998 346
-mean(earcol$Collections) #165.4262
-
-
-allcollections <- data.frame(colSums(table(bloom.sp$ID,bloom.sp$Year)))
-allcol <- data.frame(Year = row.names(allcollections),
-                     allcollections)
-colnames(allcol)[2] <- "collections"
-
-as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
-allcol[,1] <- as.numeric.factor(allcol[,1])
-
-######### ELEVATION ########
-
 
 library(RCurl)
 bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/QR_final_R_plant_climate_data_2.csv"))
@@ -504,8 +447,6 @@ min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
 #Figures and Tables
 Figure 1a
 ```{r}
-dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(earcol, aes(Year, Collections))+
   geom_bar(stat="identity")+
@@ -517,13 +458,11 @@ ggplot(earcol, aes(Year, Collections))+
   theme(axis.text=element_text(size=7),
         axis.title=element_text(size=9))
 
-dev.off()
 
 ```
 
 Figure 1b
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(allcol,  aes(x = Year, y = collections))+
   geom_bar(stat="identity")+
@@ -536,125 +475,172 @@ ggplot(allcol,  aes(x = Year, y = collections))+
   theme(axis.text=element_text(size=7),
         axis.title=element_text(size=9))
 
-dev.off()
+```
+
+```{r}
+
+ggplot(merge.name.accpt,  aes(x = Year, y = elevation, group=Year))+
+  geom_boxplot()+
+  xlab("Year")+
+  ylab("elevation")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1949.5,2011), breaks = seq(1950,2011, by=10))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))
 
 ```
+
+```{r}
+#library(devtools)
+#install_github("ropensci/plotly")
+#install.packages("digest")
+#library(ploty)
+
+ggplot(merge.name.accpt,  aes(x = Year, y = elevation))+
+  geom_point(aes(colour = startDayOfYear))+
+  xlab("Year")+
+  ylab("elevation")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle=90, hjust=1))+
+  scale_x_continuous(limits = c(1949.5,2011), breaks = seq(1950,2011, by=10))+
+  theme(axis.text=element_text(size=7),
+        axis.title=element_text(size=9))+
+  scale_color_gradient(low = "white", high = "red", space = "Lab", guide = "colourbar") 
+
+```
+
+
+
 
 Table Year and Ordinal day
 ```{r}
-yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
+yr.elevation <- JulBloomDate.elevation("Year",merge.name.accpt)
 
-nrow(yr.1950_2) #389
+nrow(yr.elevation) #385
 
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_389.csv", sep=",")
+nrow(yr.elevation[yr.elevation$Interactionp.value>=0.05,]) #362
+nrow(yr.elevation[yr.elevation$Interactionp.value<0.05,]) #23 significantly changed over time given the changes in elevation
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #344
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #45
-
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1156812
+nrow(yr.elevation[yr.elevation$Interactionp.value<0.05,])/nrow(yr.elevation) #0.05974026
 
 #earlier
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #45
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5275986
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-32.18351
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2173058
+nrow(yr.elevation[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope<0,]) #14
+mean(yr.elevation$InteractionSlope[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope<0]) #-0.003431289
+mean(yr.elevation$InteractionSlope[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope<0])*61 #-0.2093086
+mean(yr.elevation$adj.r.squ[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope<0]) #0.263519
 
 #later
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->0
+nrow(yr.elevation[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope>=0,]) #9
 
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #NaN
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0])*61
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #NaN
+mean(yr.elevation$InteractionSlope[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope>=0]) #NaN
+mean(yr.elevation$InteractionSlope[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope>=0])*61
+mean(yr.elevation$adj.r.squ[yr.elevation$Interactionp.value<0.05 & yr.elevation$InteractionSlope>=0]) #NaN
 ```
 
-Figure 3a
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 3a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(unbloom, aes(Year,Avg_Hi))+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+Year given changes in elevation of first bloom
+```{r}
+yr.elevation.co <- JulBloomDate.covariates("Year","elevation", merge.name.accpt)
+
+nrow(yr.elevation.co) #385
+
+nrow(yr.elevation.co[yr.elevation.co$Yearp.value>=0.05,]) #360
+nrow(yr.elevation.co[yr.elevation.co$Yearp.value<0.05,]) #25 significantly changed over time given the changes in elevation
+
+nrow(yr.elevation.co[yr.elevation.co$Yearp.value<0.05,])/nrow(yr.elevation.co) #0.06493506
+
+#earlier
+nrow(yr.elevation.co[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope<0,]) #11
+mean(yr.elevation.co$YearSlope[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope<0]) #-17.51887
+mean(yr.elevation.co$YearSlope[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope<0])*61 #-1068.651 ??!!?!?
+mean(yr.elevation.co$adj.r.squ[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope<0]) #0.3802031
+
+#later
+nrow(yr.elevation.co[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope>=0,]) #14
+
+mean(yr.elevation.co$YearSlope[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope>=0]) #11.6923
+mean(yr.elevation.co$YearSlope[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope>=0])*61 #713.2306
+mean(yr.elevation.co$adj.r.squ[yr.elevation.co$Yearp.value<0.05 & yr.elevation.co$YearSlope>=0]) #0.263519
+```
+
+
+
+```{r}
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+                                yr.elevation.co$ID[yr.elevation.co$Interactionp.value<0.05 &
+                                                     yr.elevation.co$InteractionSlope < 0]),], 
+       aes(Year,startDayOfYear, colour = as.factor(ID)))+
+  stat_smooth(method="lm", size = 0.5, alpha= 0.05)+
   geom_point(shape=1, size=0.5)+
-#  stat_smooth(geom = "smooth")+
-  theme_bw()+
-#  labs(title="Average High Temperature by Year")+
-  xlab("Year")+
-  ylab(expression("Average high"~degree*C)) + 
-  scale_x_continuous(breaks = seq(1950,2011,10))+
-  theme(axis.text=element_text(size=6),
-        axis.title=element_text(size=8))
-
-dev.off()
-
-summary(lm(Avg_Hi~Year, data=unbloom))
-```
-
-Figure 3b
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 3b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
-
-
-ggplot(unbloom, aes(Year,Avg_Lo))+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  geom_point(shape=1, size = 0.5)+
   theme_bw()+
   xlab("Year")+
-  ylab(expression("Average low"~degree*C))+
-  scale_x_continuous(breaks = seq(1950,2011,10))+
-  theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=7))
-
-dev.off()
-
-
-summary(lm(Avg_Lo~Year, data = unbloom))
+  ylab("First Bloom") + 
+  scale_x_continuous(breaks = seq(1950,2011,10))
 
 ```
 
-Figure 3c
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 3c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(unbloom, aes(Year,Raw_Precip))+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
-  geom_point(shape=1, size = 0.5)+
+
+```{r}
+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+                                yr.elevation.co$ID[yr.elevation.co$Yearp.value<0.05 &
+                                                     yr.elevation.co$YearSlope<0]),], 
+       aes(Year,startDayOfYear, colour = as.factor(ID)))+
+  stat_smooth(method="lm", size = 0.5, alpha= 0.05)+
+  geom_point(shape=1, size=0.5)+
   theme_bw()+
   xlab("Year")+
-  ylab("Precipitation (mm)")+
-  scale_x_continuous(breaks = seq(1950,2011,10))+
-  theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=7))
-
-dev.off()
-
-
-summary(lm(Raw_Precip~Year, data = unbloom))
+  ylab("First Bloom") + 
+  scale_x_continuous(breaks = seq(1950,2011,10))
 
 ```
 
 
-Figure 3d 
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 3d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(totalGDDyr, aes(Year,MaxGDD))+
-  geom_point(size=0.5,shape=1)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+                                yr.elevation.co$ID[yr.elevation.co$Yearp.value<0.05 &
+                                                     yr.elevation.co$YearSlope<0]),], 
+       aes(elevation,startDayOfYear, colour = as.factor(ID)))+
+  stat_smooth(method="lm", size = 0.5, alpha = 0.05)+
+  geom_point(shape=1, size=0.5)+
   theme_bw()+
-  ylab(expression(paste("Maximum GDD (T"[base] == 0, degree*C,")")))+
-  theme(axis.text=element_text(size=5),
-        axis.title=element_text(size=7))
-
-dev.off()
-
-summary(lm(MaxGDD~Year,data=totalGDDyr))
-
+  xlab("Elevation")+
+  ylab("First Bloom") 
 
 ```
+
+
+
+
+
+```{r}
+ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
+                                yr.elevation.co$ID[yr.elevation.co$Yearp.value<0.05 &
+                                                     yr.elevation.co$YearSlope<0]),], 
+       aes(Year, elevation, colour = as.factor(ID)))+
+  stat_smooth(method="lm", size = 0.5, alpha = 0.05)+
+  geom_point(shape=1, size=0.5)+
+  theme_bw()+
+  ylab("Elevation")+
+  xlab("Year") 
+
+```
+
+
+
+
+
+
+
+
 
 
 Figure 4
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name.accpt, aes(Year, startDayOfYear)) +
   geom_point(shape=1)+
@@ -666,7 +652,6 @@ ggplot(merge.name.accpt, aes(Year, startDayOfYear)) +
   theme(axis.text=element_text(size=9),
         axis.title=element_text(size=12)) 
 
-dev.off()
 
 summary(lm(startDayOfYear~Year, data=merge.name.accpt))
 ```
@@ -1414,3 +1399,48 @@ ggplot(merge.name.accpt[which(merge.name.accpt$ID %in%
   stat_smooth(method="lm", alpha=0.5)+
   theme_bw()
 ```
+
+
+Testing full range changes in elevation
+```{r}
+caca <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Alpine_Phenology_Field_Data/Calamagrostis_canadensis_post-1980.csv")
+
+head(caca)
+
+armo <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/Arnica_mollis.csv")
+head(armo)
+names(armo)
+
+table(armo$minimumElevationInMeters)
+
+ggplot(armo, aes(year,minimumElevationInMeters))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+summary(lm(minimumElevationInMeters~year,data=armo))
+
+caev <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/Carex evenea.csv")
+
+ggplot(caev[caev$year>1850,], aes(year,minimumElevationInMeters))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+summary(lm(minimumElevationInMeters~year,data=caev[caev$year>1850,]))
+```
+
+
+
+45 species that signficantly moved earlier of 385 species
+```{r}
+#install.packages("list")
+library(list)
+filenames <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385", pattern="*.csv")
+
+signsps <- lapply(1:45, function(file){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames[file], sep=""))
+})
+
+
+```
+
+
