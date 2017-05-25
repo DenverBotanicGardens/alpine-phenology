@@ -1440,7 +1440,46 @@ signsps <- lapply(1:45, function(file){
   read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames[file], sep=""))
 })
 
+filenamestiff <- gsub(".csv", ".tiff", filenames)
 
+for(i in 1:45){
+  tiff(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenamestiff[i],sep=""), 
+       width = 84, height = 75, compression="lzw", units = "mm", res=1200)
+  
+  print(ggplot(signsps[[i]][signsps[[i]]$year>1850,], aes(year,minimumElevationInMeters))+
+          geom_point(shape=1, size=0.5)+
+          stat_smooth(method="lm")+
+          theme(axis.text=element_text(size=5),
+                axis.title=element_text(size=7))+
+          xlab("Year")+
+          ylab("Elevation of first bloom colleciton")+
+          theme_bw()
+  )
+  
+  dev.off()
+  
+}
+
+lm_sum <- lapply(signsps, function(sp){
+  summary(lm(minimumElevationInMeters~year,data=sp[sp$year>1850,]))
+})
+
+lm_sum[[1]]
+
+summary_tble <- lapply(1:45, function(x){
+  sp <- lm_sum[[x]]
+  data.frame(filenames[[x]],
+             cbind(data.frame(t(sp$coefficients[2,])),
+                   sp$coefficients[1,1], #Intercept
+                   t(sp$fstatistic),
+                   sp$adj.r.squared))
+  
+})
+
+all_sum <- do.call(rbind,summary_tble)
+write.table(all_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_45.csv",
+            sep=",",
+            row.names=FALSE)
 ```
 
 
