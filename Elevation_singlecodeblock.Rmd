@@ -1434,19 +1434,22 @@ summary(lm(minimumElevationInMeters~year,data=caev[caev$year>1850,]))
 ```{r}
 #install.packages("list")
 library(list)
-filenames <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385", pattern="*.csv")
+filenames_1 <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385", pattern="*.csv")
 
-signsps <- lapply(1:45, function(file){
-  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames[file], sep=""))
+signsps_1 <- lapply(1:45, function(file){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames_1[file], sep=""))
 })
 
-filenamestiff <- gsub(".csv", ".tiff", filenames)
+filenames_1tiff <- gsub(".csv", ".tiff", filenames_1)
 
 for(i in 1:45){
-  tiff(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenamestiff[i],sep=""), 
+  tiff(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenames_1tiff[i],sep=""), 
        width = 84, height = 75, compression="lzw", units = "mm", res=1200)
   
-  print(ggplot(signsps[[i]][signsps[[i]]$year>1850,], aes(year,minimumElevationInMeters))+
+  print(ggplot(signsps_1[[i]][signsps_1[[i]]$year>1850&
+                                signsps_1[[i]]$year<2017&
+                                signsps_1[[i]]$minimumElevationInMeters<4500&
+                                signsps_1[[i]]$minimumElevationInMeters>0,], aes(year,minimumElevationInMeters))+
           geom_point(shape=1, size=0.5)+
           stat_smooth(method="lm")+
           theme(axis.text=element_text(size=5),
@@ -1460,15 +1463,16 @@ for(i in 1:45){
   
 }
 
-lm_sum <- lapply(signsps, function(sp){
-  summary(lm(minimumElevationInMeters~year,data=sp[sp$year>1850,]))
+lm_sum <- lapply(signsps_1, function(sp){
+  summary(lm(minimumElevationInMeters~year,
+             data=sp[sp$year>1850&sp$year<2017&
+                       sp$minimumElevationInMeters<4500&
+                       sp$minimumElevationInMeters>0,]))
 })
-
-lm_sum[[1]]
 
 summary_tble <- lapply(1:45, function(x){
   sp <- lm_sum[[x]]
-  data.frame(filenames[[x]],
+  data.frame(filenames_1[[x]],
              cbind(data.frame(t(sp$coefficients[2,])),
                    sp$coefficients[1,1], #Intercept
                    t(sp$fstatistic),
@@ -1476,14 +1480,15 @@ summary_tble <- lapply(1:45, function(x){
   
 })
 
-all_sum <- do.call(rbind,summary_tble)
-write.table(all_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_45.csv",
+all_sum1 <- do.call(rbind,summary_tble)
+write.table(all_sum1, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_45.csv",
             sep=",",
             row.names=FALSE)
 ```
 
 
 340 species that did not signficantly moved earlier of 385 species (but there are 346 species in there?)
+Missing location information for Ligusticum porterii
 ```{r}
 #install.packages("list")
 
@@ -1493,15 +1498,17 @@ write.table(all_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_change
 library(list)
 filenames <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385", pattern="*.csv")
 
-signsps <- lapply(1:346, function(file){
+#Got rid of quotes in Festuca idahoensis 
+
+signsps <- lapply(1:length(filenames), function(file){
   read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385/",filenames[file], sep=""))
 })
 
-signsps[[195]]
+length(signsps) #339
 
 filenamestiff <- gsub(".csv", ".tiff", filenames)
 
-for(i in 1:346){
+for(i in 1:length(signsps) ){
   tiff(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenamestiff[i],sep=""), 
        width = 84, height = 75, compression="lzw", units = "mm", res=1200)
   
@@ -1519,36 +1526,10 @@ for(i in 1:346){
           ylab("Elevation")+
           theme_bw()
   )
-  
   dev.off()
-  
 }
 
-
-# Need to remove Ligusticum porterii and Festuca idahoensis (154) for no elevation data
-
-unique(signsps[[154]]$scientificName)
-length(signsps[-154])
-
-#Don't know why not working!
-unique(signsps[[153]]$scientificName)
-table(signsps[[153]]$year)
-table(signsps[[153]]$minimumElevationInMeters) 
-
-
-length(signsps[[153]]$minimumElevationInMeters)
-foo<-data.frame(table(signsps[[153]]$minimumElevationInMeters,signsps[[153]]$year))
-ggplot(foo[foo$Freq>0,],aes(Var2, Var1))+
-  geom_point()
-
-
-for(i in 1:46){
-  print(i)
-  print(unique(signsps[[i]]$scientificName))
-  print(str(signsps[[i]]$minimumElevationInMeters))
-}
-
-lm_sum <- lapply(signsps[1:100], function(sp){
+lm_sum <- lapply(signsps, function(sp){
   sp1 <- sp[sp$year>1850 &
               sp$year<2017&
               sp$minimumElevationInMeters>0&
@@ -1560,8 +1541,7 @@ lm_sum <- lapply(signsps[1:100], function(sp){
 }
 )
 
-
-summary_tble <- lapply(1:100, function(x){
+summary_tble <- lapply(1:339, function(x){
   sp <- lm_sum[[x]]
   data.frame(filenames[[x]],
              cbind(data.frame(t(sp$coefficients[2,])),
@@ -1573,143 +1553,21 @@ summary_tble <- lapply(1:100, function(x){
 
 
 all_sum <- do.call(rbind,summary_tble)
-write.table(all_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_1_100_non.csv",
+write.table(all_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_339_non.csv",
             sep=",",
             row.names=FALSE)
 
 
-lm_sum201 <- lapply(signsps[201:346], function(sp){
-  sp1 <- sp[sp$year>1850 &
-              sp$year<2017&
-              sp$minimumElevationInMeters>0&
-              sp$minimumElevationInMeters<4500,]
-  if(nrow(sp1)>0){
-  summary(lm(as.numeric(minimumElevationInMeters)~as.numeric(year),
-             data=sp1))
-  }
-}
-)
 
+nrow(all_sum) #339
+nrow(all_sum[all_sum$Pr...t..<0.05& all_sum$Estimate<0,]) #11
+mean(all_sum$Estimate[all_sum$Pr...t..<0.05 & all_sum$Estimate<0]) #-2.715357
+mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate<0]) #-0.06469807
 
-summary_tble201 <- lapply(1:100, function(x){
-  sp <- lm_sum201[[x]]
-  data.frame(filenames[[x]],
-             cbind(data.frame(t(sp$coefficients[2,])),
-                   sp$coefficients[1,1], #Intercept
-                   t(sp$fstatistic),
-                   sp$adj.r.squared))
-  
-})
+nrow(all_sum[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0,]) #115
+mean(all_sum$Estimate[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #2.625029
+mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #0.04530414
 
-
-all_sum201 <- do.call(rbind,summary_tble201)
-write.table(all_sum201, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_201_346_non.csv",
-            sep=",",
-            row.names=FALSE)
-
-
-## final ones without the errored ones
-lm_sum101 <- lapply(signsps[101:152], function(sp){
-  sp1 <- sp[sp$year>1850 &
-              sp$year<2017&
-              sp$minimumElevationInMeters>0&
-              sp$minimumElevationInMeters<4500,]
-  if(nrow(sp1)>0){
-  summary(lm(as.numeric(minimumElevationInMeters)~as.numeric(year),
-             data=sp1))
-  }
-}
-)
-
-
-summary_tble101 <- lapply(1:52, function(x){
-  sp <- lm_sum101[[x]]
-  data.frame(filenames[[x]],
-             cbind(data.frame(t(sp$coefficients[2,])),
-                   sp$coefficients[1,1], #Intercept
-                   t(sp$fstatistic),
-                   sp$adj.r.squared))
-  
-})
-
-
-all_sum101 <- do.call(rbind,summary_tble101)
-write.table(all_sum101, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_101_152_non.csv",
-            sep=",",
-            row.names=FALSE)
-
-
-## final ones above without the errored ones
-lm_sum154 <- lapply(signsps[195:200], function(sp){
-  sp1 <- sp[sp$year>1850 &
-              sp$year<2017&
-              sp$minimumElevationInMeters>0&
-              sp$minimumElevationInMeters<4500,]
-  if(nrow(sp1)>0){
-  summary(lm(as.numeric(minimumElevationInMeters)~as.numeric(year),
-             data=sp1))
-  }
-})
-
-filenames[153:160]
-filenames[c(154,194)]
-
-
-summary_tble154 <- lapply(1:6, function(x){
-  sp <- lm_sum154[[x]]
-  data.frame(filenames[[x]],
-             cbind(data.frame(t(sp$coefficients[2,])),
-                   sp$coefficients[1,1], #Intercept
-                   t(sp$fstatistic),
-                   sp$adj.r.squared))
-  
-})
-
-
-
-
-all_sum154 <- do.call(rbind,summary_tble154)
-
-####
-## final ones above without the errored ones
-lm_sumothers <- lapply(signsps[155:193], function(sp){
-  sp1 <- sp[sp$year>1850 &
-              sp$year<2017&
-              sp$minimumElevationInMeters>0&
-              sp$minimumElevationInMeters<4500,]
-  if(nrow(sp1)>0){
-  summary(lm(as.numeric(minimumElevationInMeters)~as.numeric(year),
-             data=sp1))
-  }
-})
-
-length(155:193)
-
-
-summary_tbleothers <- lapply(1:39, function(x){
-  sp <- lm_sumothers[[x]]
-  data.frame(filenames[[x]],
-             cbind(data.frame(t(sp$coefficients[2,])),
-                   sp$coefficients[1,1], #Intercept
-                   t(sp$fstatistic),
-                   sp$adj.r.squared))
-  
-})
-
-
-
-
-all_sumothers <- do.call(rbind,summary_tbleothers)
-
-all_ALL_sum <- rbind(all_sum, all_sum101, all_sum201, all_sum154,all_sumothers)
-
-write.table(all_ALL_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/elev_change_ALL_non.csv",
-            sep=",",
-            row.names=FALSE)
-
-nrow(all_ALL_sum) #297
-mean(all_ALL_sum$Estimate[all_ALL_sum$Pr...t..<0.05 & all_ALL_sum$Estimate<0]) #-2.733852
-mean(all_ALL_sum$Estimate[all_ALL_sum$Pr...t..<0.05 & all_ALL_sum$Estimate<0]) #-2.733852
 
 
 ```
