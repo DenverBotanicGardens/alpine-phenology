@@ -1310,11 +1310,11 @@ signsps_1 <- lapply(1:45, function(file){
   read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames_1[file], sep=""))
 })
 
-filenames_1tiff <- gsub(".csv", ".tiff", filenames_1)
+filenames_1tiff <- gsub(".csv", ".jpg", filenames_1)
 
 for(i in 1:45){
-  tiff(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenames_1tiff[i],sep=""), 
-       width = 84, height = 75, compression="lzw", units = "mm", res=1200)
+  jpeg(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenames_1tiff[i],sep=""), 
+       width = 84, height = 75,  units = "mm", res=1200)
   
   print(ggplot(signsps_1[[i]][signsps_1[[i]]$year>1850&
                                 signsps_1[[i]]$year<2017&
@@ -1355,9 +1355,18 @@ write.table(all_sum1, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_chang
             sep=",",
             row.names=FALSE)
 
-
+#Signficantly lower
+nrow(all_sum1[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate < 0,]) #5
 mean(all_sum1$Estimate[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate < 0]) # -2.723875
 mean(all_sum1$sp.adj.r.squared[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate < 0]) # 0.03749326
+
+
+#Signficantly higher
+nrow(all_sum1[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate >=0 ,]) #11
+mean(all_sum1$Estimate[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate >= 0]) # 2.570823
+mean(all_sum1$sp.adj.r.squared[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate >= 0]) # 0.03568444
+
+
 
 ```
 
@@ -1381,11 +1390,12 @@ signsps <- lapply(1:length(filenames), function(file){
 
 length(signsps) #339
 
-filenamestiff <- gsub(".csv", ".tiff", filenames)
+filenamestiff <- gsub(".csv", ".jpg", filenames)
+plottitle <- gsub(".jpg","",filenamestiff)
 
 for(i in 1:length(signsps) ){
-  tiff(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenamestiff[i],sep=""), 
-       width = 84, height = 75, compression="lzw", units = "mm", res=1200)
+  jpeg(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenamestiff[i],sep=""), 
+       width = 84, height = 75,  units = "mm", res=1200)
   
   print(ggplot(signsps[[i]][signsps[[i]]$year>1850 & signsps[[i]]$year<2017 &
                               !is.na(signsps[[i]]$year>1850) &
@@ -1397,6 +1407,7 @@ for(i in 1:length(signsps) ){
           stat_smooth(method="lm")+
           theme(axis.text=element_text(size=5),
                 axis.title=element_text(size=7))+
+          ggtitle(paste(plottitle[i]))+
           xlab("Year")+
           ylab("Elevation")+
           theme_bw()
@@ -1409,7 +1420,7 @@ lm_sum <- lapply(signsps, function(sp){
               sp$year<2017&
               sp$minimumElevationInMeters>1000&
               sp$minimumElevationInMeters<4500,]
-  if(nrow(sp1)>1000){
+  if(nrow(sp1)>0){
   summary(lm(as.numeric(minimumElevationInMeters)~as.numeric(year),
              data=sp1))
   }
@@ -1435,13 +1446,13 @@ write.table(all_sum, file = "Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_change
 
 
 nrow(all_sum) #339
-nrow(all_sum[all_sum$Pr...t..<0.05& all_sum$Estimate<0,]) #11
-mean(all_sum$Estimate[all_sum$Pr...t..<0.05 & all_sum$Estimate<0]) #-2.715357
-mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate<0]) #-0.06469807
+nrow(all_sum[all_sum$Pr...t..<0.05& all_sum$Estimate<0,]) #13
+mean(all_sum$Estimate[all_sum$Pr...t..<0.05 & all_sum$Estimate<0]) #-3.21485
+mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate<0]) #0.08261447
 
-nrow(all_sum[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0,]) #115
-mean(all_sum$Estimate[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #2.625029
-mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #0.04530414
+nrow(all_sum[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0,]) #103
+mean(all_sum$Estimate[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #2.43129
+mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #0.04472727
 
 
 
