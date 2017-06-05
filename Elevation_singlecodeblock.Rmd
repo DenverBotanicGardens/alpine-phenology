@@ -139,308 +139,15 @@ multisub <- function(pattern, replacement, x){
 
 ```
 
-Herbarium collections linked with synonomy
+
+
+# Start here after download from github
 ```{r}
-colo <- read.csv("P:/hackathon/alpine-phenology/datasets/Complete COLO DB .csv") 
-seinet <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/CO_SEINet_3200_20160304.csv"))
+merge.name.accpt <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
 
-colo$scientificName <- paste(colo$Genus,colo$Specific.Epithet,colo$InfraInfo,sep=" ")
-
-#trim leading trailing whitespace
-colo$scientificName <- trimws(colo$scientificName)
-
-#remove authoritiy... just keep the first 4 words Genus species var. variety
-colo$scientificName <- sapply(1:length(colo$scientificName),
-                              function(x){
-  newname <- if(sapply(gregexpr("\\W+", colo$scientificName[x]), length) + 1 > 2) {
-        ul <- unlist(strsplit(colo$scientificName[x], split="\\s+"))[1:4]
-        paste(ul,collapse = " ")
-        } else {
-          colo$scientificName[x]
-        }
-  newname
-  })
-
-
-colo$scientificName <- gsub(pattern = "var", replacement = "var.",
-                            colo$scientificName)
-colo$scientificName <- gsub(pattern = "ssp", replacement = "ssp.",
-                            colo$scientificName)
-
-colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
-
-# Select only reprodutive or post reproductive records
-repro <- c("Flr","Bulblets","Seed","Fr","Bud")
-colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
-                                                                colo$Reproductive.Status,
-                                                                value=TRUE,ignore.case = TRUE)),]
-
-colo.sm <- colo[,c(1,5,40,13,31,32,21,22,23,24)] #added 5 = Authority
-
-#Year
-colo.sm$Year <- (sub('.*(\\d{4}).*', '\\1', as.character(colo.sm$Date..dd.month.yyyy.)))
-
-# Removing any with dates that aren't entered correctly or are missing year, not exact date
-colo.sm <- colo.sm[nchar(colo.sm$Year)==4,] #keep years with 4 digits 
-colo.sm <- colo.sm[nchar(colo.sm$Year)==4 & !grepl("^[A-Za-z]+$",colo.sm$Year),] #keep ones that are 4 digits but all numeric
-colo.sm <- colo.sm[colo.sm$Year>=1950,] #only years 1950 and beyond, before 2011
-colo.sm <- colo.sm[colo.sm$Year<2012,] #only years 1950 and beyond, before 2012
-
-# Only collections above or equal to 3200 meters, remove any without elevation
-# only collections above or equal to 10,498.69 ft, remove any without elevation
-# 15000 ft is 4572 m, remove anything over 4572 meters as a typo 
-#  - highest in CO is Mt. Elbert at 4401.2 m
-max.meter <- 14500/3.2808
-colo.sm$elevation <- (colo.sm$Elevation..feet.)/3.2808
-colo.sm$elevation[!is.na(colo.sm$Elevation..meters.)] <-
-  colo.sm$Elevation..meters.[!is.na(colo.sm$Elevation..meters.)]
-colo.sm <- colo.sm[colo.sm$elevation>=3200,]
-colo.sm <- colo.sm[colo.sm$elevation<max.meter,] #four are recorded wrong
-colo.sm <- colo.sm[!is.na(colo.sm$Elevation..meters.),]
-
-# add a julian day column as $startDayOfYear
-colo.sm$Date..dd.month.yyyy. <- as.character(colo.sm$Date..dd.month.yyyy.)
-colo.sm$startDayOfYear<-as.numeric(format(
-    as.Date(as.character(colo.sm$Date..dd.month.yyyy.), format="%d %B %Y")    ,"%j"))
-
-colo.sm <- colo.sm[!is.na(colo.sm$startDayOfYear),]
-
-#SEINet
-seinet <- seinet[seinet$scientificName!="",]
-seinet$reproductiveCondition <- as.character(seinet$reproductiveCondition)
-
-repro <- c("Fl","fr","Fert","fl","Fr")
-seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
-                                                             seinet$reproductiveCondition,
-                                                             value=TRUE)),]
-seinet.sm <- seinet[,c(12,14,13,56,63:64,31,73,34,2)]
-# get to 1950-2011
-seinet.sm <- seinet.sm[seinet.sm$year >=1950,]
-#seinet.sm <- seinet.sm[seinet.sm$year <= 2011,]
-seinet.sm <- seinet.sm[!is.na(seinet.sm$year),]
-# Elevation over 3200 meters - was gathered from SEINet with that limitation. 
-seinet.sm <- seinet.sm[!is.na(seinet.sm$minimumElevationInMeters),]
-#Mt Elbert is highest peak at 14,439ft == 4401meters
-seinet.sm <- seinet.sm[seinet.sm$minimumElevationInMeters < 4402,]
-# Remove any rows missing startDayOfYear
-seinet.sm <- seinet.sm[!is.na(seinet.sm$startDayOfYear),]
-
-colo.sm$institutionCode <- "COLO"
-names <- names(colo.sm[,c(1:3,5:6,11:14)]) 
-#names(seinet.sm[,c(1:4,7,5,8)])
-colo.bind <- colo.sm[,c(1:3,5:6,11:14)]
-seinet.bind <- seinet.sm[,-4] #take out state
-names(seinet.bind) <- names
-
-i<-sapply(colo.bind, is.factor)
-colo.bind[i]<-lapply(colo.bind[i], as.character)
-colo.bind$Year <- as.numeric(colo.bind$Year)
-i<-sapply(seinet.bind, is.factor)
-seinet.bind[i]<-lapply(seinet.bind[i],as.character)
-i<-sapply(seinet.bind, is.integer)
-seinet.bind[i]<-lapply(seinet.bind[i],as.numeric)
-
-##############################################################
-##############################################################
-##############################################################
-#All herbarium records
-bloom2 <- rbind(seinet.bind,colo.bind) 
-
-proper <- function(s) sub("(.)", ("\\U\\1"), tolower(s), pe=TRUE)
-bloom2$Family.Name <- proper(bloom2$Family.Name)
-bloom2 <- as.data.frame(sapply(bloom2, gsub, 
-                               pattern = "caerulea",
-                               replacement = "coerulea"))
-
-bloom2 <- as.data.frame(sapply(bloom2, gsub,
-                               pattern = "Eritrichum",
-                               replacement = "Eritrichium"))
-
-str(bloom2)
-tochar <- c(1:3,9) #added authority
-bloom2[,tochar] <- sapply(bloom2[,tochar], function(ch){
-  as.character(ch)
-})
-rm(tochar)
-
-tonumeric <- c(4:(length(bloom2)-1))
-bloom2[,tonumeric] <- sapply(bloom2[,tonumeric], function(s){
-  as.numeric(as.character(s))
-})
-rm(tonumeric)
-
-bloom2 <- bloom2[(sapply(gregexpr("[[:alpha:]]+",bloom2$scientificName), function(x) sum(x > 0))) != 1,]
-bloom2$scientificName <- gsub(pattern = "subsp.", replacement = "ssp.", bloom2$scientificName)
-
-# To correct as many typos/errors from the herbarium sheets
-fixbloom2 <- read.csv(path.expand("Q:/Research/Projects/alpine-phenology/SpellingErrorCorrections_v4.csv"),
-                      na.strings = c("NA", "", " "), colClasses = "character")
-
-# for each row
-bloom2$scientificName <- multisub(fixbloom2$Wrong.1,
-                                  fixbloom2$Replacement,bloom2$scientificName)
-bloom2 <- bloom2[!is.na(bloom2$scientificName),]
-
-
-
-# Use this list to merge synonyms that have unique IDs synonyms
-synonyms2 <- read.csv("Q:/Research/Projects/alpine-phenology/synonyms2_MI.csv")
-
-bloom2$scientificName <- multisub(synonyms2$Species, 
-                                  synonyms2$SYNONYMS, bloom2$scientificName)
-
-## One set of collection in SEINet entered as 02/07/1996 should be July 2, not Feb 7th.
-bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1996] <- 184
-bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 1996] <- 184
-bloom2$startDayOfYear[bloom2$startDayOfYear == 38 & bloom2$Year == 1998] <- 183
-bloom2$startDayOfYear[bloom2$startDayOfYear == 8 & bloom2$Year == 2001] <- 213 #Aug 1, 2001
-bloom2$startDayOfYear[bloom2$startDayOfYear == 66 & bloom2$Year == 2009] <- 184 #July 3, 2009
-bloom2$startDayOfYear[bloom2$startDayOfYear == 67 & bloom2$Year == 2004] <- 185 #July 3, 2004 leap year
-
-
-##############################################################
-##############################################################
-##############################################################
-
-
-
-synonyms <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/synonym_list_byhand2.txt")) # from DBG database taken from USDA (got from Rick)
-
-
-#use of ssp and subsp
-synonyms$SYNONYMS <- gsub(pattern = "subsp.", replacement = "ssp.",
-                          synonyms$SYNONYMS)
-
-synonyms <- synonyms[synonyms$AUTH %in% grep("auct.", synonyms$AUTH, value = TRUE, invert = TRUE),]
-synonyms <- synonyms[synonyms$AUTH %in% grep(" non ", synonyms$AUTH, value = TRUE, invert = TRUE),]
-# Agroelymus adamsii is in there twice with all the same information
-synonyms <- unique(synonyms) # gets rid of 13 rows
-synonyms <- synonyms[synonyms$AUTH != "Aster foliaceus Lindl. ex DC., database artifact",]
-
-
-# Accepted name according to USDA
-plantsyn <- read.table("Q:/Research/Projects/alpine-phenology/USDAplants20160510.txt",
-                        header=TRUE, sep = ",") # missing those extra ones but including life habit... and indicating which are accepted (to later be double checked according to akerfield.) 
-# Merge is an exact match, that's what we want
-
-f <- sapply(plantsyn, is.factor)
-plantsyn[f] <- lapply(plantsyn[f], as.character)
-
-#A. Remove Antennaria parvifolia sensu Greene, non Nutt. 
-plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author != "sensu Greene, non Nutt.",]
-
-#Remove auct. non. 
-plantsyn <- plantsyn[plantsyn$Genera.Binomial.Author %in% 
-                       grep("auct.", plantsyn$Genera.Binomial.Author,
-                            value = TRUE, invert = TRUE),]
-# in as non Poir, want real Anemone mutifida as accepted name, not synonym for Pulsatilla patens ssp. multifida
-plantsyn$Synonym.Symbol[plantsyn$Synonym.Symbol == "ANMU8"] <- ""
-
-# plantsyn is missing both the synonym Chlorocrepis tristis and accepted name Hieracium triste.
-plantsyn <- rbind(plantsyn, c("HITR2","","HITR2","Hieracium triste","","Hieracium","",
-                              "triste","","",
-                              "","","","","","","","","","","","","","",
-                              "Asteraceae","Perennial","Forb/herb",
-                              "L48 (N), AK (N), CAN (N)", "Late Summer",
-                              "",""))
-
-#could add Erigeron peregrinus ssp. callianthemus, only have E. peregrinus ssp. callianthemus var. callianthemus... not doing it now.
-
-
-plantsyn$Scientific.Name <- multisub(synonyms2$Species,
-                     synonyms2$SYNONYMS, plantsyn$Scientific.Name)
-plantsyn <- plantsyn[!is.na(plantsyn$Scientific.Name),]
-
-synonyms$ID[synonyms$SYNONYMS=="Eritrichium aretioides"]<-
-  synonyms$ID[synonyms$SYNONYMS=="Eritrichium nanum var. elongatum"]
-
-synonyms.plantsyn <- merge(synonyms,plantsyn,by.x="SYNONYMS",by.y="Scientific.Name")
-synonyms.plantsyn <- synonyms.plantsyn[!duplicated(synonyms.plantsyn$SYNONYMS),]
-
-# Caught error in final table
-synonyms.plantsyn$ID[grep("Cerastium bee", synonyms.plantsyn$SYNONYMS)] <- 9608
-synonyms.plantsyn$ID[grep("Carex scirpoi", synonyms.plantsyn$SYNONYMS)] <- 8637
-synonyms.plantsyn$ID[synonyms.plantsyn$ID == 18057] <- 18059
-synonyms.plantsyn$ID[synonyms.plantsyn$ID == 36505] <- 36459
-
-synonyms.plantsyn.accpt <- synonyms.plantsyn[synonyms.plantsyn$Synonym.Symbol=="",]
-synonyms.plantsyn.accpt$ID   <- as.numeric(synonyms.plantsyn.accpt$ID)
-
-
-
-
-bloom.sp <- merge(bloom2, synonyms, by.x = "scientificName", by.y = "SYNONYMS")
-
-
-##########################################################
-##########################################################
-##########################################################
-# Just the first collection per species per year
-earl.sp.yr <- do.call(rbind,
-                      lapply(split(bloom.sp, bloom.sp$ID), function(id){
-                        id <- id[order(id$Year),]
-                        id$DataYrs <- nrow(id[!duplicated(id$Year) & !is.na(id$Year),])
-                        rows <- aggregate(startDayOfYear~Year, id, FUN=min)
-                        out <- merge(id, rows, by=c("startDayOfYear","Year"))
-                        out <- out[order(out$Year),]
-                        out <- out[!duplicated(out$Year),]
-                        out
-                        })
-)
-
-sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,] #413
-merge.name.accpt <- merge(sp.10plus, synonyms.plantsyn.accpt, by = "ID") #389
-
-##########################################################
-earliestcollection <- data.frame(colSums(table(merge.name.accpt$ID,
-                                               merge.name.accpt$Year)))
-
-earcol <- data.frame(Year = row.names(earliestcollection),
-                     Collections = earliestcollection)
-colnames(earcol)[2] <- "Collections"
-earcol[,1] <- as.numeric(levels(earcol[,1]))
-earcol[which.max(earcol$Collections),] # 1998 346
-mean(earcol$Collections) #165.4262
-
-
-allcollections <- data.frame(colSums(table(bloom.sp$ID,bloom.sp$Year)))
-allcol <- data.frame(Year = row.names(allcollections),
-                     allcollections)
-colnames(allcol)[2] <- "collections"
-
-as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
-allcol[,1] <- as.numeric.factor(allcol[,1])
-
-library(RCurl)
-bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/QR_final_R_plant_climate_data_2.csv"))
-
-bloom$Raw_Precip <- (bloom$Raw_Precip)/100
-
-merge.name.accpt <- merge(merge.name.accpt,unique(bloom[,c(19,20,21,23)]), by="Year")
-unbloom <- unique(bloom[,c(19,20,21,23)])
+min1950GDDmax <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmax.csv"))
 
 ```
-
-Growing Degree Days
-```{r}
-tmps <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/tmps.csv"))
-
-totalGDD <- lapply(split(tmps, tmps$Year), function(year){
-  max(year$HDD)
-})
-totalGDDyr <- data.frame(Year=1981:2011, MaxGDD = do.call(rbind, totalGDD))
-
-min1950GDD_2 <- mergeMinGDD(merge.name.accpt,tmps)
-gdddatayrs <- as.data.frame(table(min1950GDD_2$Year,min1950GDD_2$ID))
-yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)
-min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
-                         by.x="ID",by.y="Group.1") #313
-min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
-
-```
-
-
-
 
 
 
@@ -742,9 +449,11 @@ mean(precip.1950_2$adj.r.squ[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0
 
 Table Ordinal by maxGDD
 ```{r}
+head(min1950GDDmax)
+
 rst <- JulBloomDate.min1950("MaxGDD", min1950GDDmax)
 
-nrow(rst) #313
+nrow(rst) #313 -> 311
 nrow(rst[rst$p.value<0.05,]) #65
 
 #earlier
@@ -763,6 +472,34 @@ mean(rst$adj.r.squ[rst$p.value<0.05 & rst$Slope >= 0]) #0.2293882
 write.table(rst,file="Q:/Research/Projects/alpine-phenology/GDD_max_313.csv", sep=",")
 
 ```
+```{r}
+ggplot(min1950GDDmax[which(min1950GDDmax$ID %in%
+                                rst$ID[rst$p.value<0.05 & rst$Slope >= 0]),],
+       aes(MaxGDD, startDayOfYear, colour=as.factor(ID)))+
+  stat_smooth(method="lm", size = 0.5, alpha= 0.05)+
+  geom_point(shape=1, size=0.75)+
+  theme_bw()+
+  xlab("Annual maximum growing degree days")+
+  ylab("Ordinal Date") + 
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  theme(legend.position="none")
+
+```
+
+```{r}
+ggplot(min1950GDDmax[which(min1950GDDmax$ID %in%
+                                rst$ID[rst$p.value<0.05 & rst$Slope < 0]),],
+       aes(MaxGDD, startDayOfYear, colour=as.factor(ID)))+
+  stat_smooth(method="lm", size = 0.5, alpha= 0.05)+
+  geom_point(shape=1, size=0.5)+
+  theme_bw()+
+  xlab("Annual maximum growing degree days")+
+  ylab("Ordinal Date") + 
+  scale_x_continuous(breaks = seq(1950,2011,10))+
+  theme(legend.position="none")
+
+```
+
 
 
 Methods and Results     
@@ -1131,10 +868,10 @@ Table: how did the first bloom of species change with elevation collected?
 ```{r}
 elevation <- JulBloomDate.min1950("elevation", merge.name.accpt)
 
-nrow(elevation) #389
+nrow(elevation) #385
 
-nrow(elevation[elevation$p.value>=0.05,]) #339
-nrow(elevation[elevation$p.value<0.05,]) #51
+nrow(elevation[elevation$p.value>=0.05,]) #333
+nrow(elevation[elevation$p.value<0.05,]) #52
 mean(elevation$Slope)
 0.009621837*61
 
@@ -1143,16 +880,15 @@ nrow(elevation[elevation$p.value<0.05 & elevation$Slope < 0,])/nrow(elevation) #
 nrow(elevation[elevation$p.value<0.05 & elevation$Slope >= 0,])/nrow(elevation) #0.1182519
 
 #earlier higher up
-nrow(elevation[elevation$p.value<0.05 & elevation$Slope<0,]) #5
-mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope<0]) #-0.07245611
-mean(elevation$adj.r.squ[elevation$p.value<0.05 & elevation$Slope<0]) #0.312673
+nrow(elevation[elevation$p.value<0.05 & elevation$Slope<0,]) #6
+mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope<0]) #-0.07484596
+mean(elevation$adj.r.squ[elevation$p.value<0.05 & elevation$Slope<0]) #0.3061596
 
 #later higher up
 nrow(elevation[elevation$p.value<0.05 & elevation$Slope>=0,]) #46
 
-mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope>=0]) #0.04792669
-mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope>=0])*61 #2.923528
-mean(elevation$adj.r.squ[elevation$p.value<0.05 & elevation$Slope>=0]) #0.201321
+mean(elevation$Slope[elevation$p.value<0.05 & elevation$Slope>=0]) #0.04719446
+mean(elevation$adj.r.squ[elevation$p.value<0.05 & elevation$Slope>=0]) #0.1974384
 
 
 ggplot(merge.name.accpt[merge.name.accpt$elevation<4300,], 
@@ -1164,6 +900,20 @@ ggplot(merge.name.accpt[merge.name.accpt$elevation<4300,],
   ylab("Ordinal Date")+
   theme(legend.position="none")
 
+summary(lm(startDayOfYear~elevation, data=merge.name.accpt[merge.name.accpt$elevation<4300,]))
+```
+
+
+```{r}
+
+
+
+
+```
+
+
+
+```{r}
 
 ####
 # Bloom over time given elevation
