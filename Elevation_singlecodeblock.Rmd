@@ -1357,24 +1357,55 @@ Make a csv of all species with an ID for Vistrails
 ```{r}
 #install.packages("list")
 library(list)
-filenames <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385", pattern="*.csv")
-filenames_1 <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385", pattern="*.csv")
+
+#339 not significant
+notsig_339 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385"
+sig_45 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385"
+
+#339
+filenames <- list.files(notsig_339, pattern="*.csv")
+#45
+filenames_1 <- list.files(sig_45, pattern="*.csv")
+
 
 signsps <- lapply(1:339, function(file){
-  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385/",filenames_1[file], sep=""))
+  read.csv(paste(notsig_339, filenames[file], sep="/"))
 })
+
 signsps_1 <- lapply(1:45, function(file){
-  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames_1[file], sep=""))
+  read.csv(paste(sig_45,filenames_1[file], sep="/"))
 })
 
 
+signsps_1[[9]][complete.cases(signsps_1[[9]]$decimalLatitude),]
 
+# Select only species that have more than 80 individual points
+# the 45 significantly changed in phenology ones
+cols4VT <- lapply(1:45, function(x){
+  sp <- signsps_1[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year","geodeticDatum",
+                          "minimumElevationInMeters")]
+  sp <- sp[complete.cases(sp$decimalLatitude),]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  sp
+})
 
-
-
-
-
-
+cols4VT_339 <- lapply(46:384, function(x){
+  sp <- signsps[[x-45]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year","geodeticDatum",
+                          "minimumElevationInMeters")]
+  sp <- sp[complete.cases(sp$decimalLatitude),]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  sp
+})
 
 
 
