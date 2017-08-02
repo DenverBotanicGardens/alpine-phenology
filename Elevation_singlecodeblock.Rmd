@@ -19,6 +19,16 @@ library(MASS)
 library(segmented)
 library(Taxonstand)
 library(directlabels)
+
+#functions
+is.NullOb <- function(x) is.null(x) | all(sapply(x, is.null))
+
+## Recursively step down into list, removing all such objects 
+rmNullObs <- function(x) {
+   x <- Filter(Negate(is.NullOb), x)
+   lapply(x, function(x) if (is.list(x)) rmNullObs(x) else x)
+}
+
 ```
 
 #Fresh start
@@ -1298,19 +1308,80 @@ ggplot(caev[caev$year>1850,], aes(year,minimumElevationInMeters))+
 summary(lm(minimumElevationInMeters~year,data=caev[caev$year>1850,]))
 ```
 
+```{r}
+#install.packages("spocc")
+library(spocc)
 
+#GBIF for occurrence of Ligusticum porterii
+lipo <- occ('Ligusticum porteri', 'gbif', limit=300, has_coords=TRUE)
+occs <- as.data.frame(lipo$gbif$data$Ligusticum_porteri[,2:3])
+head(occs)
 
+lipo$gbif$data$Ligusticum_porteri$elevation
+
+LiPo <- data.frame("Ligusticum porteri", occs, 
+                   lipo$gbif$data$Ligusticum_porteri$year,
+                   NA, lipo$gbif$data$Ligusticum_porteri$elevation,
+                   121)
+
+head(LiPo)
+
+write.csv(LiPo, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/LiPo.csv")
+
+#GBIF for Dryas hookeriana
+drho <- occ('Dryas hookeriana', 'gbif', limit = 300, has_coords = TRUE)
+occs2 <- as.data.frame(drho$gbif$data$Dryas_hookeriana[,2:3])
+
+DrHo <- data.frame("Dryas hookeriana", occs2, 
+                   drho$gbif$data$Dryas_hookeriana$year,
+                   NA, drho$gbif$data$Dryas_hookeriana$elevation,
+                   172)
+write.csv(DrHo, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/DrHo.csv")
+
+#GBIF for Stellaria longipes Goldie ssp. longipes 
+stlolo <- occ('Alsine longipes', 'gbif', 
+              geometry = c(-109, 41, -102, 37), limit = 600, has_coords = TRUE)
+
+occs3 <- as.data.frame(stlolo$gbif$data$Alsine_longipes[,2:3])
+
+StLoLo <- data.frame("Alsine longifolia", occs3, 
+                   stlolo$gbif$data$Alsine_longipes$year,
+                   NA, stlolo$gbif$data$Alsine_longipes$elevation,
+                   357)
+write.csv(StLoLo, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/StLoLo.csv")
+
+```
+
+Make a csv of all species with an ID for Vistrails
 45 species that signficantly moved earlier of 385 species
 ```{r}
 #install.packages("list")
 library(list)
+filenames <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385", pattern="*.csv")
 filenames_1 <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385", pattern="*.csv")
 
+signsps <- lapply(1:339, function(file){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385/",filenames_1[file], sep=""))
+})
 signsps_1 <- lapply(1:45, function(file){
   read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames_1[file], sep=""))
 })
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 filenames_1tiff <- gsub(".csv", ".jpg", filenames_1)
+plottitle_1 <- gsub(".jpg","",filenames_1tiff)
 
 for(i in 1:45){
   jpeg(paste("Q:/Research/EXTERNAL PARTNERS/NCAR/Elevation_changes/",filenames_1tiff[i],sep=""), 
@@ -1324,6 +1395,7 @@ for(i in 1:45){
           stat_smooth(method="lm")+
           theme(axis.text=element_text(size=5),
                 axis.title=element_text(size=7))+
+          ggtitle(paste(plottitle_1[i]))+
           xlab("Year")+
           ylab("Elevation")+
           theme_bw()
@@ -1375,6 +1447,13 @@ mean(all_sum1$sp.adj.r.squared[all_sum1$Pr...t.. < 0.05 & all_sum1$Estimate >= 0
 Missing location information for Ligusticum porterii
 ```{r}
 #install.packages("list")
+
+#which one is 172?
+nms <- c(filenames_1,filenames)
+
+nms[172] #Dryas octopetala ssp. hookeriana
+nms[121] #supposed to be Carex norvegica ssp. stevenii - I made it Ligusticum porteri
+nms[357] #Stellaria longipes Goldie ssp. longipes 
 
 
 # Find the csvs without data and reload, redownload from seinet
@@ -1458,4 +1537,207 @@ mean(all_sum$sp.adj.r.squared[all_sum$Pr...t..<0.05 & all_sum$Estimate>=0]) #0.0
 
 ```
 
+```{r}
+head(signsps_1[[1]])
+names(signsps_1[[1]])
 
+# Assuming all are really in one datum for Lat Long
+
+cols4VT <- lapply(1:length(signsps_1), function(x){
+  sp <- signsps_1[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year","geodeticDatum",
+                          "minimumElevationInMeters")]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x)
+  } else {
+    sp <- cbind(sp, "ID" = NA)
+  }
+  sp
+})
+
+cols4VT_339 <- lapply(1:length(signsps), function(x){
+  sp <- signsps[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year","geodeticDatum",
+                          "minimumElevationInMeters")]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x)
+  } else {
+    sp <- cbind(sp, "ID" = NA)
+  }
+  sp
+})
+
+AlPh384 <- rbind(do.call(rbind,cols4VT),do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[complete.cases(AlPh384),]
+
+head(AlPh384)
+
+sequentialAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+head(sequentialAlPh)
+
+write.table(sequentialAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv", sep=",", row.names=FALSE)
+
+#Add background points by locations found in database where target species isn't found. Would need to buffer a bit. 
+# one decimals is about 6.9 miles (36,000 ft, 11,104.5 m)
+
+
+library(rgeos)
+library(doParallel)
+
+# For all years? Assuming some movement into and out of, maybe bracket by years, before and after 1980? 
+# need to add the locaiton of that far enough away nearest location, and maybe split with doParallel [https://stackoverflow.com/questions/27558115/improve-speed-use-of-gdistance-function-by-using-parallel-processing-and-or-plyr]
+
+# [https://stackoverflow.com/questions/21977720/r-finding-closest-neighboring-point-and-number-of-neighbors-within-a-given-rad]  
+# Need to get info, lat long, of next nearest that is far enough away to be an absence - distance of cell size for preditor levels
+
+set.seed(1)
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+#export the environment variables to each cluster
+clusterExport(cl,ls())
+#Load library "rgeos"
+clusterEvalQ(cl, library(rgeos))
+clusterEvalQ(cl, library(raster))
+#split da data
+ID.split <- clusterSplit(cl,1:384)
+a <- function(x){
+  focal <- SpatialPoints(AlPh384[AlPh384$ID == x,2:3])
+  others <- SpatialPoints(AlPh384[AlPh384$ID != x, 2:3])
+  cbind(focal, apply(gDistance(focal,others,byid=TRUE),1, function(x) sort(x, decreasing=FALSE)[2]))
+} 
+#Run function in each cluster
+system.time(m<-clusterApply(cl, x=ID.split, fun=a))
+stopCluster(cl)
+
+pt.dist <- lapply(1:384, function(x){
+  focal <- SpatialPoints(AlPh384[AlPh384$ID == x,2:3])
+  others <- SpatialPoints(AlPh384[AlPh384$ID != x, 2:3])
+  apply(gDistance(focal,others,byid=TRUE),1, function(x) sort(x, decreasing=FALSE)[2])
+})
+
+```
+
+List for VisTrails
+```{r}
+library(list)
+filenames <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385", pattern="*.csv")
+
+signsps <- lapply(1:length(filenames), function(file){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385/",filenames[file], sep=""))
+})
+
+filenames_1 <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385", pattern="*.csv")
+
+signsps_1 <- lapply(1:45, function(file){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385/",filenames_1[file], sep=""))
+})
+#Only take ones that have at least 80 data points
+cols4VT <- lapply(1:length(signsps_1), function(x){
+  sp <- signsps_1[[x]][,c("scientificName","decimalLongitude","decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x)
+  } else {
+    sp <- cbind(sp, "ID" = NA)
+  }
+  sp
+})
+
+cols4VT_339 <- lapply(1:length(signsps), function(x){
+  sp <- signsps[[x]][,c("scientificName","decimalLongitude","decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  sp <- cbind(sp, "ID"=x+45) #to have unique numbers after the 45 sign changing ones
+})
+
+AlPh384 <- rbind(do.call(rbind,cols4VT),do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[complete.cases(AlPh384),]
+
+
+
+#write.table(AlPh384, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh.csv", sep=",", row.names=FALSE)
+
+
+```
+
+```{r}
+head(AlPh384)
+
+unique(AlPh384$scientificName[AlPh384$ID == 1])
+
+unique(AlPh384$scientificName[AlPh384$ID == 2])
+
+unique(AlPh384[,c("scientificName","ID")])
+
+table(AlPh384$geodeticDatum)
+
+
+```
+
+All the variables
+```{r}
+#library(list)
+filenamesHistorical <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Prism_Climate_Data/Historical_Data_1895-1980")
+
+filenamesRecent <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Prism_Climate_Data/Recent_Data_1981-2016")
+
+
+
+```
+
+Average raster layers from PRISM
+```{r}
+years <- 1895:1980
+months <- sprintf('%0.2d', 1:12)
+lays <- apply(expand.grid(years,months),1,function(x) paste(x[1],x[2],sep=""))
+
+layers <- lapply(lays, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Prism_Climate_Data/Historical_Data_1895-1980/PRISM_ppt_stable_4kmM2_189501_198012_bil/PRISM_ppt_stable_4kmM2_",x,"_bil.bil", sep=""))
+})
+
+
+avgs <- lapply(1895:1980, function(year){
+  stackyear <- lapply(layers,function(x) {
+    if(length(grep(paste(year),x@data@names))==1) x
+    })
+  stackyear1 <- rmNullObs(stackyear)
+  s1 <- calc(stack(stackyear1),fun=mean)
+  s1
+  })
+
+early <- calc(stack(avgs[1:30]),fun=mean)
+
+
+```
+
+
+Testing   
+```{r}
+
+#average over 30 years 
+
+# 1895-1925
+
+
+plot(avgs[[30]])
+plot(early)
+
+length(layers) #1032 , monthy for each year 12*(1981-1895)
+(length(grep("1895",layers[[2]]@data@names))==1)
+
+s1895 <- lapply(layers,function(x) {
+  if(length(grep("1895",x@data@names))==1) x
+  })
+
+
+s1895 <- rmNullObs(s1895)
+
+
+
+s1 <- stack(s1895)
+avg1895 <- calc(s1, fun=mean)
+
+plot(s1895[[1]])
+plot(avg1895)
+```
+<http://rspatial.org/sdm/rst/3_sdm_absence-background.html>    
+Make circles around the presence points to select where to put the psudo-absence points Could use the other points, where collections were made but focus species not found and put absence points only in there. Maybe make circles, then get rid of circles where the target species is found and put absence points in the remaining circles - instead of the long time to calculate distances between all points. 
