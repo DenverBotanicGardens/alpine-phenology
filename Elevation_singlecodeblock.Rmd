@@ -1353,7 +1353,8 @@ write.csv(StLoLo, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps
 ```
 
 Make a csv of all species with an ID for Vistrails
-45 species that signficantly moved earlier of 385 species
+45 species that signficantly moved earlier of 385 species    
+Updated to have sequential numbers (not the sign 1:45 and then notsign 1:339, oops!)
 ```{r}
 #install.packages("list")
 library(list)
@@ -1367,38 +1368,29 @@ filenames <- list.files(notsig_339, pattern="*.csv")
 #45
 filenames_1 <- list.files(sig_45, pattern="*.csv")
 
-
-signsps <- lapply(1:339, function(file){
+# 339
+sps_339 <- lapply(1:339, function(file){
   read.csv(paste(notsig_339, filenames[file], sep="/"))
 })
 
-signsps_1 <- lapply(1:45, function(file){
+# 45
+signsps_45 <- lapply(1:45, function(file){
   read.csv(paste(sig_45,filenames_1[file], sep="/"))
 })
 
 
-signsps_1[[9]][complete.cases(signsps_1[[9]]$decimalLatitude),]
+nrow(signsps_45[[9]][!is.na(signsps_45[[9]]$decimalLatitude),])
 
 # Select only species that have more than 80 individual points
+# "MaxEnt uses thenumber of presences to determine which feature classes to use, more than 80 presences leads to all feature classes being used" - Merow et al 2013
 # the 45 significantly changed in phenology ones
 cols4VT <- lapply(1:45, function(x){
-  sp <- signsps_1[[x]][,c("scientificName","decimalLongitude",
-                          "decimalLatitude","year","geodeticDatum",
+  sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
                           "minimumElevationInMeters")]
-  sp <- sp[complete.cases(sp$decimalLatitude),]
-  if(nrow(sp) > 79){
-    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
-  } else {
-    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
-  }
-  sp
-})
-
-cols4VT_339 <- lapply(46:384, function(x){
-  sp <- signsps[[x-45]][,c("scientificName","decimalLongitude",
-                        "decimalLatitude","year","geodeticDatum",
-                          "minimumElevationInMeters")]
-  sp <- sp[complete.cases(sp$decimalLatitude),]
+  sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
+             sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
   if(nrow(sp) > 79){
     sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
   } else {
@@ -1408,9 +1400,135 @@ cols4VT_339 <- lapply(46:384, function(x){
 })
 
 
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv", sep=",", row.names=FALSE)
+
+
+```
+Create pre 1980 list with still over 80 occurances 
+```{r}
+# Select only species that have more than 80 individual points
+#Select only individuals with year before 1980
+# "MaxEnt uses thenumber of presences to determine which feature classes to use, more than 80 presences leads to all feature classes being used" - Merow et al 2013
+# the 45 significantly changed in phenology ones
+cols4VT <- lapply(1:45, function(x){
+  sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
+             sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1980,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  sp
+})
+
+
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1980,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv", sep=",", row.names=FALSE)
+
+
+```
+
+
+#Take results from VisTrails and compare bin maps for each past projected to current with points from current
+```{r}
 
 
 
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
 filenames_1tiff <- gsub(".csv", ".jpg", filenames_1)
 plottitle_1 <- gsub(".jpg","",filenames_1tiff)
 
