@@ -6,11 +6,14 @@ output: html_document
 ---
 load libraries   
 ```{r}
+#   .libPaths(c(.libPaths(), "C:/Users/deprengm/Documents/R/win-library/3.3"))
 library(RCurl)
 library(ggplot2)
 library(data.table)
 library(raster)
+library(rasterVis)
 require(rgdal)
+library(RColorBrewer)
 # devtools::install_github("ropensci/prism")
 library(prism)
 library(polynom)
@@ -1493,22 +1496,192 @@ write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_M
 
 ```
 
+#Compare change in average elevation of past to current niche model
+```{r}
+
+
+elevs <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/All_CO_elevation_TIFFS", pattern="*.tif")
+
+elevtiffs <- elevs[seq(1,138,by=3)]
+
+elevation <- lapply(seq(1,138,by=3),function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/All_CO_elevation_TIFFS/",elevs[x],sep=""))
+})
+
+length(grep("zone=13",elevation[[1]]@crs@projargs))==0
+# need to catch integer(0)
+
+# some are zone 12, some are zone 13, project all to zone 13
+for(i in 1:length(elevation)){
+  if(length(grep("zone=12",elevation[[i]]@crs@projargs))==1){
+ #   projectRaster(elevation[[i]], crs = "+proj=utm +zone=13 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    print(elevation[[i]]@crs)
+  }
+}
+
+elevation13 <- lapply(elevation, function(x){
+  if(length(grep("zone=13", x@crs@projargs))==1){
+    x
+  }
+}) 
+
+length(elevation)
+elevation13[sapply(elevation13, is.null)] <- NULL
+length(elevation13)
+class(elevation13[[1]])
+elevation13
+
+elevation13$filename <- "elevationCO.tif"
+elevation13$fun <- mean
+elevation13$overwrite <- TRUE
+elevationCO <- do.call(mosaic,elevation13)
+
+s <- do.call(stack, elevation13)
+
+nlayers(elevation13)
+```
+
 
 #Take results from VisTrails and compare bin maps for each past projected to current with points from current
 ```{r}
 
 
+applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
+Maxent <- paste("Maxent_",1:89,sep="")
 
+models <- lapply(Maxent, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current/",x,"/maxent_bin_map.tif",sep=""))
+})
 
+applymodels <- lapply(applymax, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current/",x,"/maxent_bin_map.tif",sep=""))
+})
 
+# All have 0 or 1, these are the bin values of suitable or not
+overlap <- lapply(1:length(models), function(x){
+  past <- models[[x]]
+  current <- applymodels[[x]]
+  out <- past+current
+  out
+})
 
+# Add only when 
+overlap10 <- lapply(1:length(models), function(x){
+  past <- models[[x]]
+  current <- applymodels[[x]]
+  current[applymodels[[x]] == 1] <- 2
+  out <- past+current
+  out
+})
 
+res(overlap10[[1]])[1]^2 # square the resolution for area in square meters
 
+# add 2: new habitat and 3: maintained habitat minus 1:previous habitat
+netchange <- lapply(overlap10, function(x){
+  net <- ( (sum(x[] == 2) + sum( x[] == 3) )- sum(x[] == 1) ) * res(x)[1]^2 
+  net
+})
 
+netchangevector <- do.call(rbind,netchange)
+
+# how do herbarium specimens line up with habitat model?
+FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
+
+# to match which number (id) is what species (ID)
+FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
 
 ```
 
+Plot results
+```{r}
+plot(overlap10[[59]])
 
+boxplot(netchangevector)
+hist(netchangevector)
+
+#convert raster to dataframes for plotting in ggplot
+df1 <- data.frame(rasterToPoints(overlap10[[1]]))
+colnames(df1) <- c("X","Y","SHM") #suitable habitat model
+
+# vector for color breaks
+b.col <- seq(0,3,length.out=4)
+
+ggplot(df1,aes(X,Y))+
+  geom_raster()
+
+plot(overlap10[[1]])
+points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
+                                        FieldData_all$ID == 1],
+       FieldData_all$decimalLatitude[FieldData_all$year>1980 &
+                                        FieldData_all$ID == 1],
+       pch = 21, cex = 0.5, col = "red")
+points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
+                                        FieldData_all$ID == 1],
+       FieldData_all$decimalLatitude[FieldData_all$year<1980 &
+                                        FieldData_all$ID == 1],
+       pch = 8, cex = 0.5, col = "black")
+```
+
+
+So how many points pre 1980 correspond to 1 - lost, 2 - new, or 3 kept vs. how many points after 1980 correspond to 1, 2, or 3?
+```{r}
+
+collpnts_pre <- lapply(1:89, function(x){
+  fullID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
+  pntsplot <- FieldData_all[FieldData_all$ID == fullID & FieldData_all$year <= 1980,
+                            c("decimalLongitude","decimalLatitude")]
+  out <- extract(overlap10[[x]], pntsplot, fun=mean)
+})
+
+
+hist(collpnts_pre[[7]])
+
+
+collpnts_post <- lapply(1:89, function(x){
+  fullID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
+  pntsplot <- FieldData_all[FieldData_all$ID == fullID & FieldData_all$year > 1980,
+                            c("decimalLongitude","decimalLatitude")]
+  out <- extract(overlap10[[x]], pntsplot, fun=mean)
+})
+
+hist(collpnts_post[[30]])
+
+
+#Wilcoxon
+# ANOVA: parametric equivalent of the Kruskal-Wallis test
+anovatest <- lapply(1:89, function(x){
+  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
+  one <-length(collpnts_pre[[x]][collpnts_pre[[x]]==1])
+  two <-length(collpnts_pre[[x]][collpnts_pre[[x]]==2])
+  three <-length(collpnts_pre[[x]][collpnts_pre[[x]]==3])
+  
+  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
+  one.p <-length(collpnts_post[[x]][collpnts_post[[x]]==1])
+  two.p <-length(collpnts_post[[x]][collpnts_post[[x]]==2])
+  three.p <-length(collpnts_post[[x]][collpnts_post[[x]]==3])
+  
+  pre2post <- matrix(c(zero,one,two,three,zero.p,one.p,two.p,three.p),
+                     nrow=2, byrow=TRUE)
+  tot <- sum(pre2post)
+  
+  chiout <- chisq.test(pre2post,simulate.p.value = TRUE, B=10000)
+  chiout$expected
+  chiout$residuals
+  
+  anovain <- data.frame(Time = c(rep("Pre",4),rep("Post",4)),
+                        Category = c(1:4,1:4),
+                        Count = c(zero,one,two,three,zero.p,one.p,two.p,three.p))
+  
+  anovaout <- lmer(Count ~ Time*Category + (1|Category), REML = FALSE,data = anovain)
+  qqnorm(residuals(anovaout))
+  qqnorm(anovaout, ~ranef(., level=2))
+  plot(density(residuals(anovaout), na.rm=TRUE))
+  plot(anovaout)
+  
+  summary(anovaout)
+})
+
+```
 
 
 
