@@ -1436,6 +1436,8 @@ write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_M
 
 
 ```
+
+
 Create pre 1980 list with still over 80 occurances 
 ```{r}
 # Select only species that have more than 80 individual points
@@ -1496,6 +1498,94 @@ write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_M
 
 ```
 
+
+#create post 1980 list with over 80 occurances 
+```{r}
+# Select only species that have more than 80 individual points
+#Select only individuals with year before 1980
+# "MaxEnt uses thenumber of presences to determine which feature classes to use, more than 80 presences leads to all feature classes being used" - Merow et al 2013
+# the 45 significantly changed in phenology ones
+
+library(list)
+
+#339 not significant
+notsig_339 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385"
+sig_45 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385"
+
+#339
+filenames <- list.files(notsig_339, pattern="*.csv")
+#45
+filenames_1 <- list.files(sig_45, pattern="*.csv")
+
+# 339
+sps_339 <- lapply(1:339, function(file){
+  read.csv(paste(notsig_339, filenames[file], sep="/"))
+})
+
+# 45
+signsps_45 <- lapply(1:45, function(file){
+  read.csv(paste(sig_45,filenames_1[file], sep="/"))
+})
+
+
+
+cols4VT <- lapply(1:45, function(x){
+  sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
+             sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year >= 1980,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  sp
+})
+
+
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year >= 1980,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80post1980.csv", sep=",", row.names=FALSE)
+
+
+```
+
+
+
+# 8/24/2017
 #Compare change in average elevation of past to current niche model
 ```{r}
 
@@ -1650,37 +1740,34 @@ hist(collpnts_post[[30]])
 #Wilcoxon
 # ANOVA: parametric equivalent of the Kruskal-Wallis test
 anovatest <- lapply(1:89, function(x){
-  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
+#  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
   one <-length(collpnts_pre[[x]][collpnts_pre[[x]]==1])
   two <-length(collpnts_pre[[x]][collpnts_pre[[x]]==2])
   three <-length(collpnts_pre[[x]][collpnts_pre[[x]]==3])
   
-  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
+#  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
   one.p <-length(collpnts_post[[x]][collpnts_post[[x]]==1])
   two.p <-length(collpnts_post[[x]][collpnts_post[[x]]==2])
   three.p <-length(collpnts_post[[x]][collpnts_post[[x]]==3])
   
-  pre2post <- matrix(c(zero,one,two,three,zero.p,one.p,two.p,three.p),
-                     nrow=2, byrow=TRUE)
+  pre2post <- matrix(c(#zero,
+    one,two,three,#zero.p,
+    one.p,two.p,three.p),
+    nrow=2, byrow=TRUE)
   tot <- sum(pre2post)
   
+  if(two != 0){
   chiout <- chisq.test(pre2post,simulate.p.value = TRUE, B=10000)
-  chiout$expected
-  chiout$residuals
-  
-  anovain <- data.frame(Time = c(rep("Pre",4),rep("Post",4)),
-                        Category = c(1:4,1:4),
-                        Count = c(zero,one,two,three,zero.p,one.p,two.p,three.p))
-  
-  anovaout <- lmer(Count ~ Time*Category + (1|Category), REML = FALSE,data = anovain)
-  qqnorm(residuals(anovaout))
-  qqnorm(anovaout, ~ranef(., level=2))
-  plot(density(residuals(anovaout), na.rm=TRUE))
-  plot(anovaout)
-  
-  summary(anovaout)
+  out <- data.frame(ID = x, Pval = chiout$p.value)
+  out
+  }
+
 })
 
+chitest <- do.call(rbind,anovatest)
+
+chitest[chitest$Pval<0.05,]
+# 34 are signficantly different as you'd expect. The pre-distribution should have more 1s while the post should have more 2s.
 ```
 
 
