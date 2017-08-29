@@ -1848,6 +1848,56 @@ plot(e, 'ROC')
 ```
 
 
+
+# Model Performance  
+check how many points from post 1980 fall within the predicted range. Do a PCA to see if there's a difference in points within and points that fall not in the range. What do those mean? They didn't shift so they're adapting? Are they tolerating a shift in one direction of certain environmental factors?    
+```{r}
+
+elevCO <- raster("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/CO_Mosaic_Elevation_VT/co_elev_VT_WGS84.tif")
+
+
+applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
+Maxent <- paste("Maxent_",1:89,sep="")
+
+past_models <- lapply(Maxent, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
+})
+
+elevCOcrop <- crop(elevCO, past_models[[1]])
+elevCOcrop <- resample(elevCOcrop, past_models[[1]], method='bilinear')
+
+##START HERE!! not vectorized?!?
+
+avgElev <- lapply(past_models, function(model){
+  avgelev <- overlay(model, elevCOcrop, fun = function(x,y) {
+    y[x[] == 0] <- NA
+  })
+  mean(avgelev)
+})
+
+
+apply_models <- lapply(applymax, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
+})
+
+
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
 # https://cran.r-project.org/web/packages/dismo/vignettes/sdm.pdf
 ```{r}
 #These are the 10 splits k-fold (cross-validation)
