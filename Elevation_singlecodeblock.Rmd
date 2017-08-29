@@ -6,7 +6,7 @@ output: html_document
 ---
 load libraries   
 ```{r}
-#   .libPaths(c(.libPaths(), "C:/Users/deprengm/Documents/R/win-library/3.3"))
+  .libPaths(c(.libPaths(), "C:/Users/deprengm/Documents/R/win-library/3.3"))
 library(RCurl)
 library(ggplot2)
 library(data.table)
@@ -1736,39 +1736,135 @@ collpnts_post <- lapply(1:89, function(x){
 
 hist(collpnts_post[[30]])
 
-
-#Wilcoxon
-# ANOVA: parametric equivalent of the Kruskal-Wallis test
+## Don't want chi square for model performance. 
+# Want AUC for model performance for current, want 
 anovatest <- lapply(1:89, function(x){
-#  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
+  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
   one <-length(collpnts_pre[[x]][collpnts_pre[[x]]==1])
   two <-length(collpnts_pre[[x]][collpnts_pre[[x]]==2])
   three <-length(collpnts_pre[[x]][collpnts_pre[[x]]==3])
   
-#  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
+  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
   one.p <-length(collpnts_post[[x]][collpnts_post[[x]]==1])
   two.p <-length(collpnts_post[[x]][collpnts_post[[x]]==2])
   three.p <-length(collpnts_post[[x]][collpnts_post[[x]]==3])
   
-  pre2post <- matrix(c(#zero,
-    one,two,three,#zero.p,
+  pre2post <- matrix(c(zero,
+    one,two,three,zero.p,
     one.p,two.p,three.p),
     nrow=2, byrow=TRUE)
-  tot <- sum(pre2post)
   
-  if(two != 0){
-  chiout <- chisq.test(pre2post,simulate.p.value = TRUE, B=10000)
-  out <- data.frame(ID = x, Pval = chiout$p.value)
-  out
+  pre2post
   }
-
-})
+)
 
 chitest <- do.call(rbind,anovatest)
 
 chitest[chitest$Pval<0.05,]
 # 34 are signficantly different as you'd expect. The pre-distribution should have more 1s while the post should have more 2s.
 ```
+
+
+#AUC or BIC from models?
+```{r}
+library(ENMeval)
+
+exploreorder <- lapply(1:48, function(x){
+  whatorder <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_samplePredictions.csv", sep=""))
+})
+
+# are the Explore a list of betamultipliers [1,2,3,4,5] with 5 species done by species or by beta multplier?
+# 6 species and 8 beta values [6, 8, 10, 12, 14, 16, 18, 20]
+
+orderiswhat <- apply(expand.grid(1:6,1:48), 1, function(x){
+  out <- data.frame(t(x),sameno = identical(exploreorder[[ x[1] ]]$X, exploreorder[[ x[2] ]]$X))
+  out
+})
+
+orderis <- do.call(rbind,orderiswhat)
+
+library(jpeg)
+
+matched <- orderis[orderis$sameno == TRUE & orderis$Var1 != orderis$Var2,]
+
+unique(matched$Var1)
+
+## Look at how response curves compare
+for(i in 1:6){
+  x <- matched$Var2[matched$Var1 == i]
+  
+  for(y in 1:(length(x)-2)){
+  
+    file.rename(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x[y],"/responseCurves/all_response_curves.jpg",sep=""),
+                paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/CompareImages/response_curves",i,"_",x[y],".jpg",sep=""))
+    
+ # jpeg(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/CompareImages/response_curves",i,"_",x[y],".jpg",sep=""))
+    
+ # print(readJPEG(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x[y],"/responseCurves/all_response_curves.jpg",sep="")))
+    
+    }
+
+}
+
+
+
+identical(exploreorder[[1]]$X, exploreorder[[2]]$X) # the first and 6th, so it goes through one beta value for the 5 species then then the next beta value...
+match(exploreorder[[2]]$X, exploreorder[[7]]$X) 
+
+#training samples
+
+trainingsamples <- lapply(1:10, function(x){
+  ts <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_1/cvSplit",x,"/trainingSamples.csv", sep=""))
+  ts
+})
+
+head(trainingsamples[[1]])
+
+
+#samplePredictions 
+sampPred <- lapply(1:5, function(x){
+  sp <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_samplePredictions.csv", sep=""))
+  sp
+})
+
+#omission
+omm <- lapply(1:5, function(x){
+  om <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_omission.csv", sep=""))
+  om
+})
+
+head(sampPred[[1]])
+
+boxplot(sampPred[[1]]$Raw.prediction, col="red")
+
+density(sampPred[[1]]$Cumulative.prediction)
+
+library(dismo)
+e <- evaluate(p=sampPred[[1]]$Raw.prediction, a=omm[[1]]$Raw.value)
+
+density(e)
+plot(e, 'ROC')
+
+```
+
+
+# https://cran.r-project.org/web/packages/dismo/vignettes/sdm.pdf
+```{r}
+#These are the 10 splits k-fold (cross-validation)
+# Try one model first with splits
+
+e <- lapply(1:10, function(x){
+  p <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_1/cvSplit",x,"/species_samplePredictions.csv", sep=""))
+  a <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_1/cvSplit",x,"/species_omission.csv", sep=""))
+  eout <- evaluate(p=p$Raw.prediction, a=a$Raw.value)
+  eout
+  })
+
+auc <- sapply(e, function(x){slot(x, 'auc')})
+mean(auc)
+```
+
+
 
 
 
