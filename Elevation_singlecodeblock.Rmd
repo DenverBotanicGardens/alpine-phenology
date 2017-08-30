@@ -1863,17 +1863,19 @@ past_models <- lapply(Maxent, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
 })
 
-elevCOcrop <- crop(elevCO, past_models[[1]])
-elevCOcrop <- resample(elevCOcrop, past_models[[1]], method='bilinear')
+#elevCOcrop <- crop(elevCO, past_models[[1]])
+elevCOcrop <- resample(elevCO, past_models[[1]], method='bilinear')
 
-##START HERE!! not vectorized?!?
+## not vectorized?!?
 
 avgElev <- lapply(past_models, function(model){
   avgelev <- overlay(model, elevCOcrop, fun = function(x,y) {
-    y[x[] == 0] <- NA
+    y[x == 0] <- NA
+    y
   })
-  mean(avgelev)
+  shape <- rasterToPolygons()
 })
+
 
 
 apply_models <- lapply(applymax, function(x){
@@ -1881,8 +1883,14 @@ apply_models <- lapply(applymax, function(x){
 })
 
 
+past_models_prob <- lapply(Maxent, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_prob_map.tif",sep=""))
+})
 
 
+apply_models_prob <- lapply(applymax, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_prob_map.tif",sep=""))
+})
 
 
 
