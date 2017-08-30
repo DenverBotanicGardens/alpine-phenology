@@ -1863,25 +1863,76 @@ past_models <- lapply(Maxent, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
 })
 
-#elevCOcrop <- crop(elevCO, past_models[[1]])
 elevCOcrop <- resample(elevCO, past_models[[1]], method='bilinear')
 
-## not vectorized?!?
+model <- past_models[[1]]
 
+
+# Get Elevation where model says it will be
 avgElev <- lapply(past_models, function(model){
-  avgelev <- overlay(model, elevCOcrop, fun = function(x,y) {
-    y[x == 0] <- NA
-    y
+  shape <- rasterToPolygons(model, fun=function(x){x ==1}, dissolve=TRUE) #make polygons where model bin map == 1
+  cr <- crop(elevCOcrop, extent(shape), snap="out")
+  shaper <- rasterize(shape, cr)
+  elevr <- mask(x=cr, mask=shaper)
+  elevr
   })
-  shape <- rasterToPolygons()
+
+lapply(1:89, function(x){
+  writeRaster(avgElev[[x]], 
+              paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Elevation",x,sep=""))
 })
 
+avgElev2 <- lapply(avgElev, function(x){
+  mean(x[], na.rm=TRUE)
+})
+avgElev2 <- do.call(rbind,avgElev2)
+mean(avgElev2)
+
+#minimum elevation?
+minElev2 <- do.call(rbind,
+                    lapply(avgElev, function(x){
+                      min(x[], na.rm=TRUE)
+                      })
+)
+
+mean(minElev2)
+```
 
 
+```{r}
 apply_models <- lapply(applymax, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
 })
 
+
+# Elevation where apply model says it will be
+applyavgElev <- lapply(apply_models, function(model){
+  shape <- rasterToPolygons(model, fun=function(x){x ==1}, dissolve=TRUE) #make polygons where model bin map == 1
+  cr <- crop(elevCOcrop, extent(shape), snap="out")
+  shaper <- rasterize(shape, cr)
+  elevr <- mask(x=cr, mask=shaper)
+  elevr
+  })
+
+applyavgElev2 <- lapply(applyavgElev, function(x){
+  mean(x[], na.rm=TRUE)
+})
+applyavgElev2 <- do.call(rbind,applyavgElev2)
+mean(applyavgElev2)
+
+#minimum elevation?
+applyminElev2 <- do.call(rbind,
+                    lapply(applyavgElev, function(x){
+                      min(x[], na.rm=TRUE)
+                      })
+)
+
+mean(applyminElev2)
+```
+
+
+
+```{r}
 
 past_models_prob <- lapply(Maxent, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_prob_map.tif",sep=""))
