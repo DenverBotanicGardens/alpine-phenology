@@ -2024,6 +2024,7 @@ plot(past_models[[1]], col = c("#696969","#ffffff"),
 
 ```
 
+# All points after 1980
 Are post 1980 points within the applymodel for each?
 ```{r}
 
@@ -2108,6 +2109,38 @@ plots <- lapply(1:89, function(x){
 plots[[2]][1]
 
 ```
+
+
+```{r}
+dpi = 1200
+for(i in 1:89){
+tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Images/PCA",i,".tiff", 
+           sep=""), width = 130, height = 90, compression="lzw", units = "mm", res=dpi)
+
+print(plots[[i]][1])
+
+dev.off()
+}
+
+```
+
+Which species are directionally different, in and out, and what are the important factors (comp.1 and comp.2) in distigusihing points.   
+What proportion of later points are in the model
+```{r}
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
 
 
 
