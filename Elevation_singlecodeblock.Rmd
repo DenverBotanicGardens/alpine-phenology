@@ -1896,6 +1896,15 @@ minElev2 <- do.call(rbind,
 )
 
 mean(minElev2)
+
+
+#maximum elevation?
+maxElev2 <- do.call(rbind,
+                    lapply(avgElev, function(x){
+                      max(x[], na.rm=TRUE)
+                      })
+)
+
 ```
 
 
@@ -1928,7 +1937,49 @@ applyminElev2 <- do.call(rbind,
 )
 
 mean(applyminElev2)
+
+#maximum elevation?
+applymaxElev2 <- do.call(rbind,
+                    lapply(applyavgElev, function(x){
+                      max(x[], na.rm=TRUE)
+                      })
+)
 ```
+
+```{r}
+minavg <- rbind(data.frame(value = avgElev2,
+                           stat = "avg",
+                           Time = "Pre1980"),
+                data.frame(value = minElev2,
+                           stat = "min",
+                           Time = "Pre1980"),
+                data.frame(value = maxElev2,
+                           stat = "max",
+                           Time = "Pre1980"),
+                data.frame(value = applyavgElev2,
+                           stat = "avg",
+                           Time = "Post1980"),
+                data.frame(value = applyminElev2,
+                            stat = "min",
+                            Time = "Post1980"),
+                data.frame(value = applymaxElev2,
+                            stat = "max",
+                            Time = "Post1980")
+                )
+
+```
+
+```{r}
+tiff("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/changeavgminmax.tiff", width = 200, height = 75, compression="lzw",
+     units = "mm", res = 1200)
+
+ggplot(minavg, aes(Time, value, colour=Time))+
+  geom_boxplot()+
+  facet_wrap(~stat)
+
+dev.off()
+```
+
 
 
 
@@ -1943,13 +1994,28 @@ apply_models_prob <- lapply(applymax, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_prob_map.tif",sep=""))
 })
 
+# All herbarium data points
+all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
 
+pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
+
+# match id from pre1980, that matches order of models, to ID from all for which species
+IDcode <- merge(all[,c("scientificName","ID")],
+                pre1980[,c("ID","id")], by = "ID")
+  
+
+nrow(unique(IDcode)) #333 many synonyms
+unique(IDcode$id)
+```
+
+#Start here, 1:45 are sign changing phenology, 46:340 (339) are not sign changing in phenology   
+```{r}
+plot()
 
 
 
 
 ```
-
 
 
 
