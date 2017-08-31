@@ -2106,7 +2106,7 @@ plots <- lapply(1:89, function(x){
   })
 
 
-plots[[2]][1]
+plots[[2]][3][[1]]
 
 ```
 
@@ -2127,10 +2127,34 @@ dev.off()
 Which species are directionally different, in and out, and what are the important factors (comp.1 and comp.2) in distigusihing points.   
 What proportion of later points are in the model
 ```{r}
+inout <- do.call(rbind,lapply(bioclims, function(x){
+  out <- prop.table(table(x$InOut))
+#  out <- data.frame(out, c("Out","In"))
+  out <- data.frame(Value = out,
+                    PhenoChange = unique(x$PhenSign),
+                    id = unique(x$id))
+  out
+}))
 
 
+ggplot(inout, aes(Value.Var1,Value.Freq,colour = Value.Var1))+
+  geom_boxplot()+
+  facet_grid(~PhenoChange)+
+  guides(fill=guide_legend(title="Apply Model"))
 
 
+length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="SignChange"])) #12
+length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #77
+
+
+```
+
+
+##START HERE   
+Maybe need to compare points in and not in the probability map with a different cut off than whatever the bin maps gives?
+
+#compare to how many points are in and out of first model - is the apply model just the same goodness?
+```{r}
 
 
 ```
