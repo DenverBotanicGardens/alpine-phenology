@@ -6,6 +6,9 @@ output: html_document
 ---
 load libraries   
 ```{r}
+
+rm(list=setdiff(ls(), c("applyavgElev","avgElev")))
+
   .libPaths(c(.libPaths(), "C:/Users/deprengm/Documents/R/win-library/3.3"))
 library(RCurl)
 library(ggplot2)
@@ -1947,22 +1950,22 @@ applymaxElev2 <- do.call(rbind,
 ```
 
 ```{r}
-minavg <- rbind(data.frame(value = avgElev2,
+minavg <- rbind(data.frame("elevation (m)" = avgElev2,
                            stat = "avg",
                            Time = "Pre1980"),
-                data.frame(value = minElev2,
+                data.frame("elevation (m)" = minElev2,
                            stat = "min",
                            Time = "Pre1980"),
-                data.frame(value = maxElev2,
+                data.frame("elevation (m)" = maxElev2,
                            stat = "max",
                            Time = "Pre1980"),
-                data.frame(value = applyavgElev2,
+                data.frame("elevation (m)" = applyavgElev2,
                            stat = "avg",
                            Time = "Post1980"),
-                data.frame(value = applyminElev2,
+                data.frame("elevation (m)" = applyminElev2,
                             stat = "min",
                             Time = "Post1980"),
-                data.frame(value = applymaxElev2,
+                data.frame("elevation (m)" = applymaxElev2,
                             stat = "max",
                             Time = "Post1980")
                 )
@@ -1975,9 +1978,10 @@ Plot the change in mean min and max elevation of the models and the applymodels
 tiff("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/changeavgminmax.tiff", width = 200, height = 75, compression="lzw",
      units = "mm", res = 1200)
 
-ggplot(minavg, aes(Time, value, colour=Time))+
+ggplot(minavg, aes(Time, elevation..m., colour=Time))+
   geom_boxplot()+
-  facet_wrap(~stat)
+  facet_wrap(~stat)+
+  labs(y="elevation (m)")
 
 dev.off()
 ```
@@ -2115,6 +2119,22 @@ plots[[2]][3][[1]]
 ```
 
 
+print past models   
+There is divergence in what was predicted to be in and in, vs. predicted to be in but out
+```{r}
+dpi = 1200
+for(i in 1:89){
+tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Images/PCApast",i,".tiff", 
+           sep=""), width = 130, height = 90, compression="lzw", units = "mm", res=dpi)
+
+print(plots_past[[i]][1])
+
+dev.off()
+}
+
+```
+
+print apply models
 ```{r}
 dpi = 1200
 for(i in 1:89){
@@ -2147,8 +2167,8 @@ ggplot(inout, aes(Var1,Freq,colour = Var1))+
 
 
 aggregate(Freq~Var1, inout, mean) #0: 0.629; 1: 0.371
-aggregate(Freq~Var1, inout, sd) # 0: 0.1928782, 1:0.1928782   same?
-
+aggregate(Freq~Var1, inout, sd) # 0: 0.1928782, 1:0.1928782   same? yes! proportions, same N, when one is bigger, one is smaller
+aggregate(Freq~Var1, inout, function(x) c(mean=mean(x), sd=sd(x), se = std.error(x)))
 
 length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="SignChange"])) #12
 length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #77
@@ -2202,12 +2222,15 @@ summary(lm1)
 
 ```{r}
 plots_past <- lapply(1:89, function(x){
-  alph.pca <- princomp(bioclimPCA_past[bioclimPCA_past$id==x,-c(1:3)], cor=TRUE)
+  bionow <- bioclimPCA_past[bioclimPCA_past$id==x & 
+                              !is.na(bioclimPCA_past$bio.1),] #some NA problems
+  alph.pca <- princomp(bionow[,-c(1:3)],
+                       cor=TRUE)
   sumr <- summary(alph.pca)
   alph.load <- loadings(alph.pca)
   alph.pc <- predict(alph.pca)
   
-  p <- ggplot(data.frame(alph.pc,bioclimPCA_past[bioclimPCA_past$id==x,1:2]), 
+  p <- ggplot(data.frame(alph.pc,bionow[,1:2]), 
               aes(Comp.1,Comp.2, colour=as.factor(InOut)))+
     geom_point()+
     stat_ellipse()
@@ -2215,12 +2238,11 @@ plots_past <- lapply(1:89, function(x){
   })
 
 
-
-
 ```
 
 ```{r}
 inout_past <- do.call(rbind,lapply(bioclims_past, function(x){
+  x <- x[complete.cases(x),]
   out <- prop.table(table(x$InOut))
 #  out <- data.frame(out, c("Out","In"))
   out <- data.frame(Value = out,
@@ -2235,12 +2257,94 @@ ggplot(inout_past, aes(Value.Var1,Value.Freq,colour = Value.Var1))+
   facet_grid(~PhenoChange)+
   guides(fill=guide_legend(title="Apply Model"))
 
+library(plotrix)
+#bioclimPCA_past is rbind of list bioclims_past
+aggregate(Value.Freq~Value.Var1, inout_past, mean) #0: 0.1749858; 1: 0.8250142
+aggregate(Value.Freq~Value.Var1, inout_past, sd) #0: 0.07129328; 1: 0.07129328
+aggregate(Value.Freq~Value.Var1, inout_past, function(x){
+  c(mean=mean(x), sd=sd(x), SE = std.error(x))
+  })
+
 
 length(unique(bioclimPCA_past$id[bioclimPCA_past$PhenSign=="SignChange"])) #12
 length(unique(bioclimPCA_past$id[bioclimPCA_past$PhenSign=="NoChange"])) #77
 
 
 ```
+
+Examine PCA for models and for apply models. What direction are the points that are real collections, species found in that environmental space, but the model doesn't predict as should be found there.   
+```{r}
+# Importance of components  # can't find it!!
+plots[[1]][2][[1]]$scores #same as components (next)
+plots[[1]][2][[1]]$cutoff #question below, stop showing loadings below 0.1
+plots[[1]][2][[1]]$call
+
+
+# components - to be cbind with 0|1 column and t-tested
+head(plots[[1]][4][[1]][,1:2])
+
+# loadings of each component
+plots[[1]][3][[1]][,1] #comp.1: values for loadings < 0.08 aren't shown, don't know the real cuttoff
+
+plots[[1]][3][[1]][,2] #comp.2
+sort(abs(plots[[1]][3][[1]][,2]))
+
+# lm
+p.df <- cbind(plots[[1]][4][[1]][,1:2],bioclimPCA[bioclimPCA$id==1,1:2])
+
+summary(glm(InOut~Comp.1*Comp.2, data=p.df))
+# for comp.1
+p.tt <- t.test(Comp.1~InOut, data=p.df, paired=FALSE)
+p.tt$estimate[1]  #group mean for 0 (out)
+p.tt$estimate[2]  #group mean for 1 (in)
+p.tt$p.value
+
+ggplot(p.df, aes(InOut, Comp.1, group=InOut))+
+  geom_boxplot()+
+  facet_wrap(~PhenSign) #When combine all values from all species
+
+
+ggplot(p.df, aes(InOut, Comp.2, group=InOut))+
+  geom_boxplot()+
+  facet_wrap(~PhenSign) #When combine all values from all species
+
+
+# need which component is signficant in explaining differences, need biggest loadings for each component, and then if there's a significant differece between the two groups for any component
+pca.results <- lapply(1:89, function(x){
+  loads <- cbind(plots[[x]][4][[1]][,1:2],bioclimPCA[bioclimPCA$id==x,1:2])
+  p.tt1 <- t.test(Comp.1~InOut, data=loads, paired=FALSE)
+  p.tt2 <- t.test(Comp.2~InOut, data=loads, paired=FALSE)
+  #Component 1
+  outestimate.1 <- p.tt1$estimate[1]
+  inestimate.1 <- p.tt1$estimate[2]
+  pval.1 <- p.tt1$p.value
+  #Component 2
+  outestimate.2 <- p.tt2$estimate[1]
+  inestimate.2 <- p.tt2$estimate[2]
+  pval.2 <- p.tt2$p.value
+  
+  #Start here! make it a column for each Comp.1 with a corresponding column for in:1 and out:0
+  out <- data.frame(id=x, 
+                    data.frame(Comp.1=c(outestimate.1,inestimate.1),
+                               InOut = c(0,1)),
+                    p.val.1=pval.1,
+                    data.frame(Comp.2 = c(outestimate.2,inestimate.2),
+                               InOut = c(0,1)),
+                    p.val.2=pval.2)
+  out
+})
+
+
+pca.results.all <- do.call(rbind, pca.results)
+
+head(pca.results.all)
+
+#Awesome but comp1 changes for each, need to summarize what's important for comp1 across...
+ggplot(pca.results.all, aes(InOut,Comp.1,group=InOut))+
+  geom_boxplot()
+```
+
+
 
 
 
