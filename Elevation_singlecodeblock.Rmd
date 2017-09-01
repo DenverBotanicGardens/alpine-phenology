@@ -2012,11 +2012,11 @@ unique(IDcode$id)
 
 #Start here, 1:45 are sign changing phenology, 46:340 (339) are not sign changing in phenology   
 ```{r}
+x <- 89
 
-
-plot(past_models[[1]], col = c("#696969","#ffffff"),
+plot(past_models[[x]], col = c("#696969","#ffffff"),
      legend=FALSE)
-  points(all[all$id == 1 & all$year < 1980, c("decimalLongitude","decimalLatitude")],
+  points(all[all$id == x & all$year < 1980, c("decimalLongitude","decimalLatitude")],
          pch=16, cex=0.75, col="brown2")
 
 
@@ -2025,7 +2025,8 @@ plot(past_models[[1]], col = c("#696969","#ffffff"),
 ```
 
 # All points after 1980
-Are post 1980 points within the applymodel for each?
+Are post 1980 points within the applymodel for each?   
+##somehow 0 and 1 seem switched, length says most are out (0) but proportion table says most are in (1)   
 ```{r}
 
 
@@ -2036,7 +2037,7 @@ bioclims <- lapply(1:89, function(x){
   pntplot <- all[all$ID ==allID & all$year > 1980,
                  c("decimalLongitude","decimalLatitude")]
     out <- extract(apply_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
-  if(allID < 46){
+  if(allID < 46){   # IDs 1:45 are significantly changing in phenology
     out <- data.frame(InOut = out, PhenSign = "SignChange", id = x)
   } else {
     out <- data.frame(InOut = out, PhenSign = "NoChange", id = x)
@@ -2048,6 +2049,9 @@ bioclims <- lapply(1:89, function(x){
   }
   out
 })
+
+length(bioclims[[1]]$InOut[bioclims[[1]]$InOut==0])
+length(bioclims[[1]]$InOut[bioclims[[1]]$InOut==1])
 
 bioclimPCA <- do.call(rbind,bioclims)
 
@@ -2127,20 +2131,23 @@ dev.off()
 Which species are directionally different, in and out, and what are the important factors (comp.1 and comp.2) in distigusihing points.   
 What proportion of later points are in the model
 ```{r}
-inout <- do.call(rbind,lapply(bioclims, function(x){
-  out <- prop.table(table(x$InOut))
-#  out <- data.frame(out, c("Out","In"))
-  out <- data.frame(Value = out,
-                    PhenoChange = unique(x$PhenSign),
-                    id = unique(x$id))
-  out
-}))
+inout <- do.call(rbind,
+                 lapply(bioclims, function(x){
+                   out <- prop.table(table(x$InOut))
+                   out <- data.frame(out,
+                                     PhenoChange = unique(x$PhenSign),
+                                     id = unique(x$id))
+                   out
+                   }))
 
-
-ggplot(inout, aes(Value.Var1,Value.Freq,colour = Value.Var1))+
+ggplot(inout, aes(Var1,Freq,colour = Var1))+
   geom_boxplot()+
   facet_grid(~PhenoChange)+
   guides(fill=guide_legend(title="Apply Model"))
+
+
+aggregate(Freq~Var1, inout, mean) #0: 0.629; 1: 0.371
+aggregate(Freq~Var1, inout, sd) # 0: 0.1928782, 1:0.1928782   same?
 
 
 length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="SignChange"])) #12
@@ -2153,11 +2160,94 @@ length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #77
 ##START HERE   
 Maybe need to compare points in and not in the probability map with a different cut off than whatever the bin maps gives?
 
-#compare to how many points are in and out of first model - is the apply model just the same goodness?
+#compare to how many points are in and out of first model - is the apply model just the same goodness?   
+Points pre 1980 with past_models (1900-1930)
 ```{r}
+# need to extract all the climate variables for those points
+bioclims_past <- lapply(1:89, function(x){
+  allID <- unique(pre1980$ID[pre1980$id == x])
+  pntplot <- all[all$ID ==allID & all$year < 1981,
+                 c("decimalLongitude","decimalLatitude")]
+    out <- extract(past_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
+  if(allID < 46){
+    out <- data.frame(InOut = out, PhenSign = "SignChange", id = x)
+  } else {
+    out <- data.frame(InOut = out, PhenSign = "NoChange", id = x)
+  }
+  for(i in 1:19){
+    bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
+                               sep=""))
+    out <- data.frame(out, bio = extract(bioclimnow, pntplot, fun=mean))
+  }
+  out
+})
+
+bioclimPCA_past <- do.call(rbind,bioclims_past)
+
+shiftnames <- names(bioclimPCA_past)
+names(bioclimPCA_past) <- c(shiftnames[-4],"bio.19")
+
+```
+
+```{r}
+lm1 <- step(lm(InOut ~ bio.1+bio.2+bio.3+bio.4+bio.5+
+            bio.6+bio.7+bio.8+bio.9+bio.10+
+            bio.11+bio.12+bio.13+bio.14+bio.15+
+            bio.16+bio.17+bio.18+bio.19, data=bioclimPCA_past[bioclimPCA_past$id==1,]))
+
+
+summary(lm1)
+```
+
+
+```{r}
+plots_past <- lapply(1:89, function(x){
+  alph.pca <- princomp(bioclimPCA_past[bioclimPCA_past$id==x,-c(1:3)], cor=TRUE)
+  sumr <- summary(alph.pca)
+  alph.load <- loadings(alph.pca)
+  alph.pc <- predict(alph.pca)
+  
+  p <- ggplot(data.frame(alph.pc,bioclimPCA_past[bioclimPCA_past$id==x,1:2]), 
+              aes(Comp.1,Comp.2, colour=as.factor(InOut)))+
+    geom_point()+
+    stat_ellipse()
+  list(p,sumr,alph.load,alph.pc)
+  })
+
+
 
 
 ```
+
+```{r}
+inout_past <- do.call(rbind,lapply(bioclims_past, function(x){
+  out <- prop.table(table(x$InOut))
+#  out <- data.frame(out, c("Out","In"))
+  out <- data.frame(Value = out,
+                    PhenoChange = unique(x$PhenSign),
+                    id = unique(x$id))
+  out
+}))
+
+
+ggplot(inout_past, aes(Value.Var1,Value.Freq,colour = Value.Var1))+
+  geom_boxplot()+
+  facet_grid(~PhenoChange)+
+  guides(fill=guide_legend(title="Apply Model"))
+
+
+length(unique(bioclimPCA_past$id[bioclimPCA_past$PhenSign=="SignChange"])) #12
+length(unique(bioclimPCA_past$id[bioclimPCA_past$PhenSign=="NoChange"])) #77
+
+
+```
+
+
+
+
+
+
+
 
 
 
