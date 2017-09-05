@@ -2276,42 +2276,93 @@ ggplot(p.df, aes(InOut, Comp.2, group=InOut))+
 # need which component is signficant in explaining differences, need biggest loadings for each component, and then if there's a significant differece between the two groups for any component
 pca.results <- lapply(1:89, function(x){
   loads <- cbind(plots[[x]][4][[1]][,1:2],bioclimPCA[bioclimPCA$id==x,1:2])
-  lm.out <- summary(glm(InOut~Comp.1*Comp.2, data=loads)
+  lm.out <- summary(glm(InOut~Comp.1*Comp.2, data=loads, family="binomial")) #with logistic link as default
+  top3.comp1 <- sort(abs(plots[[x]][3][[1]][,1]))[1:3] #top three loadings
+  top3.comp2 <- sort(abs(plots[[x]][3][[1]][,2]))[1:3]
+
+  p.df <- cbind(plots[[x]][4][[1]][,1:2],bioclimPCA[bioclimPCA$id==x,1:2],ID=x)
+
   #Component 1
-  if()
-  outestimate.1 <- p.tt1$estimate[1]
-  inestimate.1 <- p.tt1$estimate[2]
-  pval.1 <- p.tt1$p.value
-  #Component 2
-  outestimate.2 <- p.tt2$estimate[1]
-  inestimate.2 <- p.tt2$estimate[2]
-  pval.2 <- p.tt2$p.value
+  if(lm.out$coefficients[2,4]<0.05){
+    load.comp1 <- data.frame(t(data.frame(plots[[x]][3][[1]][c(names(top3.comp1)),1])))
+    p.df$Comp1Sign <- "Significant"
+  } else {
+    load.comp1 <- data.frame(none=NA)
+    p.df$Comp1Sign <- "NotSignificant"
+  }
   
-  #Start here! make it a column for each Comp.1 with a corresponding column for in:1 and out:0
-  out <- data.frame(id=x, 
-                    data.frame(Comp.1=c(outestimate.1,inestimate.1),
-                               InOut = c(0,1)),
-                    p.val.1=pval.1,
-                    data.frame(Comp.2 = c(outestimate.2,inestimate.2),
-                               InOut = c(0,1)),
-                    p.val.2=pval.2)
+  #Component 2
+  if(lm.out$coefficients[3,4]<0.05){
+    load.comp2 <- data.frame(t(data.frame(plots[[x]][3][[1]][c(names(top3.comp2)),2])))
+    p.df$Comp2Sign <- "Significant"
+  } else {
+    load.comp2 <- data.frame(none=NA)
+    p.df$Comp2Sign <- "NotSignificant"
+  }
+  
+  #Component 1 * Component 2
+  if(lm.out$coefficients[4,4]<0.05){
+    load.comp1.2 <- cbind(data.frame(t(data.frame(plots[[x]][3][[1]][c(names(top3.comp1)),1]))),
+                          data.frame(t(data.frame(plots[[x]][3][[1]][c(names(top3.comp2)),2]))))
+    p.df$Comp1.2Sign <- "Significant"
+  } else {
+    load.comp1.2 <- data.frame(none=NA)
+    p.df$Comp1.2Sign <- "NotSignificant"
+  }
+  
+  out <- list(lm.out, load.comp1, load.comp2, load.comp1.2, p.df)
   out
 })
 
+comps <- do.call(rbind,lapply(pca.results, "[[", 5))
 
-pca.results.all <- do.call(rbind, pca.results)
+ggplot(comps, aes(InOut, Comp.1, group=as.factor(InOut), colour=as.factor(InOut)))+
+  geom_boxplot()+
+  facet_wrap(~PhenSign+Comp1Sign)+
+  theme(legend.position = "none")
 
-head(pca.results.all)
+
+ggplot(comps, aes(InOut, Comp.2, group=as.factor(InOut), colour=as.factor(InOut)))+
+  geom_boxplot()+
+  facet_wrap(~PhenSign+Comp2Sign)+
+  theme(legend.position = "none")
+
+pca.results.comp1 <- do.call(rbind.fill, sapply(pca.results, "[[", 2)) #sapply to get second list item and then rbind.fill for each of those
+
+pca.results.comp2 <- do.call(rbind.fill, sapply(pca.results, "[[", 3)) 
+
+pca.results.comp1.2 <- do.call(rbind.fill, sapply(pca.results, "[[", 4)) 
+
+head(pca.results.comp1.2)
 
 #Awesome but comp1 changes for each, need to summarize what's important for comp1 across...
-ggplot(pca.results.all, aes(InOut,Comp.1,group=InOut))+
-  geom_boxplot()
+comp1long <- melt(data.frame(pca.results.comp1,
+                             ID=as.numeric(row.names(pca.results.comp1))),
+                  id.vars="ID")
+
+ggplot(comp1long[comp1long$variable != "none",], aes(variable,value))+
+  geom_boxplot(varwidth = TRUE)
 ```
 
 
 
 
+```{r}
+ggplot(comps, aes(Comp.1,Comp.2,colour=as.factor(InOut)))+
+  geom_point(alpha=0.25)+
+  stat_ellipse(size=1.5)
 
+ggplot(comps, aes(Comp.1,Comp.2,colour=as.factor(InOut)))+
+  geom_point(alpha=0.25)+
+  stat_ellipse(size=2)+
+  facet_wrap(~PhenSign)
+
+ggplot(comps, aes(Comp.1,Comp.2,colour=as.factor(InOut)))+
+  geom_point(alpha=0.25)+
+  stat_ellipse(size=2)+
+  facet_wrap(~PhenSign+Comp1Sign)
+
+```
 
 
 
