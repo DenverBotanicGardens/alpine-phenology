@@ -25,6 +25,7 @@ library(MASS)
 library(segmented)
 library(Taxonstand)
 library(directlabels)
+library(plotrix)
 
 #functions
 is.NullOb <- function(x) is.null(x) | all(sapply(x, is.null))
@@ -1588,51 +1589,7 @@ write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_M
 
 
 
-# 8/24/2017
-#Compare change in average elevation of past to current niche model
-```{r}
 
-
-elevs <- list.files("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/All_CO_elevation_TIFFS", pattern="*.tif")
-
-elevtiffs <- elevs[seq(1,138,by=3)]
-
-elevation <- lapply(seq(1,138,by=3),function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/All_CO_elevation_TIFFS/",elevs[x],sep=""))
-})
-
-length(grep("zone=13",elevation[[1]]@crs@projargs))==0
-# need to catch integer(0)
-
-# some are zone 12, some are zone 13, project all to zone 13
-for(i in 1:length(elevation)){
-  if(length(grep("zone=12",elevation[[i]]@crs@projargs))==1){
- #   projectRaster(elevation[[i]], crs = "+proj=utm +zone=13 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
-    print(elevation[[i]]@crs)
-  }
-}
-
-elevation13 <- lapply(elevation, function(x){
-  if(length(grep("zone=13", x@crs@projargs))==1){
-    x
-  }
-}) 
-
-length(elevation)
-elevation13[sapply(elevation13, is.null)] <- NULL
-length(elevation13)
-class(elevation13[[1]])
-elevation13
-
-elevation13$filename <- "elevationCO.tif"
-elevation13$fun <- mean
-elevation13$overwrite <- TRUE
-elevationCO <- do.call(mosaic,elevation13)
-
-s <- do.call(stack, elevation13)
-
-nlayers(elevation13)
-```
 
 
 #Take results from VisTrails and compare bin maps for each past projected to current with points from current
@@ -1870,7 +1827,7 @@ elevCOcrop <- resample(elevCO, past_models[[1]], method='bilinear')
 
 model <- past_models[[1]]
 
-
+ 
 # Get Elevation where model says it will be
 avgElev <- lapply(past_models, function(model){
   shape <- rasterToPolygons(model, fun=function(x){x ==1}, dissolve=TRUE) #make polygons where model bin map == 1
