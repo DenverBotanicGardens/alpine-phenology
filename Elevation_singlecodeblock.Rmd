@@ -2236,7 +2236,6 @@ plots[[1]][2][[1]]$scores #same as components (next)
 plots[[1]][2][[1]]$cutoff #question below, stop showing loadings below 0.1
 plots[[1]][2][[1]]$call
 
-
 # components - to be cbind with 0|1 column and t-tested
 head(plots[[1]][4][[1]][,1:2])
 
@@ -2249,7 +2248,15 @@ sort(abs(plots[[1]][3][[1]][,2]))
 # lm
 p.df <- cbind(plots[[1]][4][[1]][,1:2],bioclimPCA[bioclimPCA$id==1,1:2])
 
-summary(glm(InOut~Comp.1*Comp.2, data=p.df))
+sum.out <- summary(glm(InOut~Comp.1*Comp.2, data=p.df))
+sum.out$coefficients[2,4] #significance of Comp.1
+sum.out$coefficients[3,4] #significance of Comp.2
+sum.out$coefficients[4,4] #significance of interaction Comp.1*Comp.2
+
+# Top three loadings for signficant axes
+top3 <- sort(abs(plots[[1]][3][[1]][,1]))[1:3] # top three but lost the actual values
+plots[[1]][3][[1]][c(names(top3)),1] # Ha ha!! got 'em
+
 # for comp.1
 p.tt <- t.test(Comp.1~InOut, data=p.df, paired=FALSE)
 p.tt$estimate[1]  #group mean for 0 (out)
@@ -2269,9 +2276,9 @@ ggplot(p.df, aes(InOut, Comp.2, group=InOut))+
 # need which component is signficant in explaining differences, need biggest loadings for each component, and then if there's a significant differece between the two groups for any component
 pca.results <- lapply(1:89, function(x){
   loads <- cbind(plots[[x]][4][[1]][,1:2],bioclimPCA[bioclimPCA$id==x,1:2])
-  p.tt1 <- t.test(Comp.1~InOut, data=loads, paired=FALSE)
-  p.tt2 <- t.test(Comp.2~InOut, data=loads, paired=FALSE)
+  lm.out <- summary(glm(InOut~Comp.1*Comp.2, data=loads)
   #Component 1
+  if()
   outestimate.1 <- p.tt1$estimate[1]
   inestimate.1 <- p.tt1$estimate[2]
   pval.1 <- p.tt1$p.value
