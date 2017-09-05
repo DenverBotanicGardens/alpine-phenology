@@ -2365,6 +2365,34 @@ ggplot(comps, aes(Comp.1,Comp.2,colour=as.factor(InOut)))+
 ```
 
 
+#Compare the points of pre-1980 to 1900-1930 bioclim with points post-1980 and 1981-2011 bioclim averages. Do the same shifts in climate hold or is it just that the models aren't great?   
+```{r}
+compareprepost <- rbind(data.frame(bioclimPCA,Time="Post"),
+                        data.frame(bioclimPCA_past,Time="Pre"))
+
+
+pp.pca <- lapply(1:89, function(x){
+  alph.pca <- princomp(compareprepost[compareprepost$id==x &
+                                        complete.cases(compareprepost),
+                                      -c(1:3,23)], cor=TRUE)
+  sumr <- summary(alph.pca)
+  alph.load <- loadings(alph.pca)
+  alph.pc <- predict(alph.pca)
+  
+  toplot <- data.frame(alph.pc,compareprepost[compareprepost$id==x &
+                                        complete.cases(compareprepost),
+                                        c(1:2,23)])
+  
+  p <- ggplot(toplot, 
+              aes(Comp.1,Comp.2, colour=as.factor(Time)))+
+    geom_point()+
+    stat_ellipse()
+  list(p,sumr,alph.load,toplot)
+  })
+
+
+
+```
 
 
 
@@ -2382,6 +2410,21 @@ ggplot(comps, aes(Comp.1,Comp.2,colour=as.factor(InOut)))+
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Old
 # https://cran.r-project.org/web/packages/dismo/vignettes/sdm.pdf
 ```{r}
 #These are the 10 splits k-fold (cross-validation)
