@@ -115,16 +115,17 @@ seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
 #Take results from VisTrails and compare bin maps for each past projected to current with points from current
 ```{r}
 
-
+#modelrun <- "PRISM_pre1980_current/"
+modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip/"
 applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
 Maxent <- paste("Maxent_",1:89,sep="")
 
 models <- lapply(Maxent, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current/",x,"/maxent_bin_map.tif",sep=""))
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
 })
 
 applymodels <- lapply(applymax, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current/",x,"/maxent_bin_map.tif",sep=""))
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
 })
 
 # All have 0 or 1, these are the bin values of suitable or not
@@ -135,7 +136,7 @@ overlap <- lapply(1:length(models), function(x){
   out
 })
 
-# Add only when 
+# Change the furture (current) models to 2 and 0 and keep past as 1 and 0, when added 3=in both, 2=in current only, 1=past only
 overlap10 <- lapply(1:length(models), function(x){
   past <- models[[x]]
   current <- applymodels[[x]]
@@ -154,6 +155,15 @@ netchange <- lapply(overlap10, function(x){
 
 netchangevector <- do.call(rbind,netchange)
 
+#habitat lost is just the new minus the old? 2s minus 1s because 3s represent what didn't change. 
+change.newold <- lapply(overlap10, function(x){
+  net <- ( sum(x[] == 2) - sum(x[] == 1) ) * res(x)[1]^2 
+  net
+})
+
+netchangevector.newold <- do.call(rbind,change.newold)
+
+
 # how do herbarium specimens line up with habitat model?
 FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
 
@@ -167,8 +177,13 @@ Plot results
 # 0 is not in range, 1/red = past, 2/blue = present, 3/purple = both
 plot(overlap10[[59]], col = c("white","red","blue","purple"))
 
+# New and maintained minus old - which is a strange calculation, want the next
 boxplot(netchangevector)
 hist(netchangevector)
+
+# New minus old (not taking into account how much is maintained, that would subtract out anyway)
+boxplot(netchangevector.newold)
+hist(netchangevector.newold)
 
 #convert raster to dataframes for plotting in ggplot
 df1 <- data.frame(rasterToPoints(overlap10[[1]]))
@@ -180,17 +195,17 @@ b.col <- seq(0,3,length.out=4)
 ggplot(df1,aes(X,Y))+
   geom_raster()
 
-plot(overlap10[[1]])
+plot(overlap10[[1]], col = c("white","tomato","yellow2","antiquewhite1"))
 points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
                                         FieldData_all$ID == 1],
        FieldData_all$decimalLatitude[FieldData_all$year>1980 &
                                         FieldData_all$ID == 1],
-       pch = 21, cex = 0.5, col = "red")
+       pch = 21, cex = 0.5, col = "orange")
 points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
                                         FieldData_all$ID == 1],
        FieldData_all$decimalLatitude[FieldData_all$year<1980 &
                                         FieldData_all$ID == 1],
-       pch = 8, cex = 0.5, col = "black")
+       pch = 8, cex = 0.5, col = "red3")
 ```
 
 
@@ -358,10 +373,11 @@ avgElev <- lapply(past_models, function(model){
   elevr
   })
 
-lapply(1:89, function(x){
-  writeRaster(avgElev[[x]], 
-              paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Elevation",x,sep=""))
-})
+#### can skip once done. 
+#lapply(1:89, function(x){
+#  writeRaster(avgElev[[x]], 
+#              paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Elevation",x,sep=""))
+#})
 
 avgElev2 <- lapply(avgElev, function(x){
   mean(x[], na.rm=TRUE)
@@ -389,6 +405,8 @@ maxElev2 <- do.call(rbind,
 ```
 
 
+
+###START HERE
 ```{r}
 apply_models <- lapply(applymax, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
@@ -450,8 +468,8 @@ minavg <- rbind(data.frame("elevation (m)" = avgElev2,
 
 ```
 
-Plot the change in mean min and max elevation of the models and the applymodels
 
+Plot the change in mean min and max elevation of the models and the applymodels
 ```{r}
 tiff("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/changeavgminmax.tiff", width = 200, height = 75, compression="lzw",
      units = "mm", res = 1200)
@@ -492,7 +510,7 @@ nrow(unique(IDcode)) #333 many synonyms
 unique(IDcode$id)
 ```
 
-#Start here, 1:45 are sign changing phenology, 46:340 (339) are not sign changing in phenology   
+#1:45 are sign changing phenology, 46:340 (339) are not sign changing in phenology   
 ```{r}
 x <- 89
 
@@ -508,7 +526,27 @@ plot(past_models[[x]], col = c("#696969","#ffffff"),
 
 # All points after 1980
 Are post 1980 points within the applymodel for each?   
-##somehow 0 and 1 seem switched, length says most are out (0) but proportion table says most are in (1)   
+##somehow 0 and 1 seem switched, length says most are out (0) but proportion table says most are in (1)      
+
+###Check just min, max temp, annual precip, AND GDD?   
+ENVIREM    
+<http://envirem.github.io/>    
+GDD <https://deepblue.lib.umich.edu/data/concern/generic_works/gt54kn05f>  
+
+
+```{r}
+#install.packages("envirem")
+library(envirem)
+
+
+rasterFiles <- list.files(system.file('extdata', package='envirem'), full.names=TRUE)
+env <- stack(rasterFiles) #bioclim data, 80 layers
+meantemp <- env[[grep('tmean', names(env), value=TRUE)]]
+growingDegDays(meantemp, 10)
+
+```
+
+
 ```{r}
 
 
