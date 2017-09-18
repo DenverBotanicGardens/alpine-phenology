@@ -168,6 +168,7 @@ ext <- extent(round_any(c(rastextobj[1],rastextobj[2],
 r <- raster(ext, ncol=dim(models[[1]])[2],
             nrow=dim(models[[1]])[1], crs="+init=epsg:32613")
 
+
 r #resolution is now 724.4656, 916.8399 (x,y)
 
 # add 2: new habitat and 3: maintained habitat minus 1:previous habitat
@@ -284,8 +285,6 @@ saveGIF({
            FD_all$decimalLatitude[FD_all$year<1980&FD_all$ID == 1],
            pch = 8, cex = 0.5, col = "red3")
     }
-#  , movie.name = "P:/hackathon/alpine-phenology/animation.gif"
- #   , interval=c(1, rep(0.1, length(unique(sort(FD_all$year)))), 1, 5)
   })
 
 #path_to_convert <- "\"C:\\Program Files\\ImageMagick-7.0.6-Q16\\magick.exe\""
