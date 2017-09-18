@@ -22,6 +22,7 @@ library(prism)
 library(polynom)
 library(MASS)
 library(plotrix)
+library(plyr)
 
 ```
 
@@ -145,25 +146,79 @@ overlap10 <- lapply(1:length(models), function(x){
   out
 })
 
-res(overlap10[[1]])[1]^2 # square the resolution for area in square meters
+
+```
+
+Attempt #1: use this as the approximate size of pixel across the whole landscape of Colroado
+```{r}
+# need to convert resolution into meters
+# make SpatialPoints object
+xtll <- matrix(extent(models[[1]]),byrow = FALSE, nrow = 2)
+# <http://spatialreference.org/ref/epsg/32613/> 
+xtll <- SpatialPoints(xtll, CRS("+init=epsg:4326")) #WGS 84
+#convert to UTM 
+transxtll <- spTransform(xtll,CRS("+init=epsg:32613")) 
+rastextobj <- extent(transxtll)
+c(rastextobj[1],rastextobj[2],rastextobj[3],rastextobj[4])      
+#raster extent object rounded to km
+ext <- extent(round_any(c(rastextobj[1],rastextobj[2],
+                          rastextobj[3],rastextobj[4]),1000))
+
+# make same ncol and nrow as previous ones
+r <- raster(ext, ncol=dim(models[[1]])[2],
+            nrow=dim(models[[1]])[1], crs="+init=epsg:32613")
+
+r #resolution is now 724.4656, 916.8399 (x,y)
 
 # add 2: new habitat and 3: maintained habitat minus 1:previous habitat
 netchange <- lapply(overlap10, function(x){
-  net <- ( (sum(x[] == 2) + sum( x[] == 3) )- sum(x[] == 1) ) * res(x)[1]^2 
+  net <- (((sum(x[]==2)+sum(x[]==3))-sum(x[]==1))*(res(r)[1]*res(r)[2]))
   net
 })
 
-netchangevector <- do.call(rbind,netchange)
+netchangevector <- do.call(rbind,netchange) # square meters
+netchangevector <- netchangevector/1000000 # square km
+
 
 #habitat lost is just the new minus the old? 2s minus 1s because 3s represent what didn't change. 
 change.newold <- lapply(overlap10, function(x){
-  net <- ( sum(x[] == 2) - sum(x[] == 1) ) * res(x)[1]^2 
+  net <- ( sum(x[] == 2) - sum(x[] == 1) ) * ((res(r)[1]*res(r)[2])/1000000) 
   net
 })
 
 netchangevector.newold <- do.call(rbind,change.newold)
+boxplot(netchangevector.newold) #square km change
+hist(netchangevector.newold)
+```
+
+<https://stackoverflow.com/questions/42425530/calculate-selected-area-from-stacked-raster-object> 
+Attempt #2: 
+   1. get number of pixels - sum(x[] == 1) or whatever >= something....    
+   2. reproject raster to projected coordinate system UTM   
+       a. stk <- projectRaster(from=stk, crs="+proj=utm +zone=13 +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs")    
+       b. number of pixels * (res(stk)[1] * res(stk)[2])) (in meters no longer square)
+```{r}
+
+modelprojecttest <- projectRaster(models[[1]], r)
+test <- projectRaster(models[[1]], 
+                      crs = "+proj=utm +zone=13 +ellps=GRS80 +datum=NAD83 +units=m +no_defs" )
+
+change.newold1 <- lapply(overlap10, function(x){
+  x <- projectRaster(from=x, crs="+proj=utm +zone=13 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
+  net <- (sum(x[]==2)-sum(x[]==1)) * (res(x)[1]*res(x)[2]) 
+  net
+})
+
+netchangevector.newold1 <- do.call(rbind,change.newold1)
 
 
+
+boxplot(netchangevector.newold1)
+hist(netchangevector.newold1)
+```
+
+
+```{r}
 # how do herbarium specimens line up with habitat model?
 FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
 
@@ -206,6 +261,35 @@ points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
        FieldData_all$decimalLatitude[FieldData_all$year<1980 &
                                         FieldData_all$ID == 1],
        pch = 8, cex = 0.5, col = "red3")
+```
+Animate map
+```{r}
+#install.packages("animation")
+require(installr)
+install.ImageMagick()
+library(animation)
+
+FD_all <- FieldData_all[FieldData_all$year > 1800 &
+                          FieldData_all$year < 2018,]
+ani.options(interval=.05)
+ani.options(convert = "\"C:\\Program Files\\ImageMagick-7.0.6-Q16\\magick.exe\"")
+
+saveGIF({
+  plot(overlap10[[1]], col = c("white","tomato","yellow2","antiquewhite1"))
+  for(i in unique(sort(FD_all$year))){
+    points(FD_all$decimalLongitude[FD_all$year>1980&FD_all$ID==1],
+           FD_all$decimalLatitude[FD_all$year>1980&FD_all$ID==1],
+           pch = 21, cex = 0.5, col = "orange")
+    points(FD_all$decimalLongitude[FD_all$year<1980&FD_all$ID == 1],
+           FD_all$decimalLatitude[FD_all$year<1980&FD_all$ID == 1],
+           pch = 8, cex = 0.5, col = "red3")
+    }
+#  , movie.name = "P:/hackathon/alpine-phenology/animation.gif"
+ #   , interval=c(1, rep(0.1, length(unique(sort(FD_all$year)))), 1, 5)
+  })
+
+#path_to_convert <- "\"C:\\Program Files\\ImageMagick-7.0.6-Q16\\magick.exe\""
+
 ```
 
 
