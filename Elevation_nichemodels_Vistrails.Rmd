@@ -192,32 +192,6 @@ boxplot(netchangevector.newold) #square km change
 hist(netchangevector.newold)
 ```
 
-<https://stackoverflow.com/questions/42425530/calculate-selected-area-from-stacked-raster-object> 
-Attempt #2: 
-   1. get number of pixels - sum(x[] == 1) or whatever >= something....    
-   2. reproject raster to projected coordinate system UTM   
-       a. stk <- projectRaster(from=stk, crs="+proj=utm +zone=13 +north +ellps=WGS84 +datum=WGS84 +units=m +no_defs")    
-       b. number of pixels * (res(stk)[1] * res(stk)[2])) (in meters no longer square)
-```{r}
-
-modelprojecttest <- projectRaster(models[[1]], r)
-test <- projectRaster(models[[1]], 
-                      crs = "+proj=utm +zone=13 +ellps=GRS80 +datum=NAD83 +units=m +no_defs" )
-
-change.newold1 <- lapply(overlap10, function(x){
-  x <- projectRaster(from=x, crs="+proj=utm +zone=13 +ellps=WGS84 +datum=WGS84 +units=m +no_defs")
-  net <- (sum(x[]==2)-sum(x[]==1)) * (res(x)[1]*res(x)[2]) 
-  net
-})
-
-netchangevector.newold1 <- do.call(rbind,change.newold1)
-
-
-
-boxplot(netchangevector.newold1)
-hist(netchangevector.newold1)
-```
-
 
 ```{r}
 # how do herbarium specimens line up with habitat model?
@@ -266,14 +240,19 @@ points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
 Animate map
 ```{r}
 #install.packages("animation")
-require(installr)
-install.ImageMagick()
+#require(installr)
+#install.ImageMagick()
 library(animation)
+
+#devtools::install_github("yihui/animation")
 
 FD_all <- FieldData_all[FieldData_all$year > 1800 &
                           FieldData_all$year < 2018,]
 ani.options(interval=.05)
 ani.options(convert = "\"C:\\Program Files\\ImageMagick-7.0.6-Q16\\magick.exe\"")
+#ani.options(convert = '/C:/Program Files/ImageMagick-6.8.7-Q16/magick.exe') 
+ani.options("convert")[1]
+
 
 saveGIF({
   plot(overlap10[[1]], col = c("white","tomato","yellow2","antiquewhite1"))
@@ -287,7 +266,7 @@ saveGIF({
     }
   })
 
-#path_to_convert <- "\"C:\\Program Files\\ImageMagick-7.0.6-Q16\\magick.exe\""
+saveGIF({for(i in 1:10) plot(runif(10), ylim = 0:1)})
 
 ```
 
@@ -339,7 +318,7 @@ anovatest <- lapply(1:89, function(x){
 
 chitest <- do.call(rbind,anovatest)
 
-chitest[chitest$Pval<0.05,]
+#chitest[chitest$Pval<0.05,]
 # 34 are signficantly different as you'd expect. The pre-distribution should have more 1s while the post should have more 2s.
 ```
 
@@ -428,18 +407,18 @@ plot(e, 'ROC')
 
 
 
-# Model Performance  
+# Model Performance   SKIP TO NEXT IF ALREADY RUN THIS!
 check how many points from post 1980 fall within the predicted range. Do a PCA to see if there's a difference in points within and points that fall not in the range. What do those mean? They didn't shift so they're adapting? Are they tolerating a shift in one direction of certain environmental factors?    
 ```{r}
 
 elevCO <- raster("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/CO_Mosaic_Elevation_VT/co_elev_VT_WGS84.tif")
 
-
+modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip/"
 applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
 Maxent <- paste("Maxent_",1:89,sep="")
 
 past_models <- lapply(Maxent, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
 })
 
 elevCOcrop <- resample(elevCO, past_models[[1]], method='bilinear')
@@ -455,12 +434,33 @@ avgElev <- lapply(past_models, function(model){
   elevr <- mask(x=cr, mask=shaper)
   elevr
   })
+ 
+lapply(1:89, function(x){
+  writeRaster(avgElev[[x]], 
+              paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,"/Elevation",x,sep=""),format="GTiff",overwrite=TRUE)
+})
 
-#### can skip once done. 
-#lapply(1:89, function(x){
-#  writeRaster(avgElev[[x]], 
-#              paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Elevation",x,sep=""))
-#})
+
+
+## Didn't do this because different extents, saved all individually
+writeRaster(stack(avgElev), 
+            paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,"/Elevation",sep=""),
+            bylayer=TRUE, suffix=1:89,overwrite=TRUE, format="GTiff")
+```
+
+Read back in the rasters (I think there's no errors...)
+```{r}
+elevrasterspast <- paste("Elevation",1:89,sep="")
+
+avgElev <- lapply(elevrasterspast, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,".tif",sep=""))
+})
+
+
+```
+
+
+```{r}
 
 avgElev2 <- lapply(avgElev, function(x){
   mean(x[], na.rm=TRUE)
@@ -489,7 +489,7 @@ maxElev2 <- do.call(rbind,
 
 
 
-###START HERE
+# Now check the elevation for the apply model to the current time
 ```{r}
 apply_models <- lapply(applymax, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
