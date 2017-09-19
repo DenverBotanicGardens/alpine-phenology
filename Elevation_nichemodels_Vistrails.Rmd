@@ -665,6 +665,16 @@ names(bioclimPCA) <- c(shiftnames[-4],"bio.19")
 bioclimPCA <- bioclimPCA[!is.na(bioclimPCA$InOut),]
 ```
 
+
+Start with only Bio5,6,and 12 to match min and max annual temp and annual precip from phenology
+```{r}
+lm_temprecip <- lm(InOut ~ bio.5 + bio.6 + bio.12, data=bioclimPCA[bioclimPCA$id==1,])
+summary(lm_temprecip)
+```
+
+
+
+##SKIP THIS ONE
 ```{r}
 #who explains the most deviation, before exclude some correlated variables
 # Why is bio.7 NA???
@@ -700,7 +710,7 @@ ggplot(data.frame(alph.pc,bioclimPCA[bioclimPCA$id==1,1:2]),
 
 ```{r}
 plots <- lapply(1:89, function(x){
-  alph.pca <- princomp(bioclimPCA[bioclimPCA$id==x,-c(1:3)], cor=TRUE)
+  alph.pca <- princomp(bioclimPCA[bioclimPCA$id==x,c("bio.5","bio.6","bio.12")], cor=TRUE)
   sumr <- summary(alph.pca)
   alph.load <- loadings(alph.pca)
   alph.pc <- predict(alph.pca)
@@ -718,26 +728,12 @@ plots[[2]][3][[1]]
 ```
 
 
-print past models   
-There is divergence in what was predicted to be in and in, vs. predicted to be in but out
+
+print apply models; make the Images folder first
 ```{r}
 dpi = 1200
 for(i in 1:89){
-tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Images/PCApast",i,".tiff", 
-           sep=""), width = 130, height = 90, compression="lzw", units = "mm", res=dpi)
-
-print(plots_past[[i]][1])
-
-dev.off()
-}
-
-```
-
-print apply models
-```{r}
-dpi = 1200
-for(i in 1:89){
-tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/Images/PCA",i,".tiff", 
+tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,"Images/PCA",i,".tiff", 
            sep=""), width = 130, height = 90, compression="lzw", units = "mm", res=dpi)
 
 print(plots[[i]][1])
@@ -746,6 +742,7 @@ dev.off()
 }
 
 ```
+
 
 Which species are directionally different, in and out, and what are the important factors (comp.1 and comp.2) in distigusihing points.   
 What proportion of later points are in the model
@@ -775,9 +772,6 @@ length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #77
 
 ```
 
-
-##START HERE   
-Maybe need to compare points in and not in the probability map with a different cut off than whatever the bin maps gives?
 
 #compare to how many points are in and out of first model - is the apply model just the same goodness?   
 Points pre 1980 with past_models (1900-1930)
@@ -838,6 +832,23 @@ plots_past <- lapply(1:89, function(x){
 
 
 ```
+
+
+print past models   
+There is divergence in what was predicted to be in and in, vs. predicted to be in but out
+```{r}
+dpi = 1200
+for(i in 1:89){
+tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,"Images/PCApast",i,".tiff", 
+           sep=""), width = 130, height = 90, compression="lzw", units = "mm", res=dpi)
+
+print(plots_past[[i]][1])
+
+dev.off()
+}
+
+```
+
 
 ```{r}
 inout_past <- do.call(rbind,lapply(bioclims_past, function(x){
