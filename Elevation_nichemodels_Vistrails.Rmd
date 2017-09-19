@@ -492,7 +492,7 @@ maxElev2 <- do.call(rbind,
 # Now check the elevation for the apply model to the current time
 ```{r}
 apply_models <- lapply(applymax, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_bin_map.tif",sep=""))
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
 })
 
 
@@ -554,7 +554,7 @@ minavg <- rbind(data.frame("elevation (m)" = avgElev2,
 
 Plot the change in mean min and max elevation of the models and the applymodels
 ```{r}
-tiff("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/changeavgminmax.tiff", width = 200, height = 75, compression="lzw",
+tiff("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/changeavgminmax_tempprecip.tiff", width = 200, height = 75, compression="lzw",
      units = "mm", res = 1200)
 
 ggplot(minavg, aes(Time, elevation..m., colour=Time))+
@@ -571,12 +571,12 @@ dev.off()
 ```{r}
 
 past_models_prob <- lapply(Maxent, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_prob_map.tif",sep=""))
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_prob_map.tif",sep=""))
 })
 
 
 apply_models_prob <- lapply(applymax, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5/",x,"/maxent_prob_map.tif",sep=""))
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_prob_map.tif",sep=""))
 })
 
 # All herbarium data points
@@ -595,7 +595,7 @@ unique(IDcode$id)
 
 #1:45 are sign changing phenology, 46:340 (339) are not sign changing in phenology   
 ```{r}
-x <- 89
+x <- 1
 
 plot(past_models[[x]], col = c("#696969","#ffffff"),
      legend=FALSE)
