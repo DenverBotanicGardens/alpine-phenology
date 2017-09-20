@@ -1104,7 +1104,50 @@ bioclims_pastpre1930 <- lapply(1:89, function(x){
 
 bioclimPCA_pastpre1930 <- do.call(rbind,bioclims_pastpre1930)
 
+#bioclimPCA$Time <- "After 1980"
+names(bioclimPCA_pastpre1930) <- c(shiftnames[-4],"bio.19")
+bioclimPCA_pastpre1930$Time <- "Before 1930"
+
+bioclimPCA_bothpre1930 <- rbind(bioclimPCA_pastpre1930,bioclimPCA)
+
+lm.both.1930 <- glm(as.numeric(as.factor(Time))~bio.5+bio.6+bio.12, data=bioclimPCA_bothpre1930)
+summary(lm.both.1930)
+
+#Min temp and precip
+ggplot(bioclimPCA_bothpre1930, aes(bio.6, bio.12, colour=Time))+
+  geom_point()+
+  stat_ellipse()
+
+climateenv.1930 <- cbind(aggregate(bio.5~Time+PhenSign, mean, data=bioclimPCA_bothpre1930),
+                    bio.5.sd = aggregate(bio.5~Time+PhenSign, sd, data=bioclimPCA_bothpre1930)[,3],
+                    bio.6 =aggregate(bio.6~Time+PhenSign, mean, data=bioclimPCA_bothpre1930)[,3],
+                    bio.6.sd = aggregate(bio.6~Time+PhenSign, sd, data=bioclimPCA_bothpre1930)[,3],
+                    bio.12 = aggregate(bio.12~Time+PhenSign, mean,
+                                       data=bioclimPCA_bothpre1930)[,3],
+                    bio.12.sd = aggregate(bio.12~Time+PhenSign, sd,
+                                          data=bioclimPCA_bothpre1930)[,3])
+
+levels(climateenv.1930$PhenSign)[levels(climateenv.1930$PhenSign)=="SignChange"] <- "Significant change in phenology"
+levels(climateenv.1930$PhenSign)[levels(climateenv.1930$PhenSign)=="NoChange"] <- "No significant change in phenology"
+
+
+ggplot(climateenv.1930,aes(x = bio.6,y = bio.12, colour= Time))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = bio.6-bio.6.sd, xmax = bio.6+bio.6.sd), height = 0.2)+
+  geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+  xlab("Min Temperature of Coldest Month")+
+  ylab("Annual Precipitation")+
+  facet_wrap(~PhenSign) #does it matter if they changed in phenology?
+
+
+ggplot(climateenv.1930,aes(x = bio.5,y = bio.12, colour= Time))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = bio.5-bio.5.sd, xmax = bio.5+bio.5.sd), height = 0.2)+
+  geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+  facet_wrap(~PhenSign) #does it matter if they changed in phenology?
+
 ```
+
 
 
 #Perform PCA to compare bioclimatic envelop of pre 1980 to post 1980
