@@ -598,7 +598,8 @@ unique(IDcode$id)
 x <- 1
 
 plot(past_models[[x]], col = c("#696969","#ffffff"),
-     legend=FALSE)
+     legend=FALSE,
+     xlab="Longitude", ylab="Latitude")
   points(all[all$id == x & all$year < 1980, c("decimalLongitude","decimalLatitude")],
          pch=16, cex=0.75, col="brown2")
 
@@ -629,11 +630,8 @@ growingDegDays(meantemp, 10)
 
 ```
 
-
+For points after 1980 and climate averaged over 1981:2011
 ```{r}
-
-
-
 # need to extract all the climate variables for those points
 bioclims <- lapply(1:89, function(x){
   allID <- unique(pre1980$ID[pre1980$id == x])
@@ -802,6 +800,18 @@ names(bioclimPCA_past) <- c(shiftnames[-4],"bio.19")
 
 ```
 
+
+```{r}
+lm1 <- (lm(InOut ~ bio.5+ bio.6+bio.12, 
+               data=bioclimPCA_past[bioclimPCA_past$id==1,]))
+
+
+summary(lm1)
+```
+
+
+
+#Skip!
 ```{r}
 lm1 <- step(lm(InOut ~ bio.1+bio.2+bio.3+bio.4+bio.5+
             bio.6+bio.7+bio.8+bio.9+bio.10+
@@ -817,7 +827,7 @@ summary(lm1)
 plots_past <- lapply(1:89, function(x){
   bionow <- bioclimPCA_past[bioclimPCA_past$id==x & 
                               !is.na(bioclimPCA_past$bio.1),] #some NA problems
-  alph.pca <- princomp(bionow[,-c(1:3)],
+  alph.pca <- princomp(bionow[,c("bio.5","bio.6","bio.12")],
                        cor=TRUE)
   sumr <- summary(alph.pca)
   alph.load <- loadings(alph.pca)
@@ -865,7 +875,9 @@ inout_past <- do.call(rbind,lapply(bioclims_past, function(x){
 ggplot(inout_past, aes(Value.Var1,Value.Freq,colour = Value.Var1))+
   geom_boxplot()+
   facet_grid(~PhenoChange)+
-  guides(fill=guide_legend(title="Apply Model"))
+  xlab("In or Out")+
+  ylab("Freq")+
+  theme(legend.position="none")
 
 library(plotrix)
 #bioclimPCA_past is rbind of list bioclims_past
@@ -1054,3 +1066,94 @@ ggplot(allpoints, aes(Comp.1, Comp.2, colour=Time))+
 
 ###start here! What are the loadings for Comp 2? That seems to be getting less spread in post from pre, experiencing a more narrow climate envelope
 ```
+
+
+## bioclimPCA and bioclimPCA_past are the herbarium points per species (id) with notation of whether the model put them in or out of the threshold niche and bioclim value for all  
+     1. Want to know if there is a shift in the temp or precip and what splits the pre and post points     
+     2. does it make a difference if they are significantly changing in phenology or not
+```{r}
+bioclimPCA$Time <- "After 1980"
+bioclimPCA_past$Time <- "Before 1980"
+
+bioclimPCA_both <- rbind(bioclimPCA_past,bioclimPCA)
+
+unique(bioclimPCA_both$id)
+
+```
+
+Would be great to use only specimens from <1930 vs. specimens from 1982:2011    
+#Perform PCA compare bioclimatic envelop of <1930 to >1980
+```{r}
+bioclims_pastpre1930 <- lapply(1:89, function(x){
+  allID <- unique(pre1980$ID[pre1980$id == x])
+  pntplot <- all[all$ID ==allID & all$year < 1931 & all$year > 1800,
+                 c("decimalLongitude","decimalLatitude")]
+    out <- extract(past_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
+  if(allID < 46){
+    out <- data.frame(InOut = out, PhenSign = "SignChange", id = x)
+  } else {
+    out <- data.frame(InOut = out, PhenSign = "NoChange", id = x)
+  }
+  for(i in 1:19){
+    bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
+                               sep=""))
+    out <- data.frame(out, bio = extract(bioclimnow, pntplot, fun=mean))
+  }
+  out
+})
+
+bioclimPCA_pastpre1930 <- do.call(rbind,bioclims_pastpre1930)
+
+```
+
+
+#Perform PCA to compare bioclimatic envelop of pre 1980 to post 1980
+```{r}
+lm.both <- glm(as.numeric(as.factor(Time))~bio.5+bio.6+bio.12, data=bioclimPCA_both)
+summary(lm.both)
+
+ggplot(bioclimPCA_both, aes(bio.6, bio.12, colour=Time))+
+  geom_point()+
+  stat_ellipse()
+
+climateenv <- cbind(aggregate(bio.5~Time+PhenSign, mean, data=bioclimPCA_both),
+                    bio.5.sd = aggregate(bio.5~Time+PhenSign, sd, data=bioclimPCA_both)[,3],
+                    bio.6 =aggregate(bio.6~Time+PhenSign, mean, data=bioclimPCA_both)[,3],
+                    bio.6.sd = aggregate(bio.6~Time+PhenSign, sd, data=bioclimPCA_both)[,3],
+                    bio.12 = aggregate(bio.12~Time+PhenSign, mean, data=bioclimPCA_both)[,3],
+                    bio.12.sd = aggregate(bio.12~Time+PhenSign, sd, data=bioclimPCA_both)[,3])
+
+ggplot(climateenv,aes(x = bio.6,y = bio.12, colour= Time))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = bio.6-bio.6.sd, xmax = bio.6+bio.6.sd), height = 0.2)+
+  geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+  facet_wrap(~PhenSign) #does it matter if they changed in phenology?
+```
+
+
+maxentResults summarize   
+```{r}
+maxentResults <- do.call(rbind,
+                         lapply(Maxent, function(x){
+                           maxout <- read.csv( paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxentResults.csv", sep=""))
+                         maxout})
+                         )
+
+head(maxentResults)
+mean(maxentResults$Training.AUC)
+min(maxentResults$Training.AUC)
+max(maxentResults$Training.AUC)
+
+hist(maxentResults$Training.AUC)
+
+mean(maxentResults$Equal.training.sensitivity.and.specificity.cumulative.threshold)
+mean(maxentResults$Equal.training.sensitivity.and.specificity.logistic.threshold)
+
+mean(maxentResults$Maximum.training.sensitivity.plus.specificity.logistic.threshold)
+
+```
+
+
+
+
+
