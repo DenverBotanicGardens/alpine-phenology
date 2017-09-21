@@ -286,8 +286,10 @@ yearplot <- ggplot(data=na.omit(xy), aes(x,y,fill=factor(val)))+
   geom_point(FD_all)
   
   
-yearplot <- ggplot(FD_all, aes(x=decimalLongitude, y=decimalLatitude, frame=year))+
-  geom_point(aes(colour = id))
+yearplot <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                   aes(x=decimalLongitude, y=decimalLatitude, frame=year))+
+  geom_point(aes(colour = minimumElevationInMeters))
 
 gganimate(yearplot)
 
@@ -298,12 +300,79 @@ gganimate(yearplot, "Q:/Research/Presentations/External Conference presentations
 
 
 ```{r}
-ggplot
+elevXyear <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=decimalLatitude, y=minimumElevationInMeters, frame=year,
+                        cumulative = TRUE, colour = year))+
+  geom_point()+
+  scale_colour_gradientn(colours = terrain.colors(10))+
+  stat_smooth(aes(group=year), method = "lm", se=FALSE, formula = y ~ x +I(x^2),
+              size=0.5, color="black", linetype="dotted")+
+  ylab("elevation (m)")+
+  xlab("Latitude")
+
+gganimate(elevXyear)
+
+gganimate(elevXyear, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationandLatxyear.gif", ani.width = 750, ani.height = 750, interval = 0.1)
+
+```
+
+```{r}
+elevXyear1 <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=decimalLatitude, y=minimumElevationInMeters, frame=year,
+                        cumulative = FALSE, colour = year))+
+  geom_point()+
+  scale_colour_gradientn(colours = terrain.colors(10))+
+  stat_smooth(aes(group=year), method = "lm", se=FALSE, formula = y ~ x +I(x^2),
+              size=0.5, color="black", linetype="dotted")+
+  ylab("elevation (m)")+
+  xlab("Latitude")
+
+gganimate(elevXyear1, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationandLatxyearNOTcumulative.gif", ani.width = 750, ani.height = 750, interval = 0.1)
 
 ```
 
 
 
+```{r}
+FD_all$Phenology[FD_all$ID<46] <- "Significant"
+FD_all$Phenology[FD_all$ID>45] <- "NoChange"
+
+FD_all <- FD_all[complete.cases(FD_all),]
+
+elevXyear2 <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=Phenology, y=minimumElevationInMeters, frame=as.factor(year),
+                        cumulative = TRUE))+
+  geom_boxplot(position="identity")+
+  ylab("elevation (m)")+
+  xlab("Phenology")+
+  theme(legend.position="none")
+
+gganimate(elevXyear2, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/boxplotelevation.gif", ani.width = 750, ani.height = 750, interval = 0.2)
+
+
+```
+
+
+```{r}
+
+elevXyear3 <- ggplot(FD_all[FD_all$minimumElevationInMeters>3200&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=year, y=minimumElevationInMeters, frame=year,
+                        cumulative = TRUE, colour= as.factor(id)))+
+  geom_point()+
+  ylab("elevation (m)")+
+  xlab("Phenology")+
+  facet_wrap(~Phenology)+
+  stat_smooth(method = "lm", se=FALSE)+# , #formula = y ~ x +I(x^2),
+  theme(legend.position="none")
+
+gganimate(elevXyear3, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationXyearXphenology.gif", ani.width = 750, ani.height = 750, interval = 0.2)
+
+
+```
 
 
 #lots of issues with animation : maybe run as administrator and versions changed from "convert.exe" to "magick.exe"
