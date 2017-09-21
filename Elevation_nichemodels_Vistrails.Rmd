@@ -225,25 +225,94 @@ b.col <- seq(0,3,length.out=4)
 ggplot(df1,aes(X,Y))+
   geom_raster()
 
-plot(overlap10[[1]], col = c("white","tomato","yellow2","antiquewhite1"))
+#ids 1:12 significnatly changed
+#ids 13:89 did not
+x<-13
+plot(overlap10[[x]], col = c("white","tomato","yellow2","antiquewhite1"))
 points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
-                                        FieldData_all$ID == 1],
+                                        FieldData_all$ID == x],
        FieldData_all$decimalLatitude[FieldData_all$year>1980 &
-                                        FieldData_all$ID == 1],
+                                        FieldData_all$ID == x],
        pch = 21, cex = 0.5, col = "orange")
 points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
-                                        FieldData_all$ID == 1],
+                                        FieldData_all$ID == x],
        FieldData_all$decimalLatitude[FieldData_all$year<1980 &
-                                        FieldData_all$ID == 1],
+                                        FieldData_all$ID == x],
        pch = 8, cex = 0.5, col = "red3")
 ```
+```{r}
+for(x in 1:89){
+  
+  tiff(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"prepostrangemap.tiff",sep=""), width = 940, height = 470, compression="lzw",
+     units = "mm", res = 1200)
+  plot(overlap10[[x]], col = c("white","tomato","yellow2","antiquewhite1"))
+  points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
+                                          FieldData_all$ID == x],
+         FieldData_all$decimalLatitude[FieldData_all$year>1980 &
+                                         FieldData_all$ID == x],
+         pch = 21, cex = 0.5, col = "orange")
+  points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
+                                          FieldData_all$ID == x],
+         FieldData_all$decimalLatitude[FieldData_all$year<1980 &
+                                         FieldData_all$ID == x],
+         pch = 8, cex = 0.5, col = "red3")
+  dev.off()
+}
+  
+  
+```
+
+<http://paldhous.github.io/ucb/2016/dataviz/week14.html> 
 Animate map
 ```{r}
+
+
+library(readr)
+library(ggplot2)
+library(gganimate)
+library(scales)
+library(dplyr)
+
+FD_all <- FieldData_all[FieldData_all$year > 1800 &
+                          FieldData_all$year < 2018,]
+
+val <- getValues(overlap10[[1]])
+xy <- as.data.frame(xyFromCell(overlap10[[1]], 1:ncell(overlap10[[1]])))
+xy <- cbind(xy,val)
+
+yearplot <- ggplot(data=na.omit(xy), aes(x,y,fill=factor(val)))+
+  geom_tile()+
+  geom_polygon(data=overlap10[[1]],aes(x=lon))
+  geom_point(FD_all)
+  
+  
+yearplot <- ggplot(FD_all, aes(x=decimalLongitude, y=decimalLatitude, frame=year))+
+  geom_point(aes(colour = id))
+
+gganimate(yearplot)
+
+gganimate(yearplot, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/herbariumxyear.gif", ani.width = 750, ani.height = 750, interval = 0.1)
+
+```
+
+
+
+```{r}
+ggplot
+
+```
+
+
+
+
+
+#lots of issues with animation : maybe run as administrator and versions changed from "convert.exe" to "magick.exe"
+```{r}
+
 #install.packages("animation")
 #require(installr)
 #install.ImageMagick()
-library(animation)
-
+#library(animation)
 #devtools::install_github("yihui/animation")
 
 FD_all <- FieldData_all[FieldData_all$year > 1800 &
@@ -1144,7 +1213,21 @@ ggplot(climateenv.1930,aes(x = bio.5,y = bio.12, colour= Time))+
   geom_point()+
   geom_errorbarh(aes(xmin = bio.5-bio.5.sd, xmax = bio.5+bio.5.sd), height = 0.2)+
   geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+#  geom_segment(data = reshape(climateenv.1930, idvar = "PhenSign",
+#                       timevar="Time", direction="wide"),
+#               aes(x="bio.5.Before 1930",xend="bio.5.After 1980",
+#                   y="bio.12.Before 1930",yend="bio.12.After 1980"))+
+  xlab("Max Temperature of Warmest Month")+
+  ylab("Annual Precipitation")+
   facet_wrap(~PhenSign) #does it matter if they changed in phenology?
+
+ggplot(climateenv.1930,aes(x = bio.5,y = bio.6, colour= Time))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = bio.5-bio.5.sd, xmax = bio.5+bio.5.sd), height = 0.2)+
+  geom_errorbar(aes(ymin = bio.6-bio.6.sd, ymax = bio.6+bio.6.sd),width = 0.2)+
+  xlab("Max Temperature of Warmest Month")+
+  ylab("Min Temperature of Coldest Month")+
+  facet_wrap(~PhenSign)
 
 ```
 
@@ -1166,11 +1249,35 @@ climateenv <- cbind(aggregate(bio.5~Time+PhenSign, mean, data=bioclimPCA_both),
                     bio.12 = aggregate(bio.12~Time+PhenSign, mean, data=bioclimPCA_both)[,3],
                     bio.12.sd = aggregate(bio.12~Time+PhenSign, sd, data=bioclimPCA_both)[,3])
 
+
+levels(climateenv$PhenSign)[levels(climateenv$PhenSign)=="SignChange"] <- "Significant change in phenology"
+levels(climateenv$PhenSign)[levels(climateenv$PhenSign)=="NoChange"] <- "No significant change in phenology"
+
+
 ggplot(climateenv,aes(x = bio.6,y = bio.12, colour= Time))+
   geom_point()+
   geom_errorbarh(aes(xmin = bio.6-bio.6.sd, xmax = bio.6+bio.6.sd), height = 0.2)+
   geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+  xlab("Min Temperature of Coldest Month")+
+  ylab("Annual Precipitation")+
   facet_wrap(~PhenSign) #does it matter if they changed in phenology?
+
+ggplot(climateenv,aes(x = bio.5,y = bio.12, colour= Time))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = bio.5-bio.5.sd, xmax = bio.5+bio.5.sd), height = 0.2)+
+  geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+  xlab("Max Temperature of Warmest Month")+
+  ylab("Annual Precipitation")+
+  facet_wrap(~PhenSign)
+
+
+ggplot(climateenv,aes(x = bio.5,y = bio.6, colour= Time))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = bio.5-bio.5.sd, xmax = bio.5+bio.5.sd), height = 0.2)+
+  geom_errorbar(aes(ymin = bio.6-bio.6.sd, ymax = bio.6+bio.6.sd),width = 0.2)+
+  xlab("Max Temperature of Warmest Month")+
+  ylab("Min Temperature of Coldest Month")+
+  facet_wrap(~PhenSign)
 ```
 
 
