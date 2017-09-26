@@ -1745,4 +1745,51 @@ plot(s1895[[1]])
 plot(avg1895)
 ```
 <http://rspatial.org/sdm/rst/3_sdm_absence-background.html>    
-Make circles around the presence points to select where to put the psudo-absence points Could use the other points, where collections were made but focus species not found and put absence points only in there. Maybe make circles, then get rid of circles where the target species is found and put absence points in the remaining circles - instead of the long time to calculate distances between all points. 
+Make circles around the presence points to select where to put the psudo-absence points Could use the other points, where collections were made but focus species not found and put absence points only in there. Maybe make circles, then get rid of circles where the target species is found and put absence points in the remaining circles - instead of the long time to calculate distances between all points.
+
+
+
+Get bioclim data for all points. Look at shifts in elevation vs. climatic envelope over time for all species.
+```{r}
+merge.name.accpt_cc <- merge.name.accpt[!is.na(merge.name.accpt$Decimal.Latitude),]
+merge.name.accpt_cc <- merge.name.accpt_cc[merge.name.accpt_cc$Decimal.Latitude!=39,]
+
+table(merge.name.accpt_cc$Decimal.Latitude[merge.name.accpt_cc$Decimal.Latitude==39]) #74 are center of colorado probably - 39. Those should be removed
+merge.name.accpt_cc[merge.name.accpt_cc$Decimal.Latitude==39,]
+
+#Institutions with data for mapping, one is Lat 26 something - that's out of colorado!
+paste(names(table(merge.name.accpt_cc$institutionCode)),"(",
+      table(merge.name.accpt_cc$institutionCode),")",sep="")
+
+
+bioclims.385 <- lapply(1:385, function(x){
+  allID <- unique(pre1980$ID[pre1980$id == x])
+  pntplot <- all[all$ID ==allID & all$year > 1980,
+                 c("decimalLongitude","decimalLatitude")]
+    out <- extract(apply_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
+  if(allID < 46){   # IDs 1:45 are significantly changing in phenology
+    out <- data.frame(InOut = out, PhenSign = "SignChange", id = x)
+  } else {
+    out <- data.frame(InOut = out, PhenSign = "NoChange", id = x)
+  }
+  for(i in 1:19){
+    bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
+                               sep=""))
+    out <- data.frame(out, bio = extract(bioclimnow, pntplot, fun=mean))
+  }
+  out
+})
+
+length(bioclims[[1]]$InOut[bioclims[[1]]$InOut==0])
+length(bioclims[[1]]$InOut[bioclims[[1]]$InOut==1])
+
+bioclimPCA <- do.call(rbind,bioclims)
+
+shiftnames <- names(bioclimPCA)
+names(bioclimPCA) <- c(shiftnames[-4],"bio.19")
+
+# get rid of some NA values 379 rows with NA for inout and all bioclim
+bioclimPCA <- bioclimPCA[!is.na(bioclimPCA$InOut),]
+
+
+```
