@@ -1752,22 +1752,71 @@ Make circles around the presence points to select where to put the psudo-absence
 Get bioclim data for all points. Look at shifts in elevation vs. climatic envelope over time for all species.
 ```{r}
 merge.name.accpt_cc <- merge.name.accpt[!is.na(merge.name.accpt$Decimal.Latitude),]
-merge.name.accpt_cc <- merge.name.accpt_cc[merge.name.accpt_cc$Decimal.Latitude!=39,]
 
-table(merge.name.accpt_cc$Decimal.Latitude[merge.name.accpt_cc$Decimal.Latitude==39]) #74 are center of colorado probably - 39. Those should be removed
-merge.name.accpt_cc[merge.name.accpt_cc$Decimal.Latitude==39,]
+# Center would be  39.113014, -105.358887
+#merge.name.accpt_cc <- merge.name.accpt_cc[merge.name.accpt_cc$Decimal.Latitude!=39,] 
+
+# get at least one data point per year to keep species for at least 10 years??? Keep all for now
+table(merge.name.accpt_cc$Year, merge.name.accpt_cc$ID)
+sp.p.year <- data.frame(table(merge.name.accpt_cc$ID,merge.name.accpt_cc$Year))
+sp.p.year.1 <- sp.p.year[sp.p.year$Freq>0,]
+sum.p.year <- aggregate(sp.p.year.1$Freq, list(sp.p.year.1$Var2), length)
+mean(sum.p.year$x) #112
+sum.p.year[which.max(sum.p.year$x),] #2004, 322
+rm(sp.p.year,sp.p.year.1)
+
+#How many years have each species been collected?
+bysp <- split(merge.name.accpt_cc, merge.name.accpt_cc$ID, drop=TRUE)
+
+spyears <- do.call(rbind,
+                   lapply(bysp, function(x){
+                     data.frame(DataYrs = length(unique(x$Year)),ID = unique(x$ID))
+                     })
+                   )
+
+# 389 species
+spyears[which.max(spyears$DataYrs),] # 39
+spyears[which.min(spyears$DataYrs),] # 2
+nrow(spyears[spyears$DataYrs>=10,]) #318 
+mean(spyears$DataYrs[spyears$DataYrs>=10]) #19.90252
+
+
+
 
 #Institutions with data for mapping, one is Lat 26 something - that's out of colorado!
-paste(names(table(merge.name.accpt_cc$institutionCode)),"(",
+output.herb <- paste(names(table(merge.name.accpt_cc$institutionCode)),"(",
       table(merge.name.accpt_cc$institutionCode),")",sep="")
+cat(paste(output.herb, ",", sep=""), "\n")
 
+table(merge.name.accpt_cc$Year[merge.name.accpt_cc$Year > 1980],
+      merge.name.accpt_cc$ID[merge.name.accpt_cc$Year > 1980])
 
-bioclims.385 <- lapply(1:385, function(x){
+# get bioclims from these same collections used to talk about phenology
+bioclims.385.current <- lapply(unique(merge.name.accpt_cc$ID), function(x){
+  pntplot <- merge.name.accpt_cc[merge.name.accpt_cc$ID ==x & 
+                                   merge.name.accpt_cc$Year > 1980,
+                                 c("Decimal.Longitude","Decimal.Latitude")]
+  out <- merge.name.accpt_cc[merge.name.accpt_cc$ID ==x & 
+                                   merge.name.accpt_cc$Year > 1980,]
+  for(i in 1:19){
+    bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
+                               sep=""))
+    out <- data.frame(out, bio = extract(bioclimnow, pntplot, fun=mean))
+    }
+  out
+  })
+bc385c <- do.call(rbind,bioclims.385.current)
+
+shiftnames <- names(bc385c)
+names(bc385c) <- c(shiftnames[-grep("bio", shiftnames)[1]],"bio.19") #get rid of the first bio
+
+## Get bioclims from 1900:1930
+bioclims_past <- lapply(unique(merge.name.accpt_cc$ID), function(x){
   allID <- unique(pre1980$ID[pre1980$id == x])
-  pntplot <- all[all$ID ==allID & all$year > 1980,
+  pntplot <- all[all$ID ==allID & all$year < 1981,
                  c("decimalLongitude","decimalLatitude")]
-    out <- extract(apply_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
-  if(allID < 46){   # IDs 1:45 are significantly changing in phenology
+    out <- extract(past_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
+  if(allID < 46){
     out <- data.frame(InOut = out, PhenSign = "SignChange", id = x)
   } else {
     out <- data.frame(InOut = out, PhenSign = "NoChange", id = x)
@@ -1780,16 +1829,7 @@ bioclims.385 <- lapply(1:385, function(x){
   out
 })
 
-length(bioclims[[1]]$InOut[bioclims[[1]]$InOut==0])
-length(bioclims[[1]]$InOut[bioclims[[1]]$InOut==1])
-
-bioclimPCA <- do.call(rbind,bioclims)
-
-shiftnames <- names(bioclimPCA)
-names(bioclimPCA) <- c(shiftnames[-4],"bio.19")
-
-# get rid of some NA values 379 rows with NA for inout and all bioclim
-bioclimPCA <- bioclimPCA[!is.na(bioclimPCA$InOut),]
+bioclimPCA_past <- do.call(rbind,bioclims_past)
 
 
 ```
