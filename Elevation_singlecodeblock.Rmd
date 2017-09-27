@@ -1799,7 +1799,7 @@ bioclims.385.current <- lapply(unique(merge.name.accpt_cc$ID), function(x){
   out <- merge.name.accpt_cc[merge.name.accpt_cc$ID ==x & 
                                    merge.name.accpt_cc$Year > 1980,]
   for(i in 1:19){
-    bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
+    bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1981_2011/bio",i,".tif",
                                sep=""))
     out <- data.frame(out, bio = extract(bioclimnow, pntplot, fun=mean))
     }
@@ -1810,17 +1810,15 @@ bc385c <- do.call(rbind,bioclims.385.current)
 shiftnames <- names(bc385c)
 names(bc385c) <- c(shiftnames[-grep("bio", shiftnames)[1]],"bio.19") #get rid of the first bio
 
+sort(table(merge.name.accpt_cc$ID[merge.name.accpt_cc$Year < 1981]))
+
 ## Get bioclims from 1900:1930
-bioclims_past <- lapply(unique(merge.name.accpt_cc$ID), function(x){
-  allID <- unique(pre1980$ID[pre1980$id == x])
-  pntplot <- all[all$ID ==allID & all$year < 1981,
-                 c("decimalLongitude","decimalLatitude")]
-    out <- extract(past_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
-  if(allID < 46){
-    out <- data.frame(InOut = out, PhenSign = "SignChange", id = x)
-  } else {
-    out <- data.frame(InOut = out, PhenSign = "NoChange", id = x)
-  }
+bioclims.385.past <- lapply(unique(merge.name.accpt_cc$ID), function(x){
+  pntplot <- merge.name.accpt_cc[merge.name.accpt_cc$ID ==x & 
+                                   merge.name.accpt_cc$Year < 1981,
+                 c("Decimal.Longitude","Decimal.Latitude")]
+    out <- merge.name.accpt_cc[merge.name.accpt_cc$ID ==x & 
+                                   merge.name.accpt_cc$Year < 1981,]
   for(i in 1:19){
     bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
                                sep=""))
@@ -1829,7 +1827,89 @@ bioclims_past <- lapply(unique(merge.name.accpt_cc$ID), function(x){
   out
 })
 
-bioclimPCA_past <- do.call(rbind,bioclims_past)
+bc385p <- do.call(rbind,bioclims.385.past)
+shiftnames <- names(bc385p)
+names(bc385p) <- c(shiftnames[-grep("bio", shiftnames)[1]],"bio.19") #get rid of the first bio
+
+write.table(bc385c, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/bioclims385current.csv", sep=",", row.names=FALSE)
+
+write.table(bc385p, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/bioclims385past.csv", sep=",", row.names=FALSE)
+
+```
+
+```{r}
+ggplot(merge.name.accpt_cc, aes(Year,elevation))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+summary(lm(elevation~Year,data=merge.name.accpt))
+
+ggplot(bc385p, aes(Year,elevation))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+ggplot(bc385c, aes(Year,elevation))+
+  geom_point()+
+  stat_smooth(method="lm")
 
 
 ```
+
+```{r}
+bloom2 <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/bloom2_170512.csv"))
+
+
+mergename <- read.csv(text=getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
+
+head(mergename)
+head(bloom2)
+table(bloom2$Year)
+
+bloom2.latlong <- bloom2[!is.na(bloom2$Decimal.Latitude),]
+
+# get bioclims from these same collections used to talk about phenology
+
+pntplot <- bloom2.latlong[bloom2.latlong$Year > 1980,
+                          c("Decimal.Longitude","Decimal.Latitude")]
+bloom2.bioclim.current <- bloom2.latlong[bloom2.latlong$Year > 1980,]
+for(i in 1:19){
+  bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1981_2011/bio",i,".tif",
+                             sep=""))
+  bloom2.bioclim.current <- data.frame(bloom2.bioclim.current, 
+                                    bio = extract(bioclimnow, pntplot, fun=mean))
+  }
+
+shiftnames <- names(bloom2.bioclim.current)
+names(bloom2.bioclim.current) <- c(shiftnames[-grep("bio", shiftnames)[1]],"bio.19") #get rid of the first bio
+
+rm(pntplot)
+
+## Get bioclims from 1900:1930
+pntplot <- bloom2.latlong[bloom2.latlong$Year < 1981,
+                 c("Decimal.Longitude","Decimal.Latitude")]
+bloom2.bioclim.past <- bloom2.latlong[bloom2.latlong$Year < 1981,]
+for(i in 1:19){
+  bioclimnow <- raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/prism_1900_1930/bio",i,".tif",
+                             sep=""))
+  bloom2.bioclim.past <- data.frame(bloom2.bioclim.past,
+                                    bio = extract(bioclimnow, pntplot, fun=mean))
+}
+
+shiftnames <- names(bloom2.bioclim.past)
+names(bloom2.bioclim.past) <- c(shiftnames[-grep("bio", shiftnames)[1]],"bio.19") #get rid of the first bio
+
+
+```
+
+```{r}
+
+ggplot(bloom2.bioclim.past, aes(Year, elevation))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()
+
+summary(lm(elevation~Year,data=bloom2.bioclim.past))
+
+```
+
+

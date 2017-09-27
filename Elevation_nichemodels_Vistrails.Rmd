@@ -153,8 +153,81 @@ overlap10 <- lapply(1:length(models), function(x){
   out
 })
 
+JustMaxent <- paste("PRISM_justcurrent_beta5_minmaxtemp_precip/Maxent_",1:89,sep="")
+
+justcurrentmodels <- lapply(JustMaxent, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",x,"/maxent_bin_map.tif",sep=""))
+})
+
+overlap_applycurrent <- lapply(1:length(models), function(x){
+  apply <- applymodels[[x]]
+  current <- justcurrentmodels[[x]]
+  current[justcurrentmodels[[x]]==1]<-2
+  out <- apply+current
+  out
+})
+```
+
+
+#when using just current 2:blue, when the applymodel 1:red, so way over estimating compared to where it really is. 
+```{r}
+for(x in 1:89){
+  
+  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"justcurrentpostrangemap.jpg",sep=""), width = 200, height = 150,
+       units = "mm", res = 300)
+  
+  plot(overlap_applycurrent[[x]], col = c("white","red4","midnightblue","lavender"),
+       xlab = "Longitude", ylab="Latitude",cex=20) 
+  points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
+                                          FieldData_all$ID == x],
+         FieldData_all$decimalLatitude[FieldData_all$year>1980 &
+                                         FieldData_all$ID == x],
+         pch = 21, cex = 0.5, col="lightblue4") #col = "orange")
+  points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
+                                          FieldData_all$ID == x],
+         FieldData_all$decimalLatitude[FieldData_all$year<1980 &
+                                         FieldData_all$ID == x],
+         pch = 8, cex = 0.5, col = "red3")
+  dev.off()
+  }
 
 ```
+
+
+```{r}
+
+library(ggplot2)
+library(raster)
+library(rasterVis)
+library(rgdal)
+library(grid)
+library(scales)
+library(viridis)  # better colors for everyone
+library(ggthemes)
+
+test_stack <- stack(overlap_applycurrent)
+
+test_spdf <- as(overlap_applycurrent[[13]], "SpatialPixelsDataFrame")
+test_df <- as.data.frame(test_spdf)
+colnames(test_df) <-c("value","x","y")
+
+ggplot()+
+  geom_tile(data=test_df, aes(x,y,fill=as.factor(value)))+
+  scale_fill_manual(values=c("white","red4","midnightblue","lavender"))+
+  coord_equal()+
+  theme_map()+
+  guides(fill=guide_legend(title="1:apply model \n 2:current \n 3:both"))
+
+#+
+#  geom_point(data=FieldData_all[FieldData_all$year>1980 & FieldData_all$ID == 13,],
+#             aes(decimalLongitude,decimalLatitude))
+  
+
+  
+
+```
+
+
 
 Attempt #1: use this as the approximate size of pixel across the whole landscape of Colroado
 ```{r}
