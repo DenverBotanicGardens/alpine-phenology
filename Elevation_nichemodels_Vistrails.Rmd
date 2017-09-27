@@ -204,19 +204,27 @@ library(grid)
 library(scales)
 library(viridis)  # better colors for everyone
 library(ggthemes)
+library(gganimate)
 
 test_stack <- stack(overlap_applycurrent)
 
-test_spdf <- as(overlap_applycurrent[[13]], "SpatialPixelsDataFrame")
-test_df <- as.data.frame(test_spdf)
-colnames(test_df) <-c("value","x","y")
+test_spdf1 <- as(overlap_applycurrent[[1]], "SpatialPixelsDataFrame")
 
-ggplot()+
-  geom_tile(data=test_df, aes(x,y,fill=as.factor(value)))+
+
+test_spdf <- as(test_stack, "SpatialPixelsDataFrame")
+test_df <- as.data.frame(test_spdf)
+test_df_long <- melt(test_df, id.vars = c("x","y"))
+
+compareGIF <- ggplot(data=test_df_long[test_df_long$variable %in% 
+                                         paste("layer.",seq(1,89, by=5),sep=""),],
+                     aes(x,y,fill=as.factor(value), frame=variable))+
+  geom_tile()+
   scale_fill_manual(values=c("white","red4","midnightblue","lavender"))+
   coord_equal()+
   theme_map()+
   guides(fill=guide_legend(title="1:apply model \n 2:current \n 3:both"))
+
+gganimate(compareGIF, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/apply2current.gif", ani.width = 750, ani.height = 750, interval = 0.75)
 
 #+
 #  geom_point(data=FieldData_all[FieldData_all$year>1980 & FieldData_all$ID == 13,],
@@ -227,6 +235,37 @@ ggplot()+
 
 ```
 
+```{r}
+# 1 (apply model) minus 2 (current): showing how much the antipated correct model is compared to the predicted. Positive values show over estimation of the apply model to more accurate, while negative values are how much underestimated what should be assumed to be an accurate model
+
+change.currentapply <- lapply(1:89, function(model){
+  x<-overlap_applycurrent[[model]]
+  net <- (( sum(x[] == 1) - sum(x[] == 2) ) * (res(r)[1]*res(r)[2])/1000000) 
+  net <- data.frame(net, variable = model)
+})
+nc.ca <- do.call(rbind,change.currentapply)
+nc.ca$Phenology[nc.ca$variable < 13] <- "SignficantChange"
+nc.ca$Phenology[nc.ca$variable > 12] <- "NoChange"
+
+
+hist(nc.ca$net)
+boxplot(nc.ca$net, ylab = expression(paste("Change in predicted area ( ",km^2,")")))
+
+ggplot(nc.ca, aes(y=net,x=Phenology))+
+  geom_boxplot()+
+#  geom_point()+
+  labs(y = expression(paste("Change in predicted area (",km^2,")")), 
+       x = "89 species \n 12 significantly changed in phenology \n 77 showed no change in phenology")+
+  theme_bw()
+
+FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
+
+tblfoo <- data.frame(table(FieldData_pre1980$id,FieldData_pre1980$ID))
+
+tblfoo[tblfoo$Freq != 0,] 
+### 1:12 are sign in phenology
+### 13:89 are not
+```
 
 
 Attempt #1: use this as the approximate size of pixel across the whole landscape of Colroado
