@@ -176,20 +176,30 @@ for(x in 1:89){
   jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"justcurrentpostrangemap.jpg",sep=""), width = 200, height = 150,
        units = "mm", res = 300)
   
-  plot(overlap_applycurrent[[x]], col = c("white","red4","midnightblue","lavender"),
-       xlab = "Longitude", ylab="Latitude",cex=20) 
-  points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
-                                          FieldData_all$ID == x],
-         FieldData_all$decimalLatitude[FieldData_all$year>1980 &
-                                         FieldData_all$ID == x],
-         pch = 21, cex = 0.5, col="lightblue4") #col = "orange")
-  points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
-                                          FieldData_all$ID == x],
-         FieldData_all$decimalLatitude[FieldData_all$year<1980 &
-                                         FieldData_all$ID == x],
-         pch = 8, cex = 0.5, col = "red3")
+  pointsafter <- SpatialPointsDataFrame(FieldData_all[FieldData_all$year>1980 &
+                                          FieldData_all$ID == x,
+                                  c("decimalLongitude","decimalLatitude")],
+                       FieldData_all[FieldData_all$year>1980 &
+                                          FieldData_all$ID == x,],
+                       proj4string=CRS("+init=epsg:4326"))
+  pointsabefore <- SpatialPointsDataFrame(FieldData_all[FieldData_all$year<1980 &
+                                          FieldData_all$ID == x,
+                                  c("decimalLongitude","decimalLatitude")],
+                       FieldData_all[FieldData_all$year>1980 &
+                                          FieldData_all$ID == x,],
+                       proj4string=CRS("+init=epsg:4326"))  
+  
+  levelplot(overlap_applycurrent[[x]],
+            col.regions=c("white","red4","midnightblue","lavender"),
+            colorkey=list(at=seq(0, 4, 1)),
+                 labels=list(at=seq(0, 4, 1)))+
+    layer(sp.points(pointsafter, pch=20, cex=0.5, col="lightblue4"))+
+    layer(sp.points(pointsabefore, pch=8, cex=0.5, col="red3"))
+  
   dev.off()
-  }
+}
+
+
 
 ```
 
@@ -235,37 +245,8 @@ gganimate(compareGIF, "Q:/Research/Presentations/External Conference presentatio
 
 ```
 
-```{r}
-# 1 (apply model) minus 2 (current): showing how much the antipated correct model is compared to the predicted. Positive values show over estimation of the apply model to more accurate, while negative values are how much underestimated what should be assumed to be an accurate model
-
-change.currentapply <- lapply(1:89, function(model){
-  x<-overlap_applycurrent[[model]]
-  net <- (( sum(x[] == 1) - sum(x[] == 2) ) * (res(r)[1]*res(r)[2])/1000000) 
-  net <- data.frame(net, variable = model)
-})
-nc.ca <- do.call(rbind,change.currentapply)
-nc.ca$Phenology[nc.ca$variable < 13] <- "SignficantChange"
-nc.ca$Phenology[nc.ca$variable > 12] <- "NoChange"
 
 
-hist(nc.ca$net)
-boxplot(nc.ca$net, ylab = expression(paste("Change in predicted area ( ",km^2,")")))
-
-ggplot(nc.ca, aes(y=net,x=Phenology))+
-  geom_boxplot()+
-#  geom_point()+
-  labs(y = expression(paste("Change in predicted area (",km^2,")")), 
-       x = "89 species \n 12 significantly changed in phenology \n 77 showed no change in phenology")+
-  theme_bw()
-
-FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
-
-tblfoo <- data.frame(table(FieldData_pre1980$id,FieldData_pre1980$ID))
-
-tblfoo[tblfoo$Freq != 0,] 
-### 1:12 are sign in phenology
-### 13:89 are not
-```
 
 
 Attempt #1: use this as the approximate size of pixel across the whole landscape of Colroado
@@ -310,6 +291,13 @@ FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Map
 # to match which number (id) is what species (ID)
 FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
 
+max(FieldData_all$year[FieldData_all$year > 1800&
+                         FieldData_all$year < 2017], na.rm=TRUE)
+max(FieldData_all$minimumElevationInMeters[FieldData_all$minimumElevationInMeters>1000&
+                                             FieldData_all$minimumElevationInMeters<4420],na.rm=TRUE)
+
+nrow(FieldData_all)
+nrow(FieldData_pre1980)
 ```
 
 Plot results
@@ -375,6 +363,56 @@ for(x in 1:89){
 ```
 
 
+#Can I match the species information from phenology to the niche model data?   
+```{r}
+test.merge <- merge(FieldData_pre1980,mergename,by.x = "scientificName", by.y="scientificName")
+head(test.merge)
+
+# get list of other attributes by id
+otherinfo <- unique(test.merge[,c(8,46:51)])
+
+```
+
+
+
+
+```{r}
+# 1 (apply model) minus 2 (current): showing how much the antipated correct model is compared to the predicted. Positive values show over estimation of the apply model to more accurate, while negative values are how much underestimated what should be assumed to be an accurate model
+
+change.currentapply <- lapply(1:89, function(model){
+  x<-overlap_applycurrent[[model]]
+  net <- (( sum(x[] == 1) - sum(x[] == 2) ) * (res(r)[1]*res(r)[2])/1000000) 
+  net <- data.frame(net, variable = model)
+})
+nc.ca <- do.call(rbind,change.currentapply)
+nc.ca$Phenology[nc.ca$variable < 13] <- "SignficantChange"
+nc.ca$Phenology[nc.ca$variable > 12] <- "NoChange"
+
+
+hist(nc.ca$net)
+boxplot(nc.ca$net, ylab = expression(paste("Change in predicted area ( ",km^2,")")))
+
+nc.ca <- merge(nc.ca,otherinfo,by.x =  "variable", by.y="id")
+nc.ca$GrowthHabitGroup <- "Shrub/Tree"
+nc.ca$GrowthHabitGroup[grep("Forb",nc.ca$Growth.Habit)] <- "Forb/herb"
+nc.ca$GrowthHabitGroup[grep("Graminoid",nc.ca$Growth.Habit)] <- "Graminoid"
+
+ggplot(nc.ca, aes(y=net,x=Phenology))+
+  geom_boxplot()+
+#  geom_point()+
+  labs(y = expression(paste("Change in predicted area (",km^2,")")), 
+       x = "89 species \n 12 significantly changed in phenology \n 77 showed no change in phenology")+
+  theme_bw()+
+  facet_wrap(~GrowthHabitGroup)
+
+FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
+
+tblfoo <- data.frame(table(FieldData_pre1980$id,FieldData_pre1980$ID))
+
+tblfoo[tblfoo$Freq != 0,] 
+### 1:12 are sign in phenology
+### 13:89 are not
+```
 
 
 
