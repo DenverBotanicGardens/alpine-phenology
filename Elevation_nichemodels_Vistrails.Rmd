@@ -65,7 +65,7 @@ cols4VT <- lapply(1:45, function(x){
   sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
              sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
   sp <- sp[!is.na(sp$decimalLatitude),]
-  sp <- sp[sp$year >= 1980,]
+  sp <- sp[sp$year >= 1980 & sp$year < 2017,]
   sp <- sp[!is.na(sp$year),]
   if(nrow(sp) > 79){
     sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
@@ -84,7 +84,7 @@ cols4VT_339 <- lapply(1:339, function(x){
   sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
              sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
   sp <- sp[!is.na(sp$decimalLatitude),]
-  sp <- sp[sp$year >= 1980,]
+  sp <- sp[sp$year >= 1980 & sp$year < 2017,]
   sp <- sp[!is.na(sp$year),]
   if(nrow(sp) == 0){
     sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
@@ -110,8 +110,73 @@ seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
 
 #write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80post1980.csv", sep=",", row.names=FALSE)
 
+rm(cols4VT,cols4VT_339,seqAlPh,AlPh384)
 
 ```
+
+Need make sure have right stuff for collections before 1980, exclude wrong dates
+```{r}
+#collections for use in VisTrails
+cols4VT <- lapply(1:45, function(x){
+  sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
+             sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1980 & sp$year > 1800,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  sp
+})
+
+
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1980 & sp$year > 1800,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     institutionCode = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    if(nrow(sp) > 79){
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+identical(seqAlPh,FieldData_pre1980) #DAMN!
+table(FieldData_pre1980$id) #89 species
+table(seqAlPh$id) #87 now that incorrect earlier records removed
+
+#write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv", sep=",", row.names=FALSE)
+
+
+```
+
+
 
 Don't really need those and take lots of space
 ```{r}
@@ -171,23 +236,60 @@ overlap_applycurrent <- lapply(1:length(models), function(x){
 
 #when using just current 2:blue, when the applymodel 1:red, so way over estimating compared to where it really is. 
 ```{r}
-for(x in 1:89){
+
+# need ID when id is 1:89; ID is 1:384 (because no locaiton information for Ligusticum porteri); id is 1:302  
+# FieldData_AlPh_over80.csv pulls in all records, all years per sepecies pulled from SEINet and then kept if there are at least 80 records. Then id was added to be sequential (for VisTrails python list looping) to account for missing species - those with fewer than 80 records.
+# the "ID" from the sequential 1:89 "id" from FieldData_AlPh_over80pre1980.csv will match the "ID" from FieldData_AlPh_over80.csv that I want below 
+
+# I've got pre1980 and FieldData_pre1980 that are identical
+#identical(pre1980,FieldData_pre1980)
+
+for(i in 1:89){
+  x <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == i])
+  print(SpatialPointsDataFrame(FieldData_all[FieldData_all$year>1980 &
+                                                        FieldData_all$year<2017 &
+                                                        FieldData_all$ID == x,
+        c("decimalLongitude","decimalLatitude")],
+        FieldData_all[FieldData_all$year>1980 &
+                        FieldData_all$year<2017 &
+                        FieldData_all$ID == x,],
+        proj4string=CRS("+init=epsg:4326")))
+  print(SpatialPointsDataFrame(FieldData_all[FieldData_all$year<1980 &
+                                                          FieldData_all$year>1800 &
+                                                          FieldData_all$ID == x,
+          c("decimalLongitude","decimalLatitude")],
+          FieldData_all[FieldData_all$year<1980 &
+                          FieldData_all$year>1800 &
+                          FieldData_all$ID == x,],
+          proj4string=CRS("+init=epsg:4326")))
+}
   
-  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"justcurrentpostrangemap.jpg",sep=""), width = 200, height = 150,
+
+
+for(i in 1:89){
+  
+  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",i,"justcurrentpostrangemap.jpg",sep=""), width = 200, height = 150,
        units = "mm", res = 300)
   
+  x <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == i])
+  # Have some data that has years wrong like >2017 and less than 1800 down to 0
   pointsafter <- SpatialPointsDataFrame(FieldData_all[FieldData_all$year>1980 &
-                                          FieldData_all$ID == x,
-                                  c("decimalLongitude","decimalLatitude")],
-                       FieldData_all[FieldData_all$year>1980 &
-                                          FieldData_all$ID == x,],
-                       proj4string=CRS("+init=epsg:4326"))
+                                                        FieldData_all$year<2017 &
+                                                        FieldData_all$ID == x,
+        c("decimalLongitude","decimalLatitude")],
+        FieldData_all[FieldData_all$year>1980 &
+                        FieldData_all$year<2017 &
+                        FieldData_all$ID == x,],
+        proj4string=CRS("+init=epsg:4326"))
+  
   pointsabefore <- SpatialPointsDataFrame(FieldData_all[FieldData_all$year<1980 &
-                                          FieldData_all$ID == x,
-                                  c("decimalLongitude","decimalLatitude")],
-                       FieldData_all[FieldData_all$year>1980 &
-                                          FieldData_all$ID == x,],
-                       proj4string=CRS("+init=epsg:4326"))  
+                                                          FieldData_all$year>1800 &
+                                                          FieldData_all$ID == x,
+          c("decimalLongitude","decimalLatitude")],
+          FieldData_all[FieldData_all$year<1980 &
+                          FieldData_all$year>1800 &
+                          FieldData_all$ID == x,],
+          proj4string=CRS("+init=epsg:4326"))
   
   levelplot(overlap_applycurrent[[x]],
             col.regions=c("white","red4","midnightblue","lavender"),
