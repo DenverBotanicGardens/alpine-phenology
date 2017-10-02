@@ -23,19 +23,17 @@ library(polynom)
 library(MASS)
 library(plotrix)
 library(plyr)
+library(list)
+library(grid)
+library(scales)
+library(viridis)  # better colors for everyone
+library(ggthemes)
+library(gganimate)
 
 ```
 
-
-
-#create post 1980 list with over 80 occurances 
+Need make sure have right stuff for collections before 1980, exclude wrong dates
 ```{r}
-# Select only species that have more than 80 individual points
-#Select only individuals with year before 1980
-# "MaxEnt uses thenumber of presences to determine which feature classes to use, more than 80 presences leads to all feature classes being used" - Merow et al 2013
-# the 45 significantly changed in phenology ones
-
-library(list)
 
 #339 not significant
 notsig_339 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385"
@@ -56,7 +54,6 @@ signsps_45 <- lapply(1:45, function(file){
   read.csv(paste(sig_45,filenames_1[file], sep="/"))
 })
 
-
 #collections for use in VisTrails
 cols4VT <- lapply(1:45, function(x){
   sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
@@ -65,7 +62,7 @@ cols4VT <- lapply(1:45, function(x){
   sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
              sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
   sp <- sp[!is.na(sp$decimalLatitude),]
-  sp <- sp[sp$year >= 1980 & sp$year < 2017,]
+  sp <- sp[sp$year < 1980 & sp$year > 1800,]
   sp <- sp[!is.na(sp$year),]
   if(nrow(sp) > 79){
     sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
@@ -84,7 +81,7 @@ cols4VT_339 <- lapply(1:339, function(x){
   sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
              sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
   sp <- sp[!is.na(sp$decimalLatitude),]
-  sp <- sp[sp$year >= 1980 & sp$year < 2017,]
+  sp <- sp[sp$year < 1980 & sp$year > 1800,]
   sp <- sp[!is.na(sp$year),]
   if(nrow(sp) == 0){
     sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
@@ -105,74 +102,77 @@ cols4VT_339 <- lapply(1:339, function(x){
 
 AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
 AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+#write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv", sep=",", row.names=FALSE)
+
+
+```
+
+
+#create post 1980 list with the same species
+```{r}
+# Select only species that have more than 80 individual points
+#Select only individuals with year before 1980
+# "MaxEnt uses thenumber of presences to determine which feature classes to use, more than 80 presences leads to all feature classes being used" - Merow et al 2013
+# the 45 significantly changed in phenology ones
+
+
+
+#Pull in all data, then supset by ID
+#collections for use in VisTrails
+cols4VT <- lapply(1:45, function(x){
+  sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
+             sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+
+  sp <- sp[!is.na(sp$year),]
+  sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  sp
+})
+
+
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     institutionCode = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+#narrow down to 
+unique(seqAlPh$ID) #Want these
+# then do sequential ids
+
+AlPh384 <- AlPh384[AlPh384$ID %in% unique(seqAlPh$ID),]
 
 seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
 
 #write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80post1980.csv", sep=",", row.names=FALSE)
 
 rm(cols4VT,cols4VT_339,seqAlPh,AlPh384)
-
-```
-
-Need make sure have right stuff for collections before 1980, exclude wrong dates
-```{r}
-#collections for use in VisTrails
-cols4VT <- lapply(1:45, function(x){
-  sp <- signsps_45[[x]][,c("scientificName","decimalLongitude",
-                          "decimalLatitude","year",
-                          "minimumElevationInMeters","institutionCode")]
-  sp <- sp[sp$decimalLatitude < 41.1 & sp$decimalLatitude > 36.9 &
-             sp$decimalLongitude > -109 & sp$decimalLongitude < -102,]
-  sp <- sp[!is.na(sp$decimalLatitude),]
-  sp <- sp[sp$year < 1980 & sp$year > 1800,]
-  sp <- sp[!is.na(sp$year),]
-  if(nrow(sp) > 79){
-    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
-  } else {
-    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
-  }
-  sp
-})
-
-
-# need to be 46:384
-cols4VT_339 <- lapply(1:339, function(x){
-  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
-                        "decimalLatitude","year",
-                          "minimumElevationInMeters","institutionCode")]
-  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
-             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
-  sp <- sp[!is.na(sp$decimalLatitude),]
-  sp <- sp[sp$year < 1980 & sp$year > 1800,]
-  sp <- sp[!is.na(sp$year),]
-  if(nrow(sp) == 0){
-    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
-                     decimalLatitude = NA,year = NA,
-                     minimumElevationInMeters = NA,
-                     institutionCode = NA,
-                     ID = NA, N=nrow(sp))
-    } else {
-    if(nrow(sp) > 79){
-    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
-  } else {
-    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
-  }
-  }
-  sp
-})
-
-
-AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
-AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
-
-seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
-
-identical(seqAlPh,FieldData_pre1980) #DAMN!
-table(FieldData_pre1980$id) #89 species
-table(seqAlPh$id) #87 now that incorrect earlier records removed
-
-#write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv", sep=",", row.names=FALSE)
-
 
 ```
 
@@ -189,9 +189,12 @@ rm(cols4VT,cols4VT_339,signsps_45,sps_339)
 ```{r}
 
 #modelrun <- "PRISM_pre1980_current/"
-modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip/"
-applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
-Maxent <- paste("Maxent_",1:89,sep="")
+#modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip/"
+modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip_10reps/" #not 10 reps, just 10 folds, not enough data to do both
+#applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
+#Maxent <- paste("Maxent_",1:89,sep="")
+applymax <- paste("ApplyMAXENT",1:87,"_1", sep="")
+Maxent <- paste("Maxent_",1:87,sep="")
 
 models <- lapply(Maxent, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
@@ -201,13 +204,6 @@ applymodels <- lapply(applymax, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
 })
 
-# All have 0 or 1, these are the bin values of suitable or not
-overlap <- lapply(1:length(models), function(x){
-  past <- models[[x]]
-  current <- applymodels[[x]]
-  out <- past+current
-  out
-})
 
 # Change the furture (current) models to 2 and 0 and keep past as 1 and 0, when added 3=in both, 2=in current only, 1=past only
 overlap10 <- lapply(1:length(models), function(x){
@@ -217,8 +213,11 @@ overlap10 <- lapply(1:length(models), function(x){
   out <- past+current
   out
 })
+```
 
-JustMaxent <- paste("PRISM_justcurrent_beta5_minmaxtemp_precip/Maxent_",1:89,sep="")
+
+```{r}
+JustMaxent <- paste("PRISM_justcurrent_beta5_minmaxtemp_precip/Maxent_",1:87,sep="")
 
 justcurrentmodels <- lapply(JustMaxent, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",x,"/maxent_bin_map.tif",sep=""))
@@ -244,59 +243,35 @@ overlap_applycurrent <- lapply(1:length(models), function(x){
 # I've got pre1980 and FieldData_pre1980 that are identical
 #identical(pre1980,FieldData_pre1980)
 
-for(i in 1:89){
-  x <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == i])
-  print(SpatialPointsDataFrame(FieldData_all[FieldData_all$year>1980 &
-                                                        FieldData_all$year<2017 &
-                                                        FieldData_all$ID == x,
-        c("decimalLongitude","decimalLatitude")],
-        FieldData_all[FieldData_all$year>1980 &
-                        FieldData_all$year<2017 &
-                        FieldData_all$ID == x,],
-        proj4string=CRS("+init=epsg:4326")))
-  print(SpatialPointsDataFrame(FieldData_all[FieldData_all$year<1980 &
-                                                          FieldData_all$year>1800 &
-                                                          FieldData_all$ID == x,
-          c("decimalLongitude","decimalLatitude")],
-          FieldData_all[FieldData_all$year<1980 &
-                          FieldData_all$year>1800 &
-                          FieldData_all$ID == x,],
-          proj4string=CRS("+init=epsg:4326")))
-}
-  
+FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
 
+FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80post1980.csv")
 
-for(i in 1:89){
+for(x in 1:87){
+
+  # Have some data that has years wrong like >2017 and less than 1800 down to 0
+  pointsafter <- SpatialPointsDataFrame(FieldData_all[FieldData_all$id == x,
+                                        c("decimalLongitude","decimalLatitude")],
+                                        FieldData_all[FieldData_all$id == x,],
+                                        proj4string=CRS("+init=epsg:4326"))
   
-  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",i,"justcurrentpostrangemap.jpg",sep=""), width = 200, height = 150,
+  pointsabefore <- SpatialPointsDataFrame(FieldData_pre1980[FieldData_pre1980$id == x,
+                                          c("decimalLongitude","decimalLatitude")],
+                                          FieldData_pre1980[FieldData_pre1980$id == x,],
+                                          proj4string=CRS("+init=epsg:4326"))
+  
+    
+  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"justcurrentpostrangemap.jpg",sep=""), width = 200, height = 150,
        units = "mm", res = 300)
   
-  x <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == i])
-  # Have some data that has years wrong like >2017 and less than 1800 down to 0
-  pointsafter <- SpatialPointsDataFrame(FieldData_all[FieldData_all$year>1980 &
-                                                        FieldData_all$year<2017 &
-                                                        FieldData_all$ID == x,
-        c("decimalLongitude","decimalLatitude")],
-        FieldData_all[FieldData_all$year>1980 &
-                        FieldData_all$year<2017 &
-                        FieldData_all$ID == x,],
-        proj4string=CRS("+init=epsg:4326"))
-  
-  pointsabefore <- SpatialPointsDataFrame(FieldData_all[FieldData_all$year<1980 &
-                                                          FieldData_all$year>1800 &
-                                                          FieldData_all$ID == x,
-          c("decimalLongitude","decimalLatitude")],
-          FieldData_all[FieldData_all$year<1980 &
-                          FieldData_all$year>1800 &
-                          FieldData_all$ID == x,],
-          proj4string=CRS("+init=epsg:4326"))
-  
-  levelplot(overlap_applycurrent[[x]],
+  print(levelplot(overlap_applycurrent[[x]], margin=FALSE,
             col.regions=c("white","red4","midnightblue","lavender"),
             colorkey=list(at=seq(0, 4, 1)),
                  labels=list(at=seq(0, 4, 1)))+
     layer(sp.points(pointsafter, pch=20, cex=0.5, col="lightblue4"))+
-    layer(sp.points(pointsabefore, pch=8, cex=0.5, col="red3"))
+    layer(sp.points(pointsabefore, pch=22, cex=0.25, col="red3")) )
+  
+  rm(pointsafter,pointsabefore)
   
   dev.off()
 }
@@ -305,38 +280,25 @@ for(i in 1:89){
 
 ```
 
-
+### MAKE THIS MAP!  START HERE
 ```{r}
 
-library(ggplot2)
-library(raster)
-library(rasterVis)
-library(rgdal)
-library(grid)
-library(scales)
-library(viridis)  # better colors for everyone
-library(ggthemes)
-library(gganimate)
+
 
 test_stack <- stack(overlap_applycurrent)
-
-test_spdf1 <- as(overlap_applycurrent[[1]], "SpatialPixelsDataFrame")
-
-
 test_spdf <- as(test_stack, "SpatialPixelsDataFrame")
 test_df <- as.data.frame(test_spdf)
 test_df_long <- melt(test_df, id.vars = c("x","y"))
 
 compareGIF <- ggplot(data=test_df_long[test_df_long$variable %in% 
-                                         paste("layer.",seq(1,89, by=5),sep=""),],
+                                         paste("layer.",seq(1,87, by=3),sep=""),],
                      aes(x,y,fill=as.factor(value), frame=variable))+
   geom_tile()+
   scale_fill_manual(values=c("white","red4","midnightblue","lavender"))+
   coord_equal()+
-  theme_map()+
   guides(fill=guide_legend(title="1:apply model \n 2:current \n 3:both"))
 
-gganimate(compareGIF, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/apply2current.gif", ani.width = 750, ani.height = 750, interval = 0.75)
+gganimate(compareGIF, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/apply2current.gif", ani.width = 600, ani.height = 450, interval = 0.75)
 
 #+
 #  geom_point(data=FieldData_all[FieldData_all$year>1980 & FieldData_all$ID == 13,],
@@ -419,7 +381,7 @@ colnames(df1) <- c("X","Y","SHM") #suitable habitat model
 # vector for color breaks
 b.col <- seq(0,3,length.out=4)
 
-ggplot(df1,aes(X,Y))+
+ggplot(df1,aes(X,Y,fill=SHM))+
   geom_raster()
 
 #ids 1:12 significnatly changed
@@ -438,26 +400,45 @@ points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
        pch = 8, cex = 0.5, col = "red3")
 ```
 ```{r}
-for(x in 1:89){
+for(i in 1:87){
   
-  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"prepostrangemap.jpg",sep=""), width = 200, height = 150,
+  x <- unique(FieldData_pre1980$ID[FieldData_pre1980$id==i])
+  species <- FieldData_all$scientificName[FieldData_all$ID==x]
+
+  pntsaft <- FieldData_all[FieldData_all$year>1980 &
+                             FieldData_all$year<2017 &
+                             FieldData_all$ID == x,]
+  pntsaft <- pntsaft[complete.cases(pntsaft),]
+  
+  pntsbf <- FieldData_all[FieldData_all$year<1981 &
+                            FieldData_all$year>1800 &
+                            FieldData_all$ID == x,]
+  pntsbf <- pntsbf[complete.cases(pntsbf),]
+  
+  pointsafter <- SpatialPointsDataFrame(pntsaft[,c("decimalLongitude","decimalLatitude")],
+                                        pntsaft,
+                                        proj4string=CRS("+init=epsg:4326"))
+  
+  pointsbefore <- SpatialPointsDataFrame(pntsbf[,c("decimalLongitude","decimalLatitude")],
+                                         pntsbf,
+                                         proj4string=CRS("+init=epsg:4326"))
+  
+    
+  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",species[1],"_prepostrangemap.jpg",sep=""), width = 200, height = 150,
        units = "mm", res = 300)
   
-  plot(overlap10[[x]], col = c("white","red","blue","lavender"),
-       xlab = "Longitude", ylab="Latitude",
-       cex=20)
-  points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
-                                          FieldData_all$ID == x],
-         FieldData_all$decimalLatitude[FieldData_all$year>1980 &
-                                         FieldData_all$ID == x],
-         pch = 21, cex = .5, col = "lightblue4")
-  points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
-                                          FieldData_all$ID == x],
-         FieldData_all$decimalLatitude[FieldData_all$year<1980 &
-                                         FieldData_all$ID == x],
-         pch = 8, cex = .5, col = "red3")
+  print(levelplot(overlap10[[i]],
+            col.regions=c("white","red4","midnightblue","lavender"),
+            colorkey=list(at=seq(0, 4, 1)),
+                 labels=list(at=seq(0, 4, 1)))+
+    layer(sp.points(pointsafter, pch=20, cex=0.5, col="lightblue4"))+
+    layer(sp.points(pointsbefore, pch=8, cex=0.5, col="red3"))
+  )
+  
   
   dev.off()
+  
+  rm(x,species,pointsafter,pointsbefore)
 }
   
 
@@ -466,12 +447,16 @@ for(x in 1:89){
 
 
 #Can I match the species information from phenology to the niche model data?   
+1-11 of ids are signfiant change in phenology  
+12-87 did not
 ```{r}
+mergename <- read.csv(text=getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
+
 test.merge <- merge(FieldData_pre1980,mergename,by.x = "scientificName", by.y="scientificName")
 head(test.merge)
 
 # get list of other attributes by id
-otherinfo <- unique(test.merge[,c(8,46:51)])
+otherinfo <- unique(test.merge[,c(8:9,46:51)])
 
 ```
 
@@ -481,7 +466,7 @@ otherinfo <- unique(test.merge[,c(8,46:51)])
 ```{r}
 # 1 (apply model) minus 2 (current): showing how much the antipated correct model is compared to the predicted. Positive values show over estimation of the apply model to more accurate, while negative values are how much underestimated what should be assumed to be an accurate model
 
-change.currentapply <- lapply(1:89, function(model){
+change.currentapply <- lapply(1:87, function(model){
   x<-overlap_applycurrent[[model]]
   net <- (( sum(x[] == 1) - sum(x[] == 2) ) * (res(r)[1]*res(r)[2])/1000000) 
   net <- data.frame(net, variable = model)
@@ -492,278 +477,36 @@ nc.ca$Phenology[nc.ca$variable > 12] <- "NoChange"
 
 
 hist(nc.ca$net)
+par(mar = c(5, 7, 4, 2) + 0.1)
 boxplot(nc.ca$net, ylab = expression(paste("Change in predicted area ( ",km^2,")")))
 
 nc.ca <- merge(nc.ca,otherinfo,by.x =  "variable", by.y="id")
 nc.ca$GrowthHabitGroup <- "Shrub/Tree"
 nc.ca$GrowthHabitGroup[grep("Forb",nc.ca$Growth.Habit)] <- "Forb/herb"
 nc.ca$GrowthHabitGroup[grep("Graminoid",nc.ca$Growth.Habit)] <- "Graminoid"
+```
 
+```{r}
 ggplot(nc.ca, aes(y=net,x=Phenology))+
   geom_boxplot()+
 #  geom_point()+
-  labs(y = expression(paste("Change in predicted area (",km^2,")")), 
-       x = "89 species \n 12 significantly changed in phenology \n 77 showed no change in phenology")+
+  labs(y = expression(atop("Difference between (1) model tracking climate ", paste("envelope from (2) the current evelope (", km^2,")"))), 
+       x = "87 species \n 11 significantly changed in phenology \n 76 showed no change in phenology")+
   theme_bw()+
   facet_wrap(~GrowthHabitGroup)
+```
 
+
+```{r}
 FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
 
 tblfoo <- data.frame(table(FieldData_pre1980$id,FieldData_pre1980$ID))
 
 tblfoo[tblfoo$Freq != 0,] 
-### 1:12 are sign in phenology
-### 13:89 are not
+### 1:11 are sign in phenology
+### 12:87 are not
 ```
 
-
-
-<http://paldhous.github.io/ucb/2016/dataviz/week14.html> 
-Animate map
-```{r}
-
-
-library(readr)
-library(ggplot2)
-library(gganimate)
-library(scales)
-library(dplyr)
-
-FD_all <- FieldData_all[FieldData_all$year > 1800 &
-                          FieldData_all$year < 2018,]
-
-val <- getValues(overlap10[[1]])
-xy <- as.data.frame(xyFromCell(overlap10[[1]], 1:ncell(overlap10[[1]])))
-xy <- cbind(xy,val)
-
-yearplot <- ggplot(data=na.omit(xy), aes(x,y,fill=factor(val)))+
-  geom_tile()+
-  geom_polygon(data=overlap10[[1]],aes(x=lon))
-  geom_point(FD_all)
-  
-  
-yearplot <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
-                             FD_all$minimumElevationInMeters<4300,], 
-                   aes(x=decimalLongitude, y=decimalLatitude, frame=year))+
-  geom_point(aes(colour = minimumElevationInMeters))
-
-gganimate(yearplot)
-
-gganimate(yearplot, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/herbariumxyear.gif", ani.width = 750, ani.height = 750, interval = 0.1)
-
-```
-
-
-
-```{r}
-elevXyear <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
-                             FD_all$minimumElevationInMeters<4300,], 
-                    aes(x=decimalLatitude, y=minimumElevationInMeters, frame=year,
-                        cumulative = TRUE, colour = year))+
-  geom_point()+
-  scale_colour_gradientn(colours = terrain.colors(10))+
-  stat_smooth(aes(group=year), method = "lm", se=FALSE, formula = y ~ x +I(x^2),
-              size=0.5, color="black", linetype="dotted")+
-  ylab("elevation (m)")+
-  xlab("Latitude")
-
-gganimate(elevXyear)
-
-gganimate(elevXyear, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationandLatxyear.gif", ani.width = 750, ani.height = 750, interval = 0.1)
-
-```
-
-```{r}
-elevXyear1 <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
-                             FD_all$minimumElevationInMeters<4300,], 
-                    aes(x=decimalLatitude, y=minimumElevationInMeters, frame=year,
-                        cumulative = FALSE, colour = year))+
-  geom_point()+
-  scale_colour_gradientn(colours = terrain.colors(10))+
-  stat_smooth(aes(group=year), method = "lm", se=FALSE, formula = y ~ x +I(x^2),
-              size=0.5, color="black", linetype="dotted")+
-  ylab("elevation (m)")+
-  xlab("Latitude")
-
-gganimate(elevXyear1, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationandLatxyearNOTcumulative.gif", ani.width = 750, ani.height = 750, interval = 0.1)
-
-```
-
-
-
-```{r}
-FD_all$Phenology[FD_all$ID<46] <- "Significant"
-FD_all$Phenology[FD_all$ID>45] <- "NoChange"
-
-FD_all <- FD_all[complete.cases(FD_all),]
-
-elevXyear2 <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
-                             FD_all$minimumElevationInMeters<4300,], 
-                    aes(x=Phenology, y=minimumElevationInMeters, frame=as.factor(year),
-                        cumulative = TRUE))+
-  geom_boxplot(position="identity")+
-  ylab("elevation (m)")+
-  xlab("Phenology")+
-  theme(legend.position="none")
-
-gganimate(elevXyear2, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/boxplotelevation.gif", ani.width = 750, ani.height = 750, interval = 0.2)
-
-
-```
-
-
-```{r}
-
-elevXyear3 <- ggplot(FD_all[FD_all$minimumElevationInMeters>3200&
-                             FD_all$minimumElevationInMeters<4300,], 
-                    aes(x=year, y=minimumElevationInMeters, frame=year,
-                        cumulative = TRUE, colour= as.factor(id)))+
-  geom_point()+
-  ylab("elevation (m)")+
-  xlab("Phenology")+
-  facet_wrap(~Phenology)+
-  stat_smooth(method = "lm", se=FALSE)+# , #formula = y ~ x +I(x^2),
-  theme(legend.position="none")
-
-gganimate(elevXyear3, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationXyearXphenology.gif", ani.width = 750, ani.height = 750, interval = 0.2)
-
-
-```
-
-
-So how many points pre 1980 correspond to 1 - lost, 2 - new, or 3 kept vs. how many points after 1980 correspond to 1, 2, or 3?
-```{r}
-
-collpnts_pre <- lapply(1:89, function(x){
-  fullID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
-  pntsplot <- FieldData_all[FieldData_all$ID == fullID & FieldData_all$year <= 1980,
-                            c("decimalLongitude","decimalLatitude")]
-  out <- extract(overlap10[[x]], pntsplot, fun=mean)
-})
-
-
-hist(collpnts_pre[[7]])
-
-
-collpnts_post <- lapply(1:89, function(x){
-  fullID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
-  pntsplot <- FieldData_all[FieldData_all$ID == fullID & FieldData_all$year > 1980,
-                            c("decimalLongitude","decimalLatitude")]
-  out <- extract(overlap10[[x]], pntsplot, fun=mean)
-})
-
-hist(collpnts_post[[30]])
-
-## Don't want chi square for model performance. 
-# Want AUC for model performance for current, want 
-anovatest <- lapply(1:89, function(x){
-  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
-  one <-length(collpnts_pre[[x]][collpnts_pre[[x]]==1])
-  two <-length(collpnts_pre[[x]][collpnts_pre[[x]]==2])
-  three <-length(collpnts_pre[[x]][collpnts_pre[[x]]==3])
-  
-  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
-  one.p <-length(collpnts_post[[x]][collpnts_post[[x]]==1])
-  two.p <-length(collpnts_post[[x]][collpnts_post[[x]]==2])
-  three.p <-length(collpnts_post[[x]][collpnts_post[[x]]==3])
-  
-  pre2post <- matrix(c(zero,
-    one,two,three,zero.p,
-    one.p,two.p,three.p),
-    nrow=2, byrow=TRUE)
-  
-  pre2post
-  }
-)
-
-chitest <- do.call(rbind,anovatest)
-
-#chitest[chitest$Pval<0.05,]
-# 34 are signficantly different as you'd expect. The pre-distribution should have more 1s while the post should have more 2s.
-```
-
-
-#AUC or BIC from models?
-```{r}
-library(ENMeval)
-
-exploreorder <- lapply(1:48, function(x){
-  whatorder <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_samplePredictions.csv", sep=""))
-})
-
-# are the Explore a list of betamultipliers [1,2,3,4,5] with 5 species done by species or by beta multplier?
-# 6 species and 8 beta values [6, 8, 10, 12, 14, 16, 18, 20]
-
-orderiswhat <- apply(expand.grid(1:6,1:48), 1, function(x){
-  out <- data.frame(t(x),sameno = identical(exploreorder[[ x[1] ]]$X, exploreorder[[ x[2] ]]$X))
-  out
-})
-
-orderis <- do.call(rbind,orderiswhat)
-
-library(jpeg)
-
-matched <- orderis[orderis$sameno == TRUE & orderis$Var1 != orderis$Var2,]
-
-unique(matched$Var1)
-
-## Look at how response curves compare
-for(i in 1:6){
-  x <- matched$Var2[matched$Var1 == i]
-  
-  for(y in 1:(length(x)-2)){
-  
-    file.rename(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x[y],"/responseCurves/all_response_curves.jpg",sep=""),
-                paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/CompareImages/response_curves",i,"_",x[y],".jpg",sep=""))
-    
- # jpeg(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/CompareImages/response_curves",i,"_",x[y],".jpg",sep=""))
-    
- # print(readJPEG(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x[y],"/responseCurves/all_response_curves.jpg",sep="")))
-    
-    }
-
-}
-
-
-
-identical(exploreorder[[1]]$X, exploreorder[[2]]$X) # the first and 6th, so it goes through one beta value for the 5 species then then the next beta value...
-match(exploreorder[[2]]$X, exploreorder[[7]]$X) 
-
-#training samples
-
-trainingsamples <- lapply(1:10, function(x){
-  ts <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_1/cvSplit",x,"/trainingSamples.csv", sep=""))
-  ts
-})
-
-head(trainingsamples[[1]])
-
-
-#samplePredictions 
-sampPred <- lapply(1:5, function(x){
-  sp <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_samplePredictions.csv", sep=""))
-  sp
-})
-
-#omission
-omm <- lapply(1:5, function(x){
-  om <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_omission.csv", sep=""))
-  om
-})
-
-head(sampPred[[1]])
-
-boxplot(sampPred[[1]]$Raw.prediction, col="red")
-
-density(sampPred[[1]]$Cumulative.prediction)
-
-library(dismo)
-e <- evaluate(p=sampPred[[1]]$Raw.prediction, a=omm[[1]]$Raw.value)
-
-density(e)
-plot(e, 'ROC')
-
-```
 
 
 
@@ -1797,6 +1540,258 @@ ggplot(FD_all_habit, aes(year,decimalLatitude))+
 ```
 
 
+
+
+
+
+
+
+<http://paldhous.github.io/ucb/2016/dataviz/week14.html> 
+Animate map
+```{r}
+
+
+library(readr)
+library(ggplot2)
+library(gganimate)
+library(scales)
+library(dplyr)
+
+FD_all <- FieldData_all[FieldData_all$year > 1800 &
+                          FieldData_all$year < 2018,]
+
+val <- getValues(overlap10[[1]])
+xy <- as.data.frame(xyFromCell(overlap10[[1]], 1:ncell(overlap10[[1]])))
+xy <- cbind(xy,val)
+
+yearplot <- ggplot(data=na.omit(xy), aes(x,y,fill=factor(val)))+
+  geom_tile()+
+  geom_polygon(data=overlap10[[1]],aes(x=lon))
+  geom_point(FD_all)
+  
+  
+yearplot <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                   aes(x=decimalLongitude, y=decimalLatitude, frame=year))+
+  geom_point(aes(colour = minimumElevationInMeters))
+
+gganimate(yearplot)
+
+gganimate(yearplot, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/herbariumxyear.gif", ani.width = 750, ani.height = 750, interval = 0.1)
+
+```
+
+
+
+```{r}
+elevXyear <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=decimalLatitude, y=minimumElevationInMeters, frame=year,
+                        cumulative = TRUE, colour = year))+
+  geom_point()+
+  scale_colour_gradientn(colours = terrain.colors(10))+
+  stat_smooth(aes(group=year), method = "lm", se=FALSE, formula = y ~ x +I(x^2),
+              size=0.5, color="black", linetype="dotted")+
+  ylab("elevation (m)")+
+  xlab("Latitude")
+
+gganimate(elevXyear)
+
+gganimate(elevXyear, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationandLatxyear.gif", ani.width = 750, ani.height = 750, interval = 0.1)
+
+```
+
+```{r}
+elevXyear1 <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=decimalLatitude, y=minimumElevationInMeters, frame=year,
+                        cumulative = FALSE, colour = year))+
+  geom_point()+
+  scale_colour_gradientn(colours = terrain.colors(10))+
+  stat_smooth(aes(group=year), method = "lm", se=FALSE, formula = y ~ x +I(x^2),
+              size=0.5, color="black", linetype="dotted")+
+  ylab("elevation (m)")+
+  xlab("Latitude")
+
+gganimate(elevXyear1, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationandLatxyearNOTcumulative.gif", ani.width = 750, ani.height = 750, interval = 0.1)
+
+```
+
+
+
+```{r}
+FD_all$Phenology[FD_all$ID<46] <- "Significant"
+FD_all$Phenology[FD_all$ID>45] <- "NoChange"
+
+FD_all <- FD_all[complete.cases(FD_all),]
+
+elevXyear2 <- ggplot(FD_all[FD_all$minimumElevationInMeters>1600&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=Phenology, y=minimumElevationInMeters, frame=as.factor(year),
+                        cumulative = TRUE))+
+  geom_boxplot(position="identity")+
+  ylab("elevation (m)")+
+  xlab("Phenology")+
+  theme(legend.position="none")
+
+gganimate(elevXyear2, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/boxplotelevation.gif", ani.width = 750, ani.height = 750, interval = 0.2)
+
+
+```
+
+
+```{r}
+
+elevXyear3 <- ggplot(FD_all[FD_all$minimumElevationInMeters>3200&
+                             FD_all$minimumElevationInMeters<4300,], 
+                    aes(x=year, y=minimumElevationInMeters, frame=year,
+                        cumulative = TRUE, colour= as.factor(id)))+
+  geom_point()+
+  ylab("elevation (m)")+
+  xlab("Phenology")+
+  facet_wrap(~Phenology)+
+  stat_smooth(method = "lm", se=FALSE)+# , #formula = y ~ x +I(x^2),
+  theme(legend.position="none")
+
+gganimate(elevXyear3, "Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/elevationXyearXphenology.gif", ani.width = 750, ani.height = 750, interval = 0.2)
+
+
+```
+
+
+So how many points pre 1980 correspond to 1 - lost, 2 - new, or 3 kept vs. how many points after 1980 correspond to 1, 2, or 3?
+```{r}
+
+collpnts_pre <- lapply(1:89, function(x){
+  fullID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
+  pntsplot <- FieldData_all[FieldData_all$ID == fullID & FieldData_all$year <= 1980,
+                            c("decimalLongitude","decimalLatitude")]
+  out <- extract(overlap10[[x]], pntsplot, fun=mean)
+})
+
+
+hist(collpnts_pre[[7]])
+
+
+collpnts_post <- lapply(1:89, function(x){
+  fullID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
+  pntsplot <- FieldData_all[FieldData_all$ID == fullID & FieldData_all$year > 1980,
+                            c("decimalLongitude","decimalLatitude")]
+  out <- extract(overlap10[[x]], pntsplot, fun=mean)
+})
+
+hist(collpnts_post[[30]])
+
+## Don't want chi square for model performance. 
+# Want AUC for model performance for current, want 
+anovatest <- lapply(1:89, function(x){
+  zero <- length(collpnts_pre[[x]][collpnts_pre[[x]]==0])
+  one <-length(collpnts_pre[[x]][collpnts_pre[[x]]==1])
+  two <-length(collpnts_pre[[x]][collpnts_pre[[x]]==2])
+  three <-length(collpnts_pre[[x]][collpnts_pre[[x]]==3])
+  
+  zero.p <- length(collpnts_post[[x]][collpnts_post[[x]]==0])
+  one.p <-length(collpnts_post[[x]][collpnts_post[[x]]==1])
+  two.p <-length(collpnts_post[[x]][collpnts_post[[x]]==2])
+  three.p <-length(collpnts_post[[x]][collpnts_post[[x]]==3])
+  
+  pre2post <- matrix(c(zero,
+    one,two,three,zero.p,
+    one.p,two.p,three.p),
+    nrow=2, byrow=TRUE)
+  
+  pre2post
+  }
+)
+
+chitest <- do.call(rbind,anovatest)
+
+#chitest[chitest$Pval<0.05,]
+# 34 are signficantly different as you'd expect. The pre-distribution should have more 1s while the post should have more 2s.
+```
+
+
+#AUC or BIC from models?
+```{r}
+library(ENMeval)
+
+exploreorder <- lapply(1:48, function(x){
+  whatorder <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_samplePredictions.csv", sep=""))
+})
+
+# are the Explore a list of betamultipliers [1,2,3,4,5] with 5 species done by species or by beta multplier?
+# 6 species and 8 beta values [6, 8, 10, 12, 14, 16, 18, 20]
+
+orderiswhat <- apply(expand.grid(1:6,1:48), 1, function(x){
+  out <- data.frame(t(x),sameno = identical(exploreorder[[ x[1] ]]$X, exploreorder[[ x[2] ]]$X))
+  out
+})
+
+orderis <- do.call(rbind,orderiswhat)
+
+library(jpeg)
+
+matched <- orderis[orderis$sameno == TRUE & orderis$Var1 != orderis$Var2,]
+
+unique(matched$Var1)
+
+## Look at how response curves compare
+for(i in 1:6){
+  x <- matched$Var2[matched$Var1 == i]
+  
+  for(y in 1:(length(x)-2)){
+  
+    file.rename(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x[y],"/responseCurves/all_response_curves.jpg",sep=""),
+                paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/CompareImages/response_curves",i,"_",x[y],".jpg",sep=""))
+    
+ # jpeg(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/CompareImages/response_curves",i,"_",x[y],".jpg",sep=""))
+    
+ # print(readJPEG(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x[y],"/responseCurves/all_response_curves.jpg",sep="")))
+    
+    }
+
+}
+
+
+
+identical(exploreorder[[1]]$X, exploreorder[[2]]$X) # the first and 6th, so it goes through one beta value for the 5 species then then the next beta value...
+match(exploreorder[[2]]$X, exploreorder[[7]]$X) 
+
+#training samples
+
+trainingsamples <- lapply(1:10, function(x){
+  ts <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_1/cvSplit",x,"/trainingSamples.csv", sep=""))
+  ts
+})
+
+head(trainingsamples[[1]])
+
+
+#samplePredictions 
+sampPred <- lapply(1:5, function(x){
+  sp <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_samplePredictions.csv", sep=""))
+  sp
+})
+
+#omission
+omm <- lapply(1:5, function(x){
+  om <- read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta1/Maxent_",x,"/species_omission.csv", sep=""))
+  om
+})
+
+head(sampPred[[1]])
+
+boxplot(sampPred[[1]]$Raw.prediction, col="red")
+
+density(sampPred[[1]]$Cumulative.prediction)
+
+library(dismo)
+e <- evaluate(p=sampPred[[1]]$Raw.prediction, a=omm[[1]]$Raw.value)
+
+density(e)
+plot(e, 'ROC')
+
+```
 
 
 
