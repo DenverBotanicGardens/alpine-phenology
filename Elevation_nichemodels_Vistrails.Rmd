@@ -452,13 +452,18 @@ r #resolution is now 724.4656, 916.8399 (x,y)
 
 #habitat lost is just the new minus the old? 2s minus 1s because 3s represent what didn't change. 
 change.newold <- lapply(overlap10, function(x){
-  net <- (( sum(x[] == 2) - sum(x[] == 1) ) * (res(r)[1]*res(r)[2])/1000000) 
-  net
+  Early <- (sum(x[]==1)+sum(x[]==3)) * (res(r)[1]*res(r)[2])/1000000 *0.621371 #to miles? 
+  Current <- (sum(x[]==2)+sum(x[]==3)) * (res(r)[1]*res(r)[2])/1000000*0.621371 #to miles? 
+  Maintained  <- sum(x[]==3) *(res(r)[1] *res(r)[2])/1000000*0.621371 #to miles? 
+  Lost <- ( sum(x[] == 2) - sum(x[] == 1) ) * (res(r)[1]*res(r)[2])/1000000 *0.621371 #to miles? 
+  out <- cbind(Early,Current,Maintained,Lost)
 })
 
 netchangevector.newold <- do.call(rbind,change.newold)
-boxplot(netchangevector.newold) #square km change
-hist(netchangevector.newold)
+boxplot(netchangevector.newold,
+        ylab = "Range Size (sq mi)") #square km change -> pixel change
+
+
 ```
 
 
@@ -543,13 +548,16 @@ for(i in 1:87){
 1-11 of ids are signfiant change in phenology  
 12-87 did not
 ```{r}
+
 mergename <- read.csv(text=getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
 
-test.merge <- merge(FieldData_pre1980,mergename,by.x = "scientificName", by.y="scientificName")
-head(test.merge)
 
-# get list of other attributes by id
-otherinfo <- unique(test.merge[,c(8:9,46:51)])
+#habitXsp <- read.csv("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/Table1.csv")
+
+habitXsp <- read.csv("Q:/Research/Projects/alpine-phenology/phensum_yr_385.csv")
+
+test.merge <- merge(FieldData_all,habitXsp,by = "ID")
+head(test.merge)
 
 colorado <- get_map(location = c(lon = -105.6,lat = 39.35), 
                     maptype = "satellite", zoom = 6)
@@ -598,10 +606,13 @@ hist(nc.ca$net)
 par(mar = c(5, 7, 4, 2) + 0.1)
 boxplot(nc.ca$net, ylab = expression(paste("Change in predicted area ( ",km^2,")")))
 
-nc.ca <- merge(nc.ca,otherinfo,by.x =  "variable", by.y="id")
+nc.ca <- merge(nc.ca,habitXsp,by.x = "variable",by.y = "ID")
 nc.ca$GrowthHabitGroup <- "Shrub/Tree"
-nc.ca$GrowthHabitGroup[grep("Forb",nc.ca$Growth.Habit)] <- "Forb/herb"
-nc.ca$GrowthHabitGroup[grep("Graminoid",nc.ca$Growth.Habit)] <- "Graminoid"
+nc.ca$GrowthHabitGroup[grep("Forb",nc.ca$GrowthHabit)] <- "Forb/herb"
+nc.ca$GrowthHabitGroup[grep("Graminoid",nc.ca$GrowthHabit)] <- "Graminoid"
+
+nc.ca$DurationGroup <- "Annual/Short Lived Perennial"
+nc.ca$DurationGroup[nc.ca$Duration == "Perennial"] <- "Perennial"
 ```
 maxentResults summarize   
 ```{r}
@@ -670,16 +681,19 @@ centers <- aggregate(, data = cocounties)
 gCentroid(colorado, byid = FALSE)
 
 ```
-
+ 
+ ### START HERE!! don't know if I trust this figure!!
 
 ```{r}
 ggplot(nc.ca, aes(y=net,x=Phenology))+
   geom_boxplot()+
 #  geom_point()+
-  labs(y = expression(atop("Difference between (1) model tracking climate ", paste("envelope from (2) the current evelope (", km^2,")"))), 
+  labs(y = expression(atop("Difference between projected climate model ", paste("and the current evelope (", km^2,")"))), 
        x = "87 species \n 11 significantly changed in phenology \n 76 showed no change in phenology")+
   theme_bw()+
-  facet_wrap(~GrowthHabitGroup)
+  facet_wrap(~DurationGroup)+
+  geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=0, ymax = Inf), alpha=0.1, fill="red")+
+  geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=-Inf, ymax = 0), alpha=0.1, fill="blue")
 ```
 
 
@@ -1602,8 +1616,6 @@ ggplot(climateenv,aes(x = bio.5,y = bio.6, colour= Time))+
 Which species go up or down in elevation? 
 Table1 saved from final product of Alpine phenology manuscript
 ```{r}
-habitXsp <- read.csv("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/Table1.csv")
-
 FD_all <- FieldData_all[FieldData_all$year > 1800 &
                           FieldData_all$year < 2018,]
 FD_all <- FD_all[complete.cases(FD_all),]
@@ -1634,8 +1646,9 @@ ggplot(FD_all_habit, aes(year, minimumElevationInMeters))+
   theme(legend.position="none")+
   ylab("Elevation (m)")
 
-
-ggplot(minavg, aes(Time, elevation..m., colour=Time))+
+minavg$Climate[minavg$Time=="Pre1980"] <- "Early"
+minavg$Climate[minavg$Time=="Post1980"] <- "Current"
+ggplot(minavg, aes(Time, elevation..m., colour=Climate))+
   geom_boxplot()+
   facet_wrap(~stat)+
   labs(y="Elevation (m)")+
@@ -1670,6 +1683,11 @@ ggplot(FD_all_habit,
 
 
 ```
+
+
+
+
+
 
 
 
