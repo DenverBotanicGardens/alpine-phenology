@@ -29,6 +29,9 @@ library(scales)
 library(viridis)  # better colors for everyone
 library(ggthemes)
 library(gganimate)
+library(ggmap)
+library(sp)
+library(rgeos)
 
 ```
 
@@ -108,6 +111,92 @@ seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
 #write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv", sep=",", row.names=FALSE)
 
 
+```
+
+
+Need make sure have right stuff for collections before 1930, exclude wrong dates
+```{r}
+
+#339 not significant
+notsig_339 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385"
+sig_45 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385"
+
+#339
+filenames <- list.files(notsig_339, pattern="*.csv")
+#45
+filenames_1 <- list.files(sig_45, pattern="*.csv")
+
+# 339
+sps_339 <- lapply(1:339, function(file){
+  read.csv(paste(notsig_339, filenames[file], sep="/"))
+})
+
+# 45
+signsps_45 <- lapply(1:45, function(file){
+  read.csv(paste(sig_45,filenames_1[file], sep="/"))
+})
+
+#collections for use in VisTrails
+cols4VT <- lapply(1:45, function(x){
+  sp1 <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1931 & sp$year > 1800,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     institutionCode = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+  if(nrow(sp) > 30){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }}
+  sp
+})
+
+
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1931 & sp$year > 1800,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     institutionCode = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    if(nrow(sp) > 30){
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1930.csv", sep=",", row.names=FALSE)
+
+unique(seqAlPh$id)
 ```
 
 
@@ -245,7 +334,8 @@ overlap_applycurrent <- lapply(1:length(models), function(x){
 
 FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
 
-FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80post1980.csv")
+FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
+
 
 pointsabefore <- SpatialPointsDataFrame(FieldData_pre1980[FieldData_pre1980$id == 1,
                                           c("decimalLongitude","decimalLatitude")],
@@ -257,7 +347,8 @@ pointsafter <- SpatialPointsDataFrame(FieldData_all[FieldData_all$id == 1,
                                         FieldData_all[FieldData_all$id == 1,],
                                         proj4string=CRS("+init=epsg:4326"))
 
-levelplot(applymodels[[1]], margin=FALSE,
+levelplot(applymodels[[1]], margin=FALSE, 
+          main = paste(FieldData_pre1980$scientificName[FieldData_pre1980$id == 1][1]),
             col.regions=c("white","red4"),
             colorkey=list(at=seq(0, 2, 1)),
                  labels=list(at=seq(0, 2, 1)))+
@@ -371,24 +462,16 @@ hist(netchangevector.newold)
 ```
 
 
-```{r}
-# how do herbarium specimens line up with habitat model?
-FieldData_all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
-
-# to match which number (id) is what species (ID)
-FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
-
-max(FieldData_all$year[FieldData_all$year > 1800&
-                         FieldData_all$year < 2017], na.rm=TRUE)
-max(FieldData_all$minimumElevationInMeters[FieldData_all$minimumElevationInMeters>1000&
-                                             FieldData_all$minimumElevationInMeters<4420],na.rm=TRUE)
-
-nrow(FieldData_all)
-nrow(FieldData_pre1980)
-```
-
 Plot results
 ```{r}
+
+min(FieldData_pre1980$year)
+
+plot(models[[59]], col = c("white","red"), 
+     main=paste(FieldData_pre1980$scientificName[FieldData_pre1980$id == 59][1]))
+plot(applymodels[[59]], col = c("white","blue"), 
+     main=paste(FieldData_pre1980$scientificName[FieldData_pre1980$id == 59][1]))
+
 # 0 is not in range, 1/red = past, 2/blue = present, 3/purple = both
 plot(overlap10[[59]], col = c("white","red","blue","lavender"))
 
@@ -407,20 +490,6 @@ b.col <- seq(0,3,length.out=4)
 ggplot(df1,aes(X,Y,fill=SHM))+
   geom_raster()
 
-#ids 1:12 significnatly changed
-#ids 13:89 did not
-x<-13
-plot(overlap10[[x]], col = c("white","red","blue","lavender"))  #c("white","tomato","yellow2","antiquewhite1"))
-points(FieldData_all$decimalLongitude[FieldData_all$year>1980 &
-                                        FieldData_all$ID == x],
-       FieldData_all$decimalLatitude[FieldData_all$year>1980 &
-                                        FieldData_all$ID == x],
-       pch = 21, cex = 0.5, col="lightblue4") #col = "orange")
-points(FieldData_all$decimalLongitude[FieldData_all$year<1980 &
-                                        FieldData_all$ID == x],
-       FieldData_all$decimalLatitude[FieldData_all$year<1980 &
-                                        FieldData_all$ID == x],
-       pch = 8, cex = 0.5, col = "red3")
 ```
 
 ```{r}
@@ -482,6 +551,31 @@ head(test.merge)
 # get list of other attributes by id
 otherinfo <- unique(test.merge[,c(8:9,46:51)])
 
+colorado <- get_map(location = c(lon = -105.6,lat = 39.35), 
+                    maptype = "satellite", zoom = 6)
+counties <- map_data("county")
+co_county <- subset(counties, region == 'colorado')
+
+
+#Points for first bloom collecitons
+ggmap(colorado)+
+  geom_point(data=mergename[mergename$Decimal.Longitude< (-104),],
+             aes(Decimal.Longitude,Decimal.Latitude),
+             pch=20, alpha=0.5, size=3,colour="red")+
+  geom_polygon(data=co_county, aes(x=long, y=lat, group = group),
+               fill=NA, color="white")+
+  scale_x_continuous(limits = c(-109.1,-101.9), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(36.9, 41.1), expand = c(0, 0))
+
+
+#points of all collections
+ggmap(colorado)+
+  geom_point(data=FieldData_all, aes(decimalLongitude,decimalLatitude),
+             pch=20, alpha=0.5, size=3,colour="red")+
+  geom_polygon(data=co_county, aes(x=long, y=lat, group = group),
+               fill=NA, color="white")+
+  scale_x_continuous(limits = c(-109.1,-101.9), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(36.9, 41.1), expand = c(0, 0))
 ```
 
 
@@ -509,6 +603,74 @@ nc.ca$GrowthHabitGroup <- "Shrub/Tree"
 nc.ca$GrowthHabitGroup[grep("Forb",nc.ca$Growth.Habit)] <- "Forb/herb"
 nc.ca$GrowthHabitGroup[grep("Graminoid",nc.ca$Growth.Habit)] <- "Graminoid"
 ```
+maxentResults summarize   
+```{r}
+maxentResults <- do.call(rbind,
+                         lapply(Maxent, function(x){
+                           maxout <- read.csv( paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxentResults.csv", sep=""))
+                         maxout})
+                         )
+
+
+ggplot(maxentResults, aes(X.Background.points,Training.AUC))+
+  geom_point()+
+  stat_smooth()+
+  theme_bw()
+
+ggplot(maxentResults, aes(X.Training.samples,Training.AUC))+
+  geom_point()+
+  stat_smooth()+
+  theme_bw()
+
+ggplot(maxentResults, 
+       aes(Equal.training.sensitivity.and.specificity.cumulative.threshold,Training.AUC))+
+  geom_point()+
+  stat_smooth(method="lm")+
+  theme_bw()
+
+
+contlong <- melt(maxentResults[,grep("contri",names(maxentResults))])
+
+ggplot(contlong, aes(y=value,x=variable))+
+  geom_boxplot()+
+  theme_bw()+
+  ylab("Percent contribution")
+
+
+
+mean(maxentResults$Training.AUC)
+min(maxentResults$Training.AUC)
+max(maxentResults$Training.AUC)
+
+hist(maxentResults$Training.AUC)
+
+mean(maxentResults$Equal.training.sensitivity.and.specificity.cumulative.threshold)
+max(maxentResults$Equal.training.sensitivity.and.specificity.cumulative.threshold)
+min(maxentResults$Equal.training.sensitivity.and.specificity.cumulative.threshold)
+
+
+mean(maxentResults$Equal.training.sensitivity.and.specificity.logistic.threshold)
+
+mean(maxentResults$Maximum.training.sensitivity.plus.specificity.logistic.threshold)
+
+
+# check how many records are centroids of counties
+colorado <- map("county","Colorado")
+plot(colorado)
+
+county <- map_data('county')
+cocounties <- county[county$region=="colorado",]
+ggplot(cocounties, aes(long, lat, group=group))+
+  geom_polygon()+
+  coord_map()
+
+
+centers <- aggregate(, data = cocounties)
+
+gCentroid(colorado, byid = FALSE)
+
+```
+
 
 ```{r}
 ggplot(nc.ca, aes(y=net,x=Phenology))+
@@ -522,8 +684,6 @@ ggplot(nc.ca, aes(y=net,x=Phenology))+
 
 
 ```{r}
-FieldData_pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
-
 tblfoo <- data.frame(table(FieldData_pre1980$id,FieldData_pre1980$ID))
 
 tblfoo[tblfoo$Freq != 0,] 
@@ -618,9 +778,6 @@ past_models <- lapply(Maxent, function(x){
 
 elevCO <- raster("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/CO_Mosaic_Elevation_VT/co_elev_VT_WGS84.tif")
 
-modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip/"
-applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
-Maxent <- paste("Maxent_",1:89,sep="")
 
 elevCOcrop <- resample(elevCO, past_models[[1]], method='bilinear')
 
@@ -747,38 +904,45 @@ apply_models_prob <- lapply(applymax, function(x){
   raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_prob_map.tif",sep=""))
 })
 
-# All herbarium data points
-all <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80.csv")
 
-pre1980 <- read.csv("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1980.csv")
+# get the background points too!
+#pmp1 <- data.frame(rasterToPoints(past_models_prob[[1]]))
+pmp1  <- extract(past_models_prob[[1]], FieldData_all[FieldData_all$id == 1&
+                                                        FieldData_all$year<1931,
+                                                      c("decimalLongitude","decimalLatitude")])
+training <- lapply(Maxent, function(x){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/trainingSamples.csv",sep=""))
+})
+background <- lapply(Maxent, function(x){
+  read.csv(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/backgroundPoints.csv",sep=""))
+})
+```
 
-# match id from pre1980, that matches order of models, to ID from all for which species
-IDcode <- merge(all[,c("scientificName","ID")],
-                pre1980[,c("ID","id")], by = "ID")
-  
+Do all 
+```{r}
+summary.lm.all <- lapply(1:50, function(now){
+  ID1 <- rbind(data.frame(training[[now]],InOut=1),data.frame(background[[1]],InOut=0))
+  ID1extract <- extract(past_models_prob[[now]], ID1[,c("x","y")])
+  ID1.all <- data.frame(ID1,ID1extract)
+  out <- lm(InOut~ID1extract, data=ID1.all)
+  out
+})
 
-nrow(unique(IDcode)) #333 many synonyms
-unique(IDcode$id)
+summary(summary.lm.all[[7]])
+##START HERE! whhich are better matched, by sample size, by any other category? 
 ```
 
 #1:45 are sign changing phenology, 46:340 (339) are not sign changing in phenology   
 ```{r}
 elevCO <- raster("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_GENERAL_non-species_files/All_General_Background_Layers/Colorado/Elevation_VT/CO_Mosaic_Elevation_VT/co_elev_VT_WGS84.tif")
 
-modelrun <- "PRISM_pre1980_current_beta5_minmaxtemp_precip/"
-applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
-Maxent <- paste("Maxent_",1:89,sep="")
-
-past_models <- lapply(Maxent, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
-})
 
 x <- 1
-
+## NEED TO SWITCH TO LEVELPLOT!! THESE WILL BE WRONG!!!
 plot(past_models[[x]], col = c("#696969","#ffffff"),
      legend=FALSE,
      xlab="Longitude", ylab="Latitude")
-  points(all[all$id == x & all$year < 1980, c("decimalLongitude","decimalLatitude")],
+  points(FieldData_all[FieldData_all$id == x & FieldData_all$year < 1980, c("decimalLongitude","decimalLatitude")],
          pch=16, cex=0.75, col="brown2")
 
 
@@ -810,14 +974,12 @@ growingDegDays(meantemp, 10)
 
 For points after 1980 and climate averaged over 1981:2011
 ```{r}
-apply_models <- lapply(applymax, function(x){
-  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxent_bin_map.tif",sep=""))
-})
+
 
 # need to extract all the climate variables for those points
-bioclims <- lapply(1:89, function(x){
-  allID <- unique(pre1980$ID[pre1980$id == x])
-  pntplot <- all[all$ID ==allID & all$year > 1980,
+bioclims <- lapply(1:87, function(x){
+  allID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
+  pntplot <- FieldData_all[FieldData_all$ID ==allID & FieldData_all$year > 1980,
                  c("decimalLongitude","decimalLatitude")]
     out <- extract(apply_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
   if(allID < 46){   # IDs 1:45 are significantly changing in phenology
@@ -901,7 +1063,7 @@ ggplot(data.frame(alph.pc,bioclimPCA[bioclimPCA$id==1,1:2]),
 
 
 ```{r}
-plots <- lapply(1:89, function(x){
+plots <- lapply(1:87, function(x){
   alph.pca <- princomp(bioclimPCA[bioclimPCA$id==x,c("bio.5","bio.6","bio.12")], cor=TRUE)
   sumr <- summary(alph.pca)
   alph.load <- loadings(alph.pca)
@@ -921,10 +1083,11 @@ plots[[2]][3][[1]]
 
 
 
-print apply models; make the Images folder first
+print apply models; make the Images folder first   
+### Haven't made the images folder in the 10rep (really doesn't have 10 reps) folder
 ```{r}
 dpi = 1200
-for(i in 1:89){
+for(i in 1:87){
 tiff(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,"Images/PCA",i,".tiff", 
            sep=""), width = 130, height = 90, compression="lzw", units = "mm", res=dpi)
 
@@ -958,8 +1121,8 @@ aggregate(Freq~Var1, inout, mean) #0: 0.629; 1: 0.371
 aggregate(Freq~Var1, inout, sd) # 0: 0.1928782, 1:0.1928782   same? yes! proportions, same N, when one is bigger, one is smaller
 aggregate(Freq~Var1, inout, function(x) c(mean=mean(x), sd=sd(x), se = std.error(x)))
 
-length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="SignChange"])) #12
-length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #77
+length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="SignChange"])) #11
+length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #76
 
 
 ```
@@ -969,9 +1132,9 @@ length(unique(bioclimPCA$id[bioclimPCA$PhenSign=="NoChange"])) #77
 Points pre 1980 with past_models (1900-1930)
 ```{r}
 # need to extract all the climate variables for those points
-bioclims_past <- lapply(1:89, function(x){
-  allID <- unique(pre1980$ID[pre1980$id == x])
-  pntplot <- all[all$ID ==allID & all$year < 1981,
+bioclims_past <- lapply(1:87, function(x){
+  allID <- unique(FieldData_pre1980$ID[FieldData_pre1980$id == x])
+  pntplot <- FieldData_all[FieldData_all$ID ==allID & FieldData_all$year < 1981,
                  c("decimalLongitude","decimalLatitude")]
     out <- extract(past_models[[x]], pntplot, fun=mean) # to get a vector of 0|1
   if(allID < 46){
@@ -992,9 +1155,11 @@ bioclimPCA_past <- do.call(rbind,bioclims_past)
 shiftnames <- names(bioclimPCA_past)
 names(bioclimPCA_past) <- c(shiftnames[-4],"bio.19")
 
+
+#Error in writing table!
 write.table(bioclimPCA_past, 
-            file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/PRISM_pre1980_current_beta5_minmaxtemp_precip/bioclimPCA_past.csv", 
-            sep=",", row.names=FALSE)
+            file = paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,"/bioclimPCA_past.csv", 
+            sep=","), row.names=FALSE)
 
 
 ```
@@ -1023,7 +1188,7 @@ summary(lm1)
 
 
 ```{r}
-plots_past <- lapply(1:89, function(x){
+plots_past <- lapply(1:87, function(x){
   bionow <- bioclimPCA_past[bioclimPCA_past$id==x & 
                               !is.na(bioclimPCA_past$bio.1),] #some NA problems
   alph.pca <- princomp(bionow[,c("bio.5","bio.6","bio.12")],
@@ -1097,7 +1262,7 @@ length(unique(bioclimPCA_past$id[bioclimPCA_past$PhenSign=="NoChange"])) #77
 ```
 
 
-
+## 10/6/2017 need to come back and fix this!
 Examine PCA for models and for apply models. What direction are the points that are real collections, species found in that environmental space, but the model doesn't predict as should be found there.   
 ```{r}
 # Importance of components  # can't find it!!
@@ -1250,7 +1415,7 @@ compareprepost <- rbind(data.frame(bioclimPCA,Time="Post"),
                         data.frame(bioclimPCA_past,Time="Pre"))
 
 
-pp.pca <- lapply(1:89, function(x){
+pp.pca <- lapply(1:87, function(x){
   alph.pca <- princomp(compareprepost[compareprepost$id==x &
                                         complete.cases(compareprepost),
                                       -c(1:3,23)], cor=TRUE)
@@ -1272,8 +1437,8 @@ pp.pca <- lapply(1:89, function(x){
 allpoints <- do.call(rbind, lapply(pp.pca, "[[", 4)) #bind the 4th element of each list
 
 ggplot(allpoints, aes(Comp.1, Comp.2, colour=Time))+
-  stat_ellipse(size=1.5)+
-  geom_point(alpha=0.1)+
+  stat_ellipse()+
+  geom_point(alpha=0.01)+
   facet_wrap(~PhenSign)
   
 
@@ -1298,7 +1463,7 @@ unique(bioclimPCA_both$id)
 Would be great to use only specimens from <1930 vs. specimens from 1982:2011    
 #Perform PCA compare bioclimatic envelop of <1930 to >1980
 ```{r}
-bioclims_pastpre1930 <- lapply(1:89, function(x){
+bioclims_pastpre1930 <- lapply(1:87, function(x){
   allID <- unique(pre1980$ID[pre1980$id == x])
   pntplot <- all[all$ID ==allID & all$year < 1931 & all$year > 1800,
                  c("decimalLongitude","decimalLatitude")]
@@ -1399,10 +1564,15 @@ levels(climateenv$PhenSign)[levels(climateenv$PhenSign)=="SignChange"] <- "Signi
 levels(climateenv$PhenSign)[levels(climateenv$PhenSign)=="NoChange"] <- "No significant change in phenology"
 
 
-ggplot(climateenv,aes(x = bio.6,y = bio.12, colour= Time))+
+climateenv$Climate[climateenv$Time=="Before 1980"] <- "Early"
+climateenv$Climate[climateenv$Time=="After 1980"] <- "Current"
+
+
+ggplot(climateenv,aes(x = bio.6,y = bio.12, colour= Climate))+
   geom_point()+
   geom_errorbarh(aes(xmin = bio.6-bio.6.sd, xmax = bio.6+bio.6.sd), height = 0.2)+
   geom_errorbar(aes(ymin = bio.12-bio.12.sd, ymax = bio.12+bio.12.sd),width = 0.2)+
+  theme_bw()+
   xlab("Min Temperature of Coldest Month")+
   ylab("Annual Precipitation")+
   facet_wrap(~PhenSign) #does it matter if they changed in phenology?
@@ -1426,33 +1596,19 @@ ggplot(climateenv,aes(x = bio.5,y = bio.6, colour= Time))+
 ```
 
 
-maxentResults summarize   
-```{r}
-maxentResults <- do.call(rbind,
-                         lapply(Maxent, function(x){
-                           maxout <- read.csv( paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun,x,"/maxentResults.csv", sep=""))
-                         maxout})
-                         )
-
-head(maxentResults)
-mean(maxentResults$Training.AUC)
-min(maxentResults$Training.AUC)
-max(maxentResults$Training.AUC)
-
-hist(maxentResults$Training.AUC)
-
-mean(maxentResults$Equal.training.sensitivity.and.specificity.cumulative.threshold)
-mean(maxentResults$Equal.training.sensitivity.and.specificity.logistic.threshold)
-
-mean(maxentResults$Maximum.training.sensitivity.plus.specificity.logistic.threshold)
-
-```
 
 
 
-Which species go up or down in elevation?
+Which species go up or down in elevation? 
+Table1 saved from final product of Alpine phenology manuscript
 ```{r}
 habitXsp <- read.csv("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/Table1.csv")
+
+FD_all <- FieldData_all[FieldData_all$year > 1800 &
+                          FieldData_all$year < 2018,]
+FD_all <- FD_all[complete.cases(FD_all),]
+FD_all$Phenology[FD_all$ID<46] <- "Significant"
+FD_all$Phenology[FD_all$ID>45] <- "NoChange"
 
 
 FD_all_habit <- merge(FD_all, habitXsp[,-4], by.x = "ID", by.y = "Order")
@@ -1470,12 +1626,28 @@ FD_all_habit$Phenology[FD_all_habit$Phenology=="NoChange"] <- "No significant ch
 # Which species are increaseing or not elevation..  
 # Assume annuals can move faster
 
-ggplot(FD_all_habit, aes(year, minimumElevationInMeters,colour=as.factor(ID)))+
-  geom_point()+
-  stat_smooth(method="lm")+
-  facet_wrap(~Duration)+
-  theme(legend.position="none")
+ggplot(FD_all_habit, aes(year, minimumElevationInMeters))+
+  geom_point(pch=21)+
+  stat_smooth(method="lm", se=FALSE)+
+  facet_wrap(~DurationGroup)+
+  theme_bw()+
+  theme(legend.position="none")+
+  ylab("Elevation (m)")
 
+
+ggplot(minavg, aes(Time, elevation..m., colour=Time))+
+  geom_boxplot()+
+  facet_wrap(~stat)+
+  labs(y="Elevation (m)")+
+  theme_bw()
+
+ggplot(FD_all_habit, aes(year, minimumElevationInMeters))+
+  geom_point(pch=21)+
+  stat_smooth(method="lm", se=FALSE)+
+  facet_wrap(~Phenology)+
+  theme_bw()+
+  theme(legend.position="none")+
+  ylab("Elevation (m)")
 
 FD_all_habit$GrowthHabitGroup <- "Shrub/Tree"
 FD_all_habit$GrowthHabitGroup[grep("Forb",FD_all_habit$GrowthHabit)] <- "Forb/herb"
@@ -1805,5 +1977,217 @@ plot(e, 'ROC')
 ```
 
 
+
+
+
+# Examine what happens if you only use points before 1930
+
+
+Only before 1930 with the climate of 1900 to 1930!   
+Need make sure have right stuff for collections before 1930, exclude wrong dates
+```{r}
+
+#339 not significant
+notsig_339 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/NotSignEarl_385"
+sig_45 <- "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/SignEarl_385"
+
+#339
+filenames <- list.files(notsig_339, pattern="*.csv")
+#45
+filenames_1 <- list.files(sig_45, pattern="*.csv")
+
+# 339
+sps_339 <- lapply(1:339, function(file){
+  read.csv(paste(notsig_339, filenames[file], sep="/"))
+})
+
+# 45
+signsps_45 <- lapply(1:45, function(file){
+  read.csv(paste(sig_45,filenames_1[file], sep="/"))
+})
+
+#collections for use in VisTrails
+cols4VT <- lapply(1:45, function(x){
+  sp1 <- signsps_45[[x]][,c("scientificName","decimalLongitude",
+                          "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1931 & sp$year > 1800,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     institutionCode = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+  if(nrow(sp) > 30){
+    sp <- cbind(sp, "ID"=x, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }}
+  sp
+})
+
+
+# need to be 46:384
+cols4VT_339 <- lapply(1:339, function(x){
+  sp1 <- sps_339[[x]][,c("scientificName","decimalLongitude",
+                        "decimalLatitude","year",
+                          "minimumElevationInMeters","institutionCode")]
+  sp <- sp1[sp1$decimalLatitude < 41.1 & sp1$decimalLatitude > 36.9 &
+             sp1$decimalLongitude > -109 & sp1$decimalLongitude < -102,]
+  sp <- sp[!is.na(sp$decimalLatitude),]
+  sp <- sp[sp$year < 1931 & sp$year > 1800,]
+  sp <- sp[!is.na(sp$year),]
+  if(nrow(sp) == 0){
+    sp <- data.frame(scientificName = unique(sp1$scientificName),decimalLongitude = NA,
+                     decimalLatitude = NA,year = NA,
+                     minimumElevationInMeters = NA,
+                     institutionCode = NA,
+                     ID = NA, N=nrow(sp))
+    } else {
+    if(nrow(sp) > 30){
+    sp <- cbind(sp, "ID"=x+45, "N"=nrow(sp))
+  } else {
+    sp <- cbind(sp, "ID" = NA, "N"=nrow(sp))
+  }
+  }
+  sp
+})
+
+
+AlPh384 <- rbind(do.call(rbind,cols4VT), do.call(rbind,cols4VT_339))
+AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
+
+seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
+
+write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1930.csv", sep=",", row.names=FALSE)
+
+unique(seqAlPh$id)
+length(unique(seqAlPh$ID))
+
+AlPh50 <- FieldData_all[FieldData_all$ID %in% unique(seqAlPh$ID),-length(seqAlPh)]
+seqAlPh30 <- transform(AlPh50, id=match(AlPh50$ID, unique(AlPh50$ID)))
+
+write.table(seqAlPh30, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over30post1980.csv", sep=",", row.names=FALSE)
+
+```
+
+
+Don't really need those and take lots of space
+```{r}
+rm(cols4VT,cols4VT_339,signsps_45,sps_339)
+```
+
+#Take results from VisTrails and compare bin maps for each past projected to current with points from current
+```{r}
+modelrun30 <- "PRISM_pre1930_current_beta5_MESS/" #3 folds, more than 30 points
+#applymax <- paste("ApplyMAXENT",1:89,"_1", sep="")
+#Maxent <- paste("Maxent_",1:89,sep="")
+applymax30 <- paste("ApplyMAXENT",1:50,"_1", sep="")
+Maxent30 <- paste("Maxent_",1:50,sep="")
+
+models30 <- lapply(Maxent30, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun30,x,"/maxent_bin_map.tif",sep=""))
+})
+
+applymodels30 <- lapply(applymax30, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",modelrun30,x,"/maxent_bin_map.tif",sep=""))
+})
+
+
+# Change the furture (current) models to 2 and 0 and keep past as 1 and 0, when added 3=in both, 2=in current only, 1=past only
+overlap30 <- lapply(1:length(models30), function(x){
+  past <- models30[[x]]
+  current <- applymodels30[[x]]
+  current[applymodels30[[x]] == 1] <- 2
+  out <- past+current
+  out
+})
+
+## how different for the only before 1930 to only before 1980
+length(unique(FieldData_pre1980$ID))
+length(unique(seqAlPh30$ID))
+length(which(unique(FieldData_pre1980$ID) %in% unique(seqAlPh30$ID))) #Carex siccata lost!
+biggerlist <- which(unique(FieldData_pre1980$ID) %in% unique(seqAlPh30$ID))
+which(unique(seqAlPh30$ID)==132) #21 from list of 50
+smallerlist <- c(1:20,22:50)
+
+overlap80_30 <- lapply(1:49, function(x){
+  pre80 <- models[[biggerlist[x]]] #more points with all previous to 1980 will be 1
+  pre30 <- models30[[smallerlist[x]]]
+  pre30[models30[[x]]==1]<-2 #fewer points will be 2
+  out <- pre80+pre30
+  out
+})
+
+# 1/red = with 1861:1980 data, 2/blue = with 1861:1930 data, 3/purple = agree
+plot(overlap80_30[[44]], col = c("white","red","blue","lavender"))
+```
+
+```{r}
+
+for(x in 1:49){
+
+  # Have some data that has years wrong like >2017 and less than 1800 down to 0
+  pointsafter <- SpatialPointsDataFrame(FieldData_all[FieldData_all$id == x,
+                                        c("decimalLongitude","decimalLatitude")],
+                                        FieldData_all[FieldData_all$id == x,],
+                                        proj4string=CRS("+init=epsg:4326"))
+  
+  pointsabefore <- SpatialPointsDataFrame(seqAlPh30[seqAlPh30$id == x,
+                                          c("decimalLongitude","decimalLatitude")],
+                                          seqAlPh30[seqAlPh30$id == x,],
+                                          proj4string=CRS("+init=epsg:4326"))
+  
+    
+  jpeg(paste("Q:/Research/Presentations/External Conference presentations/Natural Areas Conference 2017/",x,"compare30_80.jpg",sep=""), width = 200, height = 150,
+       units = "mm", res = 300)
+  
+  print(levelplot(overlap80_30[[x]], margin=FALSE,
+            col.regions=c("white","red4","midnightblue","lavender"),
+            colorkey=list(at=seq(0, 4, 1)),
+                 labels=list(at=seq(0, 4, 1)))+
+    layer(sp.points(pointsafter, pch=20, cex=0.5, col="lightblue4"))+
+    layer(sp.points(pointsabefore, pch=22, cex=0.25, col="red3")) )
+  
+  rm(pointsafter,pointsabefore)
+  
+  dev.off()
+}
+
+change30_80 <- do.call(rbind,lapply(overlap80_30, function(x){
+  pre80 <- sum(x[]==1)
+  pre30 <- sum(x[]==2)
+  agree <- sum(x[]==3)
+  net <- ((sum(x[]==2) -sum(x[]==1)) * (res(r)[1]*res(r)[2])/1000000)
+  out <- cbind(pre80,pre30,agree,net)
+  out
+}))
+
+boxplot(change30_80)
+#mostly agree, end up with around zero difference, more times the fewer points gives a larger distribution than more points. 
+
+```
+
+
+```{r}
+JustMaxent30 <- paste("PRISM_justcurrent_beta5/Maxent_",1:87,sep="")
+
+justcurrentmodels30 <- lapply(JustMaxent30, function(x){
+  raster(paste("Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/",x,"/maxent_bin_map.tif",sep=""))
+})
+
+overlap_applycurrent30 <- lapply(1:length(models30), function(x){
+  apply <- applymodels30[[x]]
+  current <- justcurrentmodels30[[x]]
+  current[justcurrentmodels30[[x]]==1]<-2
+  out <- apply+current
+  out
+})
+```
 
 
