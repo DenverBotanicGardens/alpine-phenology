@@ -194,7 +194,7 @@ AlPh384 <- AlPh384[!is.na(AlPh384$ID),]
 
 seqAlPh <- transform(AlPh384, id=match(AlPh384$ID, unique(AlPh384$ID)))
 
-write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1930.csv", sep=",", row.names=FALSE)
+#write.table(seqAlPh, file = "Q:/Research/All_Projects_by_Species/aa_Shapefiles_Maps/aa_ArcMap_Projects/Alpine_Phenology_2/Species_SEINet/FieldData_AlPh_over80pre1930.csv", sep=",", row.names=FALSE)
 
 unique(seqAlPh$id)
 ```
@@ -455,12 +455,13 @@ change.newold <- lapply(overlap10, function(x){
   Early <- (sum(x[]==1)+sum(x[]==3)) * (res(r)[1]*res(r)[2])/1000000 *0.621371 #to miles? 
   Current <- (sum(x[]==2)+sum(x[]==3)) * (res(r)[1]*res(r)[2])/1000000*0.621371 #to miles? 
   Maintained  <- sum(x[]==3) *(res(r)[1] *res(r)[2])/1000000*0.621371 #to miles? 
-  Lost <- ( sum(x[] == 2) - sum(x[] == 1) ) * (res(r)[1]*res(r)[2])/1000000 *0.621371 #to miles? 
-  out <- cbind(Early,Current,Maintained,Lost)
+  Current_Early <- ( sum(x[] == 2) - sum(x[] == 1) ) * (res(r)[1]*res(r)[2])/1000000 *0.621371 #to miles? 
+  out <- cbind(Early,Current,Maintained,Current_Early)
 })
 
 netchangevector.newold <- do.call(rbind,change.newold)
 boxplot(netchangevector.newold,
+        names=c("Early climate","Current climate","Maintained","Current - Early"),
         ylab = "Range Size (sq mi)") #square km change -> pixel change
 
 
@@ -479,21 +480,6 @@ plot(applymodels[[59]], col = c("white","blue"),
 
 # 0 is not in range, 1/red = past, 2/blue = present, 3/purple = both
 plot(overlap10[[59]], col = c("white","red","blue","lavender"))
-
-
-# New minus old (not taking into account how much is maintained, that would subtract out anyway)
-boxplot(netchangevector.newold)
-hist(netchangevector.newold)
-
-#convert raster to dataframes for plotting in ggplot
-df1 <- data.frame(rasterToPoints(overlap10[[1]]))
-colnames(df1) <- c("X","Y","SHM") #suitable habitat model
-
-# vector for color breaks
-b.col <- seq(0,3,length.out=4)
-
-ggplot(df1,aes(X,Y,fill=SHM))+
-  geom_raster()
 
 ```
 
@@ -592,12 +578,14 @@ ggmap(colorado)+
 ```{r}
 # 1 (apply model) minus 2 (current): showing how much the antipated correct model is compared to the predicted. Positive values show over estimation of the apply model to more accurate, while negative values are how much underestimated what should be assumed to be an accurate model
 
+#PRISM models are 4kmx4km so that should be the actual resolution
+
 change.currentapply <- lapply(1:87, function(model){
   x<-overlap_applycurrent[[model]]
-  net <- (( sum(x[] == 1) - sum(x[] == 2) ) * (res(r)[1]*res(r)[2])/1000000) 
+  net <- (( sum(x[] == 1) - sum(x[] == 2) ) * 4^2) #apply model - current
   net <- data.frame(net, variable = model)
 })
-nc.ca <- do.call(rbind,change.currentapply)
+nc.ca <- do.call(rbind,change.currentapply) #net change, current and apply
 nc.ca$Phenology[nc.ca$variable < 13] <- "SignficantChange"
 nc.ca$Phenology[nc.ca$variable > 12] <- "NoChange"
 
@@ -614,6 +602,8 @@ nc.ca$GrowthHabitGroup[grep("Graminoid",nc.ca$GrowthHabit)] <- "Graminoid"
 nc.ca$DurationGroup <- "Annual/Short Lived Perennial"
 nc.ca$DurationGroup[nc.ca$Duration == "Perennial"] <- "Perennial"
 ```
+
+
 maxentResults summarize   
 ```{r}
 maxentResults <- do.call(rbind,
@@ -680,10 +670,20 @@ centers <- aggregate(, data = cocounties)
 
 gCentroid(colorado, byid = FALSE)
 
+
+table(nc.ca$DurationGroup,nc.ca$Phenology)
+anns <- nc.ca[grep("Annual",nc.ca$DurationGroup),]
+anns$Species[anns$Phenology=="NoChange"]
+anns$Species[anns$Phenology=="SignficantChange"]
+
+perns <- nc.ca[nc.ca$Phenology == "SignficantChange" & nc.ca$DurationGroup == "Perennial",]
+pernsno <- nc.ca[nc.ca$Phenology == "NoChange" & nc.ca$DurationGroup == "Perennial",]
+
+pernsno$Species[pernsno$net>0]
+
 ```
  
- ### START HERE!! don't know if I trust this figure!!
-
+ 
 ```{r}
 ggplot(nc.ca, aes(y=net,x=Phenology))+
   geom_boxplot()+
@@ -691,9 +691,9 @@ ggplot(nc.ca, aes(y=net,x=Phenology))+
   labs(y = expression(atop("Difference between projected climate model ", paste("and the current evelope (", km^2,")"))), 
        x = "87 species \n 11 significantly changed in phenology \n 76 showed no change in phenology")+
   theme_bw()+
-  facet_wrap(~DurationGroup)+
-  geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=0, ymax = Inf), alpha=0.1, fill="red")+
-  geom_rect(aes(xmin=-Inf, xmax=Inf, ymin=-Inf, ymax = 0), alpha=0.1, fill="blue")
+  facet_wrap(~DurationGroup) +
+  annotate(geom="rect", xmin=-Inf, xmax=Inf, ymin=0, ymax = Inf, alpha=0.095, fill="red")+
+  annotate(geom="rect",xmin=-Inf, xmax=Inf, ymin=-Inf, ymax = 0, alpha=0.095, fill="blue")
 ```
 
 
