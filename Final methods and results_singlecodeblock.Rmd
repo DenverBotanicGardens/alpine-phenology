@@ -102,11 +102,11 @@ colo$Reproductive.Status <- as.character(colo$Reproductive.Status)
 
 # Select only reprodutive or post reproductive records
 repro <- c("Flr","Bulblets","Seed","Fr","Bud")
-colo.sm <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
+colo.sm1 <- colo[colo$Reproductive.Status %in% unique(grep(paste(repro,collapse="|"),
                                                                 colo$Reproductive.Status,
                                                                 value=TRUE,ignore.case = TRUE)),]
 
-colo.sm <- colo[,c(1,5,40,13,31,32,21,22,23,24)] #added 5 = Authority
+colo.sm <- colo.sm1[,c(1,5,40,13,31,32,21,22,23,24)] #added 5 = Authority
 
 #Year
 colo.sm$Year <- (sub('.*(\\d{4}).*', '\\1', as.character(colo.sm$Date..dd.month.yyyy.)))
@@ -141,10 +141,10 @@ seinet <- seinet[seinet$scientificName!="",]
 seinet$reproductiveCondition <- as.character(seinet$reproductiveCondition)
 
 repro <- c("Fl","fr","Fert","fl","Fr")
-seinet.sm <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
+seinet.sm1 <- seinet[seinet$reproductiveCondition %in% unique(grep(paste(repro,collapse="|"),
                                                              seinet$reproductiveCondition,
                                                              value=TRUE)),]
-seinet.sm <- seinet[,c(12,14,13,56,63:64,31,73,34,2)]
+seinet.sm <- seinet.sm1[,c(12,14,13,56,63:64,31,73,34,2)]
 # get to 1950-2011
 seinet.sm <- seinet.sm[seinet.sm$year >=1950,]
 #seinet.sm <- seinet.sm[seinet.sm$year <= 2011,]
@@ -352,11 +352,49 @@ unbloom <- unique(bloom[,c(19,20,21,23)])
 
 ```
 
-
+# When including all collections each year, need to check for and remove any duplicate records.
 #For reviewer, compare to mean flowering time, not first    
 ## merge.name.accpt.ALL
 ```{r}
 #don't split bloom.sp to find earliest each year (as in earl.sp.yr) just keep all of bloom.sp and merge with accepted names by ID from synonyms.plantsyn.accpt
+
+#first check for duplicates before getting to bloom.sp
+# Primary collector number: 13329 samesies
+nrow(as.data.frame(table(colo$Primary.Collector.Number))[as.data.frame(table(colo$Primary.Collector.Number))$Freq >1,])
+
+#same date and year and elevation (since don't have lat long for all)?
+n_occur <- data.frame(table(colo$scientificName,colo$Date..dd.month.yyyy.))
+head(n_occur[n_occur$Freq > 1,])
+nrow(n_occur[n_occur$Freq > 1,])
+
+colo[colo$scientificName == "Trisetum spicatum ssp. congdonii" &
+       colo$Date..dd.month.yyyy. == "01 August 1954",]
+
+n_occurXelevation <- aggregate(State~Date..dd.month.yyyy.+Elevation..meters.+scientificName,
+                               function(x) length(x),
+                               data=colo)
+
+n_occurXelevation[n_occurXelevation$State>1,]
+
+#Oy, this one is in once as vegetative and once as flowering but all other information is the same. The vegetative one would be removed anyway..
+colo[colo$Date..dd.month.yyyy.=="29 May 1963"&
+       colo$Elevation..meters.==2210&
+       colo$scientificName=="Acer glabrum",]
+
+
+colo[colo$Date..dd.month.yyyy.=="30 July 1937"&
+       colo$Elevation..meters.==2286&
+       colo$scientificName=="Achillea lanulosa",]
+
+#get rid of duplicates that way
+colo2 <- colo[!duplicated(colo$Date..dd.month.yyyy.=="30 July 1937"&
+       colo$Elevation..meters.==2286&
+       colo$scientificName=="Achillea lanulosa"),]
+
+colo2[colo2$Date..dd.month.yyyy.=="30 July 1937"&
+       colo2$Elevation..meters.==2286&
+       colo2$scientificName=="Achillea lanulosa",]
+
 
 ALL.sp.yr <- do.call(rbind, 
                      lapply(split(bloom.sp, bloom.sp$ID), function(id){
