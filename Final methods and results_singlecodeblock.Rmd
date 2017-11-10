@@ -358,54 +358,28 @@ write.table(merge.name.accpt, "P:/hackathon/alpine-phenology/datasets/mergenamea
 # When including all collections each year, need to check for and remove any duplicate records.
 #For reviewer, compare to mean flowering time, not first    
 ## merge.name.accpt.ALL
-```{r}
-#don't split bloom.sp to find earliest each year (as in earl.sp.yr) just keep all of bloom.sp and merge with accepted names by ID from synonyms.plantsyn.accpt
-
-#first check for duplicates before getting to bloom.sp
-# Primary collector number: 13329 samesies
-nrow(as.data.frame(table(colo$Primary.Collector.Number))[as.data.frame(table(colo$Primary.Collector.Number))$Freq >1,])
-
-#same date and year and elevation (since don't have lat long for all)?
-n_occur <- data.frame(table(colo$scientificName,colo$Date..dd.month.yyyy.))
-head(n_occur[n_occur$Freq > 1,])
-nrow(n_occur[n_occur$Freq > 1,])
-```
-
 
 
 ```{r}
-colo[colo$scientificName == "Trisetum spicatum ssp. congdonii" &
-       colo$Date..dd.month.yyyy. == "01 August 1954",]
-
-n_occurXelevation <- aggregate(State~Date..dd.month.yyyy.+Elevation..meters.+scientificName,
-                               function(x) length(x),
-                               data=colo)
-
-n_occurXelevation[n_occurXelevation$State>1,]
-
-#Oy, this one is in once as vegetative and once as flowering but all other information is the same. The vegetative one would be removed anyway..
-colo[colo$Date..dd.month.yyyy.=="29 May 1963"&
-       colo$Elevation..meters.==2210&
-       colo$scientificName=="Acer glabrum",]
-
-
-colo[colo$Date..dd.month.yyyy.=="30 July 1937"&
-       colo$Elevation..meters.==2286&
-       colo$scientificName=="Achillea lanulosa",]
-
-#get rid of duplicates that way
-colo2 <- colo[!duplicated(colo$Date..dd.month.yyyy.=="30 July 1937"&
-       colo$Elevation..meters.==2286&
-       colo$scientificName=="Achillea lanulosa"),]
-
-colo2[colo2$Date..dd.month.yyyy.=="30 July 1937"&
-       colo2$Elevation..meters.==2286&
-       colo2$scientificName=="Achillea lanulosa",]
-
 
 ##What about the bloom.sp, what's in there
 head(bloom.sp)
+n_dups <- aggregate(ID~Year+elevation+Decimal.Latitude+Decimal.Longitude+scientificName, 
+                    function(x) length(x), data = bloom.sp)
 
+
+n_dups[n_dups$ID>1,]
+
+bloom.sp[bloom.sp$scientificName=="Achillea millefolium"&
+           bloom.sp$elevation==3460,]
+
+bloom.sp2 <- bloom.sp[!duplicated(bloom.sp[c("Year","elevation","Decimal.Latitude",
+                                             "Decimal.Longitude","scientificName")]),]
+
+n.dups <- aggregate(ID~Year+elevation+Decimal.Latitude+Decimal.Longitude+scientificName, 
+                    function(x) length(x), data = bloom.sp2)
+
+n.dups[n.dups$ID>1,]
 
 ALL.sp.yr <- do.call(rbind, 
                      lapply(split(bloom.sp, bloom.sp$ID), function(id){
