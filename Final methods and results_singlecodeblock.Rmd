@@ -350,6 +350,9 @@ bloom$Raw_Precip <- (bloom$Raw_Precip)/100
 merge.name.accpt <- merge(merge.name.accpt,unique(bloom[,c(19,20,21,23)]), by="Year")
 unbloom <- unique(bloom[,c(19,20,21,23)])
 
+write.table(merge.name.accpt, "P:/hackathon/alpine-phenology/datasets/mergenameaccpt.csv",
+            sep=",")
+
 ```
 
 # When including all collections each year, need to check for and remove any duplicate records.
@@ -366,7 +369,11 @@ nrow(as.data.frame(table(colo$Primary.Collector.Number))[as.data.frame(table(col
 n_occur <- data.frame(table(colo$scientificName,colo$Date..dd.month.yyyy.))
 head(n_occur[n_occur$Freq > 1,])
 nrow(n_occur[n_occur$Freq > 1,])
+```
 
+
+
+```{r}
 colo[colo$scientificName == "Trisetum spicatum ssp. congdonii" &
        colo$Date..dd.month.yyyy. == "01 August 1954",]
 
@@ -394,6 +401,10 @@ colo2 <- colo[!duplicated(colo$Date..dd.month.yyyy.=="30 July 1937"&
 colo2[colo2$Date..dd.month.yyyy.=="30 July 1937"&
        colo2$Elevation..meters.==2286&
        colo2$scientificName=="Achillea lanulosa",]
+
+
+##What about the bloom.sp, what's in there
+head(bloom.sp)
 
 
 ALL.sp.yr <- do.call(rbind, 
@@ -434,6 +445,8 @@ min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
 min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
 
 length(unique(min1950GDDmax$ID)) #235
+write.table(min1950GDDmax, "P:/hackathon/alpine-phenology/datasets/min1950GDDmax.csv",
+            sep=",")
 
 ```
 
@@ -479,7 +492,7 @@ ggplot(allcol,  aes(x = Year, y = collections))+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
   scale_x_continuous(limits = c(1950,2011), breaks = seq(1950,2011, by=10))+
-  scale_y_continuous(limits = c(0,4700),breaks = seq(0,4700, by=500)) +
+  scale_y_continuous(limits = c(0,3750),breaks = seq(0,4700, by=500)) +
   theme(axis.text=element_text(size=7),
         axis.title=element_text(size=9))
 
@@ -519,24 +532,35 @@ dev.off()
 ```
 
 
+#Reproductive Date Analyses
+```{r}
+first.col <- summary(lm(startDayOfYear~Year, data=merge.name.accpt))
+
+first.col$coefficients[2,1]*61 #days change between 1950 and 2011
+
+#Goes with Fig 4
+
+```
+
+
 Table Year and Ordinal day
 ```{r}
 yr.1950_2 <- JulBloomDate.min1950("Year",merge.name.accpt)
 
-nrow(yr.1950_2) #385
+nrow(yr.1950_2) #385 -> 287
 
-write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_385.csv", sep=",")
+write.table(yr.1950_2, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_287.csv", sep=",")
 
-nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #343 -> 340
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #45
+nrow(yr.1950_2[yr.1950_2$p.value>=0.05,]) #343 -> 340 -> 241
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,]) #45 -> 46
 
-nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1159794 -> 0.1162791
+nrow(yr.1950_2[yr.1950_2$p.value<0.05,])/nrow(yr.1950_2) #0.1159794 -> 0.1602787
 
 #earlier
-nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #45
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.5275986
-mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-32.18351
-mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2173058
+nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0,]) #46
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #-0.6345862
+mean(yr.1950_2$Slope[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0])*61 #-38.70976
+mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope<0]) #0.2920128
 
 #later
 nrow(yr.1950_2[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0,]) #4->0
