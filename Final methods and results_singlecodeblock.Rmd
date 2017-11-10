@@ -320,7 +320,7 @@ earl.sp.yr <- do.call(rbind,
 )
 
 sp.10plus <- earl.sp.yr[earl.sp.yr$DataYrs>=10,] #413
-merge.name.accpt <- merge(sp.10plus, synonyms.plantsyn.accpt, by = "ID") #389
+merge.name.accpt <- merge(sp.10plus, synonyms.plantsyn.accpt, by = "ID") #389 -> 287
 
 ##########################################################
 earliestcollection <- data.frame(colSums(table(merge.name.accpt$ID,
@@ -330,8 +330,8 @@ earcol <- data.frame(Year = row.names(earliestcollection),
                      Collections = earliestcollection)
 colnames(earcol)[2] <- "Collections"
 earcol[,1] <- as.numeric(levels(earcol[,1]))
-earcol[which.max(earcol$Collections),] # 1998 346
-mean(earcol$Collections) #165.4262
+earcol[which.max(earcol$Collections),] # 1998 270
+mean(earcol$Collections) #165.4262 -> 97.27
 
 
 allcollections <- data.frame(colSums(table(bloom.sp$ID,bloom.sp$Year)))
@@ -432,6 +432,8 @@ yrspsp <- aggregate(gdddatayrs$Freq, by = list(gdddatayrs$Var2), FUN=sum)
 min1950GDD_2_10 <- merge(min1950GDD_2,yrspsp[yrspsp$x>=10,],
                          by.x="ID",by.y="Group.1") #313
 min1950GDDmax <- merge(totalGDDyr,min1950GDD_2_10, by="Year")
+
+length(unique(min1950GDDmax$ID)) #235
 
 ```
 
