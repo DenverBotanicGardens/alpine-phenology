@@ -333,8 +333,8 @@ earcol <- earliestcollection1
 colnames(earcol) <- c("Year","Collections")
 mean(earcol$Collections) #165.4262 -> 97.28
 
-
-allcol <- aggregate(ID~Year, data = bloom.sp, function(x) length(unique(x)))
+#Now want sum all collections
+allcol <- aggregate(ID~Year, data = bloom.sp, function(x) length(x))
 colnames(allcol)[2] <- "Collections"
 
 library(RCurl)
@@ -360,11 +360,6 @@ write.table(merge.name.accpt, "P:/hackathon/alpine-phenology/datasets/mergenamea
 bloom.sp2 <- bloom.sp[!duplicated(bloom.sp[c("Year","elevation","Decimal.Latitude",
                                              "Decimal.Longitude","scientificName",
                                              "startDayOfYear")]),]
-
-#n.dups <- aggregate(ID~Year+elevation+Decimal.Latitude+Decimal.Longitude+scientificName, 
-#                    function(x) length(x), data = bloom.sp2)
-
-#n.dups[n.dups$ID>1,]
 
 ALL.sp.yr <- do.call(rbind, 
                      lapply(split(bloom.sp2, bloom.sp2$ID), function(id){
@@ -461,7 +456,7 @@ Figure 1b
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 1b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(allcol,  aes(x = Year, y = collections))+
+ggplot(allcol,  aes(x = Year, y = Collections))+
   geom_bar(stat="identity")+
   xlab("Year")+
   ylab("Total Collections")+
@@ -721,16 +716,20 @@ summary(lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
 trianges gray (2) = just first
 black dots (19) = all, for mean so should never be only an open triangle but yes should be some spare dots
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4_firstandmeanflowering.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+dpi = 1200
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4_fm.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
 
 ggplot() +
   geom_point(data=merge.name.accpt, aes(Year, startDayOfYear), shape=2, 
-             colour="darkgray", alpha=0.75)+
+             colour="gray60")+
+  geom_point(data=merge.name.accpt.ALL, aes(Year, startDayOfYear), shape=20,
+             colour="gray40")+
   stat_smooth(data=merge.name.accpt, aes(Year, startDayOfYear),
-              method="lm",colour = "gray30", size = 0.75, linetype=5)+
-  geom_point(data=merge.name.accpt.ALL, aes(Year, startDayOfYear), shape=20, alpha=0.75)+
+              method="lm",size = 0.75, linetype=5,
+              colour="black")+
   stat_smooth(data=merge.name.accpt.ALL, aes(Year, startDayOfYear),
-              method="lm",colour = "black", size = 0.75)+
+              method="lm", size = 0.75,
+              colour="black")+
   theme_bw()+
   xlab("Year")+
   ylab("Ordinal date")+
@@ -745,14 +744,16 @@ summary(lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
 ```
 
 
-
+Add mean to first flowering
 
 Figure 5a
 ```{r}
 dpi = 1200
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(merge.name.accpt, aes(Avg_Hi, startDayOfYear))+
+ggplot()+
+  geom_point(data=merge.name.accpt, aes(Avg_Hi, startDayOfYear),
+             shape=1,size=0.5)+
   geom_point(shape=1,size=0.5)+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   theme_bw()+
