@@ -325,22 +325,17 @@ merge.name.accpt <- merge(sp.10plus, synonyms.plantsyn.accpt, by = "ID") #389 ->
 ##########################################################
 earliestcollection <- data.frame(colSums(table(merge.name.accpt$ID,
                                                merge.name.accpt$Year)))
+earliestcollection1 <- aggregate(ID~Year, data=merge.name.accpt, 
+                                 FUN = function(x) length(unique(x)))
 
-earcol <- data.frame(Year = row.names(earliestcollection),
-                     Collections = earliestcollection)
-colnames(earcol)[2] <- "Collections"
-earcol[,1] <- as.numeric(levels(earcol[,1]))
-earcol[which.max(earcol$Collections),] # 1998 270
-mean(earcol$Collections) #165.4262 -> 97.27
+earliestcollection1[which.max(earliestcollection1$ID),]
+earcol <- earliestcollection1
+colnames(earcol) <- c("Year","Collections")
+mean(earcol$Collections) #165.4262 -> 97.28
 
 
-allcollections <- data.frame(colSums(table(bloom.sp$ID,bloom.sp$Year)))
-allcol <- data.frame(Year = row.names(allcollections),
-                     allcollections)
-colnames(allcol)[2] <- "collections"
-
-as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
-allcol[,1] <- as.numeric.factor(allcol[,1])
+allcol <- aggregate(ID~Year, data = bloom.sp, function(x) length(unique(x)))
+colnames(allcol)[2] <- "Collections"
 
 library(RCurl)
 bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/QR_final_R_plant_climate_data_2.csv"))
@@ -362,18 +357,9 @@ write.table(merge.name.accpt, "P:/hackathon/alpine-phenology/datasets/mergenamea
 
 ```{r}
 
-##What about the bloom.sp, what's in there
-#head(bloom.sp)
-#n_dups <- aggregate(ID~Year+elevation+Decimal.Latitude+Decimal.Longitude+scientificName,
-#                    function(x) length(x), data = bloom.sp)
-
-
-#n_dups[n_dups$ID>1,]
-
-#bloom.sp[bloom.sp$scientificName=="Achillea millefolium"&bloom.sp$elevation==3460,]
-
 bloom.sp2 <- bloom.sp[!duplicated(bloom.sp[c("Year","elevation","Decimal.Latitude",
-                                             "Decimal.Longitude","scientificName")]),]
+                                             "Decimal.Longitude","scientificName",
+                                             "startDayOfYear")]),]
 
 #n.dups <- aggregate(ID~Year+elevation+Decimal.Latitude+Decimal.Longitude+scientificName, 
 #                    function(x) length(x), data = bloom.sp2)
@@ -389,11 +375,12 @@ ALL.sp.yr <- do.call(rbind,
                      }))
 
 
-
 merge.name.accpt.ALL <- merge(ALL.sp.yr, synonyms.plantsyn.accpt, by = "ID")
 length(unique(merge.name.accpt.ALL$ID)) #385, makes sense!  -> 287
 
-
+# Can't do colSums like for sp.yr since that is one per year, this is many
+meancol <- with(merge.name.accpt.ALL, aggregate(ID~Year, FUN = function(x) length(unique(x))))
+meancol[which.max(meancol$ID),] #1998 269
 ```
 
 
@@ -450,14 +437,14 @@ min1950GDDmax <- read.csv(text = getURL("https://raw.githubusercontent.com/Denve
 
 
 #Figures and Tables
-Figure 1a
+Figure 1a-first and mean, same
 ```{r}
 dpi = 1200
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(earcol, aes(Year, Collections))+
   geom_bar(stat="identity")+
-  xlab("Year")+???
+  xlab("Year")+
   ylab("Number of species collected")+
   theme_bw()+
   theme(axis.text.x = element_text(angle=90, hjust=1))+
@@ -468,6 +455,7 @@ ggplot(earcol, aes(Year, Collections))+
 dev.off()
 
 ```
+
 
 Figure 1b
 ```{r}
@@ -488,18 +476,12 @@ dev.off()
 
 ```
 
-
+# Exactly the same as first flowering time! don't need this
 Figure 1a - mean flowering time
 ```{r}
-meancollection <- data.frame(colSums(table(merge.name.accpt.ALL$ID,
-                                           merge.name.accpt.ALL$Year)))
-
-meancol <- data.frame(Year = row.names(meancollection),
-                      Collections = meancollection)
-
+meancol <- aggregate(ID~Year, data=merge.name.accpt.ALL,
+                     function(x) length(unique(x)))
 colnames(meancol)[2] <- "Collections"
-
-meancol[,1] <- as.numeric(levels(meancol[,1]))
 
 
 dpi = 1200
@@ -564,7 +546,15 @@ mean(yr.1950_2$adj.r.squ[yr.1950_2$p.value<0.05 & yr.1950_2$Slope>=0]) #NaN
 
 
 #For reviewer, mean bloom day
-Table Year and Ordinal day WITH MEAN BLOOM
+Table Year and Ordinal day WITH MEAN BLOOM   
+Later bloom
+[1] Ivesia gordonii (Hook.) Torr. & A. Gray                  
+[2] Cymopterus alpinus A. Gray  -> Oreoxis alpina ssp. alpina                              
+[3] Oxytropis borealis DC. var. viscida (Nutt.) S.L. Welsh    
+[4] Physaria alpina Rollins, flowering Jun-Jul                                   
+[5] Polemonium viscosum Nutt.                                 
+[6] Saxifraga caespitosa L.                                   
+[7] Saxifraga cernua L.      
 ```{r}
 yr.1950_2.ALL <- JulBloomDate.min1950("Year",merge.name.accpt.ALL)
 
@@ -572,8 +562,8 @@ nrow(yr.1950_2.ALL) #385
 
 write.table(yr.1950_2.ALL, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_287_meanbloomday.csv", sep=",")
 
-nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value>=0.05,]) #343 -> 340 -> 316
-nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05,]) #45 -> 69
+nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value>=0.05,]) #343 -> 340 -> 245
+nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05,]) #45 -> 42
 
 nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05,])/nrow(yr.1950_2.ALL) #0.1162791 -> 0.1792208
 
@@ -589,6 +579,14 @@ nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0,]) #4->0 
 mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0]) #0.3497761
 mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0])*61 #21.33634
 mean(yr.1950_2.ALL$adj.r.squ[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0]) #0.09204598
+
+unique(merge.name.accpt.ALL$AUTH.y[merge.name.accpt.ALL$ID %in%
+                                     yr.1950_2.ALL$ID[yr.1950_2.ALL$p.value<0.05&
+                                                        yr.1950_2.ALL$Slope>=0]])
+unique(merge.name.accpt.ALL$Growth.Habit[merge.name.accpt.ALL$ID %in%
+                                     yr.1950_2.ALL$ID[yr.1950_2.ALL$p.value<0.05&
+                                                        yr.1950_2.ALL$Slope>=0]])
+
 
 
 ```
@@ -695,7 +693,8 @@ ggplot(merge.name.accpt, aes(Year, startDayOfYear)) +
 
 dev.off()
 
-summary(lm(startDayOfYear~Year, data=merge.name.accpt))
+dayxyear <- summary(lm(startDayOfYear~Year, data=merge.name.accpt))
+dayxyear$coefficients[2,1]*61
 ```
 
 #Figure 4 with MEAN FLOWERING   
@@ -717,6 +716,34 @@ dev.off()
 summary(lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
 
 ```
+
+#Figure 4 first and MEAN FLOWERING     
+trianges gray (2) = just first
+black dots (19) = all, for mean so should never be only an open triangle but yes should be some spare dots
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 4_firstandmeanflowering.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+
+ggplot() +
+  geom_point(data=merge.name.accpt, aes(Year, startDayOfYear), shape=2, 
+             colour="darkgray", alpha=0.75)+
+  stat_smooth(data=merge.name.accpt, aes(Year, startDayOfYear),
+              method="lm",colour = "gray30", size = 0.75, linetype=5)+
+  geom_point(data=merge.name.accpt.ALL, aes(Year, startDayOfYear), shape=20, alpha=0.75)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Year, startDayOfYear),
+              method="lm",colour = "black", size = 0.75)+
+  theme_bw()+
+  xlab("Year")+
+  ylab("Ordinal date")+
+  scale_x_continuous(breaks = seq(1950,2011,10)) +
+  theme(axis.text=element_text(size=9),
+        axis.title=element_text(size=12)) 
+
+dev.off()
+
+summary(lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
+
+```
+
 
 
 
