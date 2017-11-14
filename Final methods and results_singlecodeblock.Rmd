@@ -371,6 +371,13 @@ ALL.sp.yr <- do.call(rbind,
 
 
 merge.name.accpt.ALL <- merge(ALL.sp.yr, synonyms.plantsyn.accpt, by = "ID")
+merge.name.accpt.ALL <- merge(merge.name.accpt.ALL,unique(bloom[,c(19,20,21,23)]), by="Year")
+
+#check for any errors in day
+table(merge.name.accpt.ALL$startDayOfYear)
+merge.name.accpt.ALL[merge.name.accpt.ALL$startDayOfYear==359,] # a christmas collection? -> no, all other collections by this person are from 25 June 1989, not december! 176 not 359
+merge.name.accpt.ALL$startDayOfYear[merge.name.accpt.ALL$startDayOfYear==359]<-176
+
 length(unique(merge.name.accpt.ALL$ID)) #385, makes sense!  -> 287
 
 # Can't do colSums like for sp.yr since that is one per year, this is many
@@ -553,27 +560,27 @@ Later bloom
 ```{r}
 yr.1950_2.ALL <- JulBloomDate.min1950("Year",merge.name.accpt.ALL)
 
-nrow(yr.1950_2.ALL) #385
+nrow(yr.1950_2.ALL) #287
 
 write.table(yr.1950_2.ALL, file = "Q:/Research/Projects/alpine-phenology/phensum_yr_287_meanbloomday.csv", sep=",")
 
 nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value>=0.05,]) #343 -> 340 -> 245
 nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05,]) #45 -> 42
 
-nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05,])/nrow(yr.1950_2.ALL) #0.1162791 -> 0.1792208
+nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05,])/nrow(yr.1950_2.ALL) #0.1162791 -> 0.1463415
 
 #earlier
-nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0,]) #45->35
-mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0]) #-0.3836091
-mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0])*61 #-23.40016
-mean(yr.1950_2.ALL$adj.r.squ[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0]) #0.1010248
+nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0,]) #45->34
+mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0]) #-0.4157667
+mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0])*61 #-25.36177
+mean(yr.1950_2.ALL$adj.r.squ[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope<0]) #0.09813986
 
 #later
-nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0,]) #4->0 -> 30
+nrow(yr.1950_2.ALL[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0,]) #4->0 ->8
 
-mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0]) #0.3497761
-mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0])*61 #21.33634
-mean(yr.1950_2.ALL$adj.r.squ[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0]) #0.09204598
+mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0]) #0.5716115
+mean(yr.1950_2.ALL$Slope[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0])*61 #34.8683
+mean(yr.1950_2.ALL$adj.r.squ[yr.1950_2.ALL$p.value<0.05 & yr.1950_2.ALL$Slope>=0]) #0.1569364
 
 unique(merge.name.accpt.ALL$AUTH.y[merge.name.accpt.ALL$ID %in%
                                      yr.1950_2.ALL$ID[yr.1950_2.ALL$p.value<0.05&
@@ -692,38 +699,19 @@ dayxyear <- summary(lm(startDayOfYear~Year, data=merge.name.accpt))
 dayxyear$coefficients[2,1]*61
 ```
 
-#Figure 4 with MEAN FLOWERING   
-```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 4_meanflowering.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
-
-ggplot(merge.name.accpt.ALL, aes(Year, startDayOfYear)) +
-  geom_point(shape=1)+
-  stat_smooth(method="lm",colour = "black", size = 0.75)+
-  theme_bw()+
-  xlab("Year")+
-  ylab("Ordinal date")+
-  scale_x_continuous(breaks = seq(1950,2011,10)) +
-  theme(axis.text=element_text(size=9),
-        axis.title=element_text(size=12)) 
-
-dev.off()
-
-summary(lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
-
-```
 
 #Figure 4 first and MEAN FLOWERING     
-trianges gray (2) = just first
-black dots (19) = all, for mean so should never be only an open triangle but yes should be some spare dots
+trianges gray (2) and solid line = just first    
+black dots (19) and dashed = all, for mean so should never be only an open triangle but yes should be some spare dots
 ```{r}
 dpi = 1200
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 4_fm.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
 
 ggplot() +
-  geom_point(data=merge.name.accpt, aes(Year, startDayOfYear), shape=2, 
-             colour="gray60")+
-  geom_point(data=merge.name.accpt.ALL, aes(Year, startDayOfYear), shape=20,
-             colour="gray40")+
+  geom_point(data=merge.name.accpt, aes(Year, startDayOfYear), shape=17, 
+             colour="gray70")+
+  geom_point(data=merge.name.accpt.ALL, aes(Year, startDayOfYear), shape=".",
+             colour="black")+
   stat_smooth(data=merge.name.accpt, aes(Year, startDayOfYear),
               method="lm",size = 0.75, linetype=5,
               colour="black")+
@@ -753,9 +741,13 @@ tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a.tiff", width = 84, height = 
 
 ggplot()+
   geom_point(data=merge.name.accpt, aes(Avg_Hi, startDayOfYear),
-             shape=1,size=0.5)+
-  geom_point(shape=1,size=0.5)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+             shape=2,size=0.5,colour="gray80")+
+  geom_point(data=merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear),
+             shape=20,size=0.5, colour="gray30")+
+  stat_smooth(data=merge.name.accpt, aes(Avg_Hi, startDayOfYear),
+              method="lm",colour = "black", size = 0.5, linetype=5)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear),
+              method="lm",colour = "black", size = 0.5)+
   theme_bw()+
 #  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression("Mean annual maximum temperature"~degree~C))+
@@ -767,6 +759,7 @@ ggplot()+
 dev.off()
 
 summary(lm(startDayOfYear~Avg_Hi, data=merge.name.accpt))
+summary(lm(startDayOfYear~Avg_Hi, data=merge.name.accpt.ALL))
 
 ```
 
@@ -774,38 +767,51 @@ Figure 5b
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
-  geom_point(shape=1, size= 0.5)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+ggplot()+
+  geom_point(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear),
+             shape=2,size=0.5,colour="gray80")+
+  geom_point(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear),
+             shape=20,size=0.5, colour="gray30")+
+  stat_smooth(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear),
+              method="lm",colour = "black", size = 0.5, linetype=5)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear),
+              method="lm",colour = "black", size = 0.5)+
   theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Low Temperature") +
+#  labs(title="Earliest Bloom Date by Average High Temperature") +
   xlab(expression("Mean annual minimum temperature"~degree~C))+
   ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=5),
+  theme(axis.text=element_text(size=6),
         axis.title=element_text(size=7))
 
 dev.off()
 
 summary(lm(startDayOfYear~Avg_Lo, data = merge.name.accpt))
+summary(lm(startDayOfYear~Avg_Lo, data = merge.name.accpt.ALL))
 ```
 
 Figure 5c 
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
-ggplot(merge.name.accpt, aes(Raw_Precip, startDayOfYear))+
-  geom_point(shape=1,size=0.25)+
-  stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
+ggplot()+
+  geom_point(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear),
+             shape=2,size=0.5,colour="gray80")+
+  geom_point(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
+             shape=20,size=0.5, colour="gray30")+
+  stat_smooth(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear),
+              method="lm",colour = "black", size = 0.5, linetype=5)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
+              method="lm",colour = "black", size = 0.5)+
   theme_bw()+
-#  labs(title="Earliest Bloom Date by Average Precipitation") +
-  xlab("Annual precipitation (mm)")+
+  ylab("Annual precipitation (mm)")+
   ylab("Ordinal Date")+
-  theme(axis.text=element_text(size=5),
+  theme(axis.text=element_text(size=6),
         axis.title=element_text(size=7))
 
 dev.off()
 
 summary(lm(startDayOfYear~Raw_Precip, data = merge.name.accpt))
+summary(lm(startDayOfYear~Raw_Precip, data = merge.name.accpt.ALL))
 ```
 
 Figure 5d
