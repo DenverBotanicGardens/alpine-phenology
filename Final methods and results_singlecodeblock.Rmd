@@ -744,6 +744,30 @@ summary(lm(startDayOfYear~Avg_Hi, data=merge.name.accpt.ALL))
 
 ```
 
+Double check that high and low temps are correct   
+```{r}
+library(cowplot)
+
+p1 <- ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+p2 <- ggplot(merge.name.accpt, aes(Avg_Hi,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+p3 <- ggplot(merge.name.accpt, aes(Raw_Precip,startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+
+p4 <- ggplot(merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")
+
+plot_grid(p1,p2,p3,p4,align="v")
+```
+
 Figure 5b
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
@@ -1335,16 +1359,12 @@ NPN Growing Degree Days average
 ```{r}
 minNPNGDDmax.ALL <- merge(totalGDDyr,npn.min1950.ALL, by="Year")
 
-###START HERE, figure out how many years each species has data for, not sum how many times
-##I THINK IT'S ALL worked out!!!
 npngdd.ALL1 <- aggregate(Avg_Hi~ID+Year, data=minNPNGDDmax.ALL, function(x) length(unique(x)))
 years.over.10 <- do.call(rbind,lapply(split(npngdd.ALL1, npngdd.ALL1$ID), function(x){
   years <- sum(x$Avg_Hi)
   out <- data.frame(unique(x$ID),years)
   out
 }))
-
-### Need ones that are these IDs from only 1981.. maybe minNPNGDDmax.all... oh, same as before but want from all... don't think I needed all that, just need that list of IDs from merge.name.accpt.ALL
 
 ID.10 <- aggregate(npngdd$Freq, list(npngdd$Var2), sum)
 minNPNGDD_2 <- merge(minNPNGDDmax, ID.10[ID.10$x >=10,], by.x = "ID", by.y = "Group.1")
@@ -1356,28 +1376,30 @@ length(unique(minNPNGDD_2.ALL$ID)) #17
 
 
 
-rst.npn <- JulBloomDate.min1950("MaxGDD", minNPNGDD_2)
+rst.npn.ALL <- JulBloomDate.min1950("MaxGDD", minNPNGDD_2.ALL)
 
-nrow(rst.npn) #24
-nrow(rst.npn[rst.npn$p.value<0.05,]) #4 -> 3
+nrow(rst.npn.ALL) #24 -> 17
+nrow(rst.npn.ALL[rst.npn.ALL$p.value<0.05,]) #4
 
 #lower GDD
-nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope < 0,]) #4
-mean(rst.npn$Slope[rst.npn$p.value<0.05 & rst.npn$Slope < 0]) # -0.05148802
-mean(rst.npn$adj.r.squ[rst.npn$p.value<0.05 & rst.npn$Slope< 0]) # 0.1728869
+nrow(rst.npn.ALL[rst.npn.ALL$p.value<0.05 & rst.npn.ALL$Slope < 0,]) #3
+mean(rst.npn.ALL$Slope[rst.npn.ALL$p.value<0.05 & rst.npn.ALL$Slope < 0]) # -0.03439091
+mean(rst.npn.ALL$adj.r.squ[rst.npn.ALL$p.value<0.05 & rst.npn.ALL$Slope< 0]) # 0.06209837
 unique(merge.name.accpt$AUTH.y[which(merge.name.accpt$ID %in% 
-                                rst.npn$ID[rst.npn$p.value<0.05 & rst.npn$Slope < 0])])
-#Achillea millefolium L.                    
-#Calamagrostis canadensis (Michx.) P. Beauv.
-#Aquilegia coerulea James
-#Carex aquatilis Wahlenb.
+                                rst.npn.ALL$ID[rst.npn.ALL$p.value<0.05 & rst.npn.ALL$Slope < 0])])
+#[1] Zigadenus elegans Pursh                    
+#[2] Aquilegia coerulea James                   
+#[3] Taraxacum officinale F.H. Wigg.            
+#[4] Calamagrostis canadensis (Michx.) P. Beauv.
 
 #bigger GDD
-nrow(rst.npn[rst.npn$p.value<0.05 & rst.npn$Slope >= 0,]) #0
+nrow(rst.npn.ALL[rst.npn.ALL$p.value<0.05 & rst.npn.ALL$Slope >= 0,]) #0
 
 write.table(rst.npn,file="Q:/Research/Projects/alpine-phenology/GDDNPN_17_ALL.csv", sep=",")
 
 ```
+
+
 
 
 Methods and Results     
@@ -1445,8 +1467,8 @@ summary(lm(startDayOfYear~Year, data=merge.name.accpt))
 ```
 Additional questions/information  
 ```{r}
-nrow(bloom2) #42757
-nrow(merge.name.accpt) #10134
+nrow(bloom2) #42757 -> 26073
+nrow(merge.name.accpt) #10134 _> 5934
 
 # data with lat long 
 ## see CMIP_NCAR.Rmd for pulling lat longs
@@ -1461,7 +1483,7 @@ nrow(merge.name.accpt) #10134
 ```{r}
 
 dpi = 1200
-tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_yr_45.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_yr_46.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
                                               yr.1950_2$Slope<0]),],
@@ -1476,14 +1498,14 @@ ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.
 
 dev.off()
 
-
+#some synonyms reported
 write.table(unique(merge.name.accpt[which(merge.name.accpt$ID %in% yr.1950_2$ID[yr.1950_2$p.value<0.05 &
                                               yr.1950_2$Slope<0]),c(2,4:5)]),
             "clipboard", sep="\t")
 ```
 
 ```{r}
-tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_low_later.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_low_later_20171116.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
                                 low.1950_2$ID[low.1950_2$p.value<0.05 & low.1950_2$Slope>=0]),],
@@ -1500,7 +1522,7 @@ dev.off()
 ```
 
 ```{r}
-tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_low_early.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_low_early_20171116.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
                                 low.1950_2$ID[low.1950_2$p.value<0.05 & low.1950_2$Slope<0]),],
@@ -1529,7 +1551,7 @@ write.table(lowearly[!duplicated(lowearly$ID),],
 
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_precip_early.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_precip_early_20171116.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
    precip.1950_2$ID[precip.1950_2$p.value<0.05 & precip.1950_2$Slope<0]),],
@@ -1558,7 +1580,7 @@ write.table(precipearly[!duplicated(precipearly$ID),],
 
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_precip_later.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Presentations/External Conference presentations/CPC meetings/CPC 2017/Sign_precip_later_20171116.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(merge.name.accpt[which(merge.name.accpt$ID %in% 
    precip.1950_2$ID[precip.1950_2$p.value<0.05 & precip.1950_2$Slope>=0]),],
