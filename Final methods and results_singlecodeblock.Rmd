@@ -739,80 +739,36 @@ dat.ALL <- data.frame(Year = merge.name.accpt.ALL$Year,
 What is the break-point for each species for first and mean?    
 c(1950:2011)[31] is 1980, half way, use that as starting points   
 ```{r}
-
-foo<- split(merge.name.accpt.ALL,merge.name.accpt.ALL$ID)
-x<-foo[[1]]
-
-lm.ALL <- lm(startDayOfYear~Year+ID, data=merge.name.accpt.ALL)
+lm.ALL <- lm(startDayOfYear~Year, data=merge.name.accpt.ALL)
 seg.ALL <- segmented(lm.ALL, seg.Z = ~Year,
                      psi = list(Year=1980))
-seg.ALL <- data.frame(merge.name.accpt.ALL$ID, merge.name.accpt.ALL$Year,
+seg.ALL.plot <- data.frame(ID=merge.name.accpt.ALL$ID, Year=merge.name.accpt.ALL$Year,
                       startDayOfYear=broken.line(seg.ALL)$fit)
 
+summary(seg.ALL)
 
-#Might have too few data points for individual species
-lm.ALLxsp<-lapply(split(merge.name.accpt.ALL,merge.name.accpt.ALL$ID),
-                  function(x){
-                    lm1 <- lm(startDayOfYear~Year, data=x)
-                    yearbreak <- c(min(x$Year):max(x$Year))[length(min(x$Year):max(x$Year))/2]
-                    if(length(unique(x$Year))>25){
-                      seg.ALL <- segmented(lm1, seg.Z = ~ Year,
-                                         psi = list(Year=yearbreak))
-                      out <- data.frame(ID=x$ID,Year=x$Year,
-                                        startDayOfYear=broken.line(seg.ALL)$fit)
-                      out
-                    } else {
-                        lm1.out <- data.frame(ID=x$ID, Year=x$Year,
-                                              startDayOfYear=predict(lm1))
-                        lm1.out
-                      }
-                    
-                    })
-
-
-
-
-summary(lm.ALLxsp[[1]])
-names(summary(lm.ALLxsp[[1]]))
-intercept(lm.ALLxsp[[1]])
-slope(lm.ALLxsp[[1]])
-
-summary.segmented(lm.ALLxsp[[1]])$psi[1,2] #The year!
-summary.segmented(lm.ALLxsp[[1]])$psi[2,2] #if there was another break!
-
-lm.All.1<-data.frame(Year=merge.name.accpt.ALL$Year,
-                     startDayOfYear=broken.line(lm.ALLxsp[[1]])$fit)
-
-ggplot(split(merge.name.accpt.ALL,merge.name.accpt.ALL$ID)[[1]],
-       aes(Year, startDayOfYear))+
+ggplot(merge.name.accpt.ALL, aes(Year, startDayOfYear, colour=ID))+
   geom_point()+
-  geom_line(data=lm.All.1, colour="blue")+
-  theme_bw()
+  geom_line(data=seg.ALL.plot)
+
+
+anova(seg.ALL,lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
+
 ```
 
 
 ```{r}
-lm.firstxsp<-lapply(split(merge.name.accpt,merge.name.accpt$ID),
-                  function(x){
-                    lm1 <- lm(startDayOfYear~Year, data=x)
-                    yearbreak <- c(min(x$Year):max(x$Year))[length(min(x$Year):max(x$Year))/2]
-                    seg.first <- segmented(lm1, seg.Z = ~ Year,
-                                           psi = list(Year=yearbreak)) #mid point
-                    out <- data.frame(ID=x$ID,Year=x$Year,
-                                      startDayOfYear=broken.line(seg.first)$fit)
-                    out
-                  })
+lm.first <- lm(startDayOfYear~Year+ID, data=merge.name.accpt)
+seg.first <- segmented(lm.first, seg.Z = ~Year,
+                     psi = list(Year=1980))
+seg.first.plot <- data.frame(ID=merge.name.accpt$ID, Year=merge.name.accpt$Year,
+                      startDayOfYear=broken.line(seg.first)$fit)
 
-summary.segmented(lm.firstxsp[[1]])$psi[1,2] #The year!
+summary(seg.first)
 
-lm.first.1<-data.frame(Year=unique(merge.name.accpt$Year),
-                     startDayOfYear=unique(broken.line(lm.firstxsp[[1]])$fit))
-
-ggplot(split(merge.name.accpt,merge.name.accpt$ID)[[1]],
-       aes(Year, startDayOfYear))+
+ggplot(merge.name.accpt, aes(Year, startDayOfYear, colour=ID))+
   geom_point()+
-  geom_line(data=lm.first.1, colour="blue")+
-  theme_bw()
+  geom_line(data=seg.first.plot)
 
 ```
 
