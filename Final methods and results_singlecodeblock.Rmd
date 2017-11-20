@@ -595,6 +595,8 @@ unique(merge.name.accpt.ALL$Growth.Habit[merge.name.accpt.ALL$ID %in%
 ```
 
 
+# For reviewer - Inflection points - but I'll look at segmented
+
 
 Figure 3a
 ```{r}
@@ -709,6 +711,120 @@ ggplot() +
 dev.off()
 
 summary(lm(startDayOfYear~Year, data=merge.name.accpt.ALL))
+
+```
+
+Segemented: breakpoint analysis
+```{r}
+
+lm.ALL<-lm(startDayOfYear~Year, data=merge.name.accpt.ALL)
+lm.first <- lm(startDayOfYear~Year, data=merge.name.accpt)
+
+Break<- sort(unique(merge.name.accpt$Year))[2:(length(unique(merge.name.accpt$Year))-1)]
+
+#not defining estimates for breakpoints
+seg.ALL <- segmented(lm.ALL, seg.Z = ~ Year,
+                     psi = list(Year=1980))
+seg.first <- segmented(lm.first, seg.Z = ~ Year,
+                     psi = list(Year=1980))
+
+summary(seg.ALL)
+summary(seg.first)
+
+dat.ALL <- data.frame(Year = merge.name.accpt.ALL$Year,
+                      AverageBloom = broken.line(seg.ALL)$fit)
+
+```
+
+What is the break-point for each species for first and mean?    
+c(1950:2011)[31] is 1980, half way, use that as starting points   
+```{r}
+
+foo<- split(merge.name.accpt.ALL,merge.name.accpt.ALL$ID)
+x<-foo[[1]]
+
+lm.ALL <- lm(startDayOfYear~Year+ID, data=merge.name.accpt.ALL)
+seg.ALL <- segmented(lm.ALL, seg.Z = ~Year,
+                     psi = list(Year=1980))
+seg.ALL <- data.frame(merge.name.accpt.ALL$ID, merge.name.accpt.ALL$Year,
+                      startDayOfYear=broken.line(seg.ALL)$fit)
+
+
+#Might have too few data points for individual species
+lm.ALLxsp<-lapply(split(merge.name.accpt.ALL,merge.name.accpt.ALL$ID),
+                  function(x){
+                    lm1 <- lm(startDayOfYear~Year, data=x)
+                    yearbreak <- c(min(x$Year):max(x$Year))[length(min(x$Year):max(x$Year))/2]
+                    if(length(unique(x$Year))>25){
+                      seg.ALL <- segmented(lm1, seg.Z = ~ Year,
+                                         psi = list(Year=yearbreak))
+                      out <- data.frame(ID=x$ID,Year=x$Year,
+                                        startDayOfYear=broken.line(seg.ALL)$fit)
+                      out
+                    } else {
+                        lm1.out <- data.frame(ID=x$ID, Year=x$Year,
+                                              startDayOfYear=predict(lm1))
+                        lm1.out
+                      }
+                    
+                    })
+
+
+
+
+summary(lm.ALLxsp[[1]])
+names(summary(lm.ALLxsp[[1]]))
+intercept(lm.ALLxsp[[1]])
+slope(lm.ALLxsp[[1]])
+
+summary.segmented(lm.ALLxsp[[1]])$psi[1,2] #The year!
+summary.segmented(lm.ALLxsp[[1]])$psi[2,2] #if there was another break!
+
+lm.All.1<-data.frame(Year=merge.name.accpt.ALL$Year,
+                     startDayOfYear=broken.line(lm.ALLxsp[[1]])$fit)
+
+ggplot(split(merge.name.accpt.ALL,merge.name.accpt.ALL$ID)[[1]],
+       aes(Year, startDayOfYear))+
+  geom_point()+
+  geom_line(data=lm.All.1, colour="blue")+
+  theme_bw()
+```
+
+
+```{r}
+lm.firstxsp<-lapply(split(merge.name.accpt,merge.name.accpt$ID),
+                  function(x){
+                    lm1 <- lm(startDayOfYear~Year, data=x)
+                    yearbreak <- c(min(x$Year):max(x$Year))[length(min(x$Year):max(x$Year))/2]
+                    seg.first <- segmented(lm1, seg.Z = ~ Year,
+                                           psi = list(Year=yearbreak)) #mid point
+                    out <- data.frame(ID=x$ID,Year=x$Year,
+                                      startDayOfYear=broken.line(seg.first)$fit)
+                    out
+                  })
+
+summary.segmented(lm.firstxsp[[1]])$psi[1,2] #The year!
+
+lm.first.1<-data.frame(Year=unique(merge.name.accpt$Year),
+                     startDayOfYear=unique(broken.line(lm.firstxsp[[1]])$fit))
+
+ggplot(split(merge.name.accpt,merge.name.accpt$ID)[[1]],
+       aes(Year, startDayOfYear))+
+  geom_point()+
+  geom_line(data=lm.first.1, colour="blue")+
+  theme_bw()
+
+```
+
+```{r}
+#need to add 
+
+ggplot()+
+  geom_point(data=split(merge.name.accpt,merge.name.accpt$ID)[[1]],
+             aes(Year, startDayOfYear))+
+  geom_line(data=lm.first.1, colour="blue",
+             aes(Year, startDayOfYear))+
+  theme_bw()
 
 ```
 
@@ -1603,5 +1719,18 @@ preciplater[!duplicated(preciplater$ID),]
 
 write.table(preciplater[!duplicated(preciplater$ID),],
             "clipboard", sep="\t")
+
+```
+
+Segmented analyses - go find them
+```{r}
+
+
+```
+
+
+Moran's I - spatial autocorrelation
+```{r}
+
 
 ```
