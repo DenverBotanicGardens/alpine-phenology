@@ -383,6 +383,11 @@ length(unique(merge.name.accpt.ALL$ID)) #385, makes sense!  -> 287
 # Can't do colSums like for sp.yr since that is one per year, this is many
 meancol <- with(merge.name.accpt.ALL, aggregate(ID~Year, FUN = function(x) length(unique(x))))
 meancol[which.max(meancol$ID),] #1998 269
+
+write.table(merge.name.accpt.ALL,
+            "P:/hackathon/alpine-phenology/datasets/mergenameaccptALL.csv",
+            sep=",")
+
 ```
 
 
@@ -433,7 +438,12 @@ write.table(min1950GDDmax.ALL, "P:/hackathon/alpine-phenology/datasets/min1950GD
 ```{r}
 merge.name.accpt <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
 
+merge.name.accpt.ALL <- read.csv(text = getURL(""))
+
+
 min1950GDDmax <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmax.csv"))
+
+min1950GDDmax.ALL <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmaxALL.csv"))
 
 ```
 
