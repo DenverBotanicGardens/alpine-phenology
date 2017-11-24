@@ -730,7 +730,7 @@ Break <- seq(1960,2000,10)
 
 #not defining estimates for breakpoints
 seg.ALL <- segmented(lm.ALL, seg.Z = ~ Year,
-                     psi = list(Year=1980))
+                     psi = list(Year=1990))
 seg.first <- segmented(lm.first, seg.Z = ~ Year,
                      psi = list(Year=1980))
 
@@ -768,6 +768,9 @@ summary(seg.first.two)
 dat.first.undef <- data.frame(Year = merge.name.accpt$Year,
                                  startDayOfYear = broken.line(seg.first.undef)$fit)
 
+dat.first.two <- data.frame(Year = merge.name.accpt$Year,
+                                 startDayOfYear = broken.line(seg.first.two)$fit)
+
 #Slope of second segment (the first plus the change)
 slope(seg.first.undef)$Year[1,1]+slope(seg.first.undef)$Year[2,1]
 
@@ -778,7 +781,116 @@ slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]+slope(seg.first.tw
 
 ggplot(merge.name.accpt, aes(Year, startDayOfYear))+
   geom_point()+
-  geom_line(data=dat.first.multiple)+
+  geom_line(data=dat.first.two)+
+  theme_bw()
+```
+
+#startDayOfYear by Tamax   
+```{r}
+
+lm.tmax.first <- lm(startDayOfYear~Avg_Hi,merge.name.accpt)
+lm.tmax.ALL <- lm(startDayOfYear~Avg_Hi,merge.name.accpt.ALL)
+
+mean(merge.name.accpt$Avg_Hi) #8.14
+max(merge.name.accpt$Avg_Hi) #9.8
+min(merge.name.accpt$Avg_Hi) #6.8
+
+# doesnt like it
+seg.first.undef.tmax <- segmented(lm.tmax.first, seg.Z = ~Avg_Hi,
+                             psi=list(Avg_Hi=NA), 
+                             control=seg.control(stop.if.error=FALSE))
+
+seg.first.one.tmax <- segmented(lm.tmax.first, seg.Z = ~Avg_Hi,
+                             psi=list(Avg_Hi=c(8.14)))
+
+
+#worked
+seg.ALL.undef.tmax <- segmented(lm.tmax.ALL, seg.Z = ~Avg_Hi,
+                             psi=list(Avg_Hi=c(mean(merge.name.accpt.ALL$Avg_Hi))), 
+                             control=seg.control(stop.if.error=FALSE))
+
+summary(seg.ALL.undef.tmax)
+
+dat.ALL.undef.tmax <- data.frame(Avg_Hi = merge.name.accpt.ALL$Avg_Hi,
+                                 startDayOfYear = broken.line(seg.ALL.undef.tmax)$fit)
+
+#Slope of second segment (the first plus the change)
+slope(seg.ALL.two.tmax)$Year[1,1]+slope(seg.ALL.two.tmax)$Year[2,1]
+
+#Slope of second and third segments
+slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]
+slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]+slope(seg.first.two)$Year[3,1]
+
+
+ggplot(merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear))+
+  geom_point()+
+  geom_line(data=dat.ALL.undef.tmax)+
+  theme_bw()
+```
+
+#START HERE, enter in tmin, then do precip then done!
+#startDayOfYear by Tamin   
+```{r}
+
+lm.tmin.first <- lm(startDayOfYear~Avg_Lo,merge.name.accpt)
+summary(lm.tmin.first)
+
+ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  stat_smooth(method="lm")
+lm.tmin.ALL <- lm(startDayOfYear~Avg_Lo,merge.name.accpt.ALL)
+
+mean(merge.name.accpt$Avg_Lo) #-6.17
+max(merge.name.accpt$Avg_Lo) #-4.22
+min(merge.name.accpt$Avg_Lo) #-7.85
+
+#this did work!
+seg.first.one.tmin <- segmented(lm.tmin.first, seg.Z = ~Avg_Lo,
+                             psi=list(Avg_Lo=c(-5.5)))
+
+
+
+seg.two.one.tmin <- segmented(lm.tmin.first, seg.Z = ~Avg_Lo,
+                             psi=list(Avg_Lo=c(-6.8,-5.5)))
+
+#worked
+seg.ALL.undef.tmin <- segmented(lm.tmin.ALL, seg.Z = ~Avg_Lo,
+                             psi=list(Avg_Lo=c(mean(merge.name.accpt.ALL$Avg_Lo))), 
+                             control=seg.control(stop.if.error=FALSE))
+
+summary(seg.ALL.undef.tmin)
+summary(seg.two.one.tmin)
+summary(seg.first.one.tmin)
+
+dat.first.two.tmin <- data.frame(Avg_Lo = merge.name.accpt$Avg_Lo,
+                                 startDayOfYear = broken.line(seg.two.one.tmin)$fit)
+dat.first.one.tmin <- data.frame(Avg_Lo = merge.name.accpt$Avg_Lo,
+                                 startDayOfYear = broken.line(seg.first.one.tmin)$fit)
+dat.ALL.undef.tmin <- data.frame(Avg_Lo = merge.name.accpt.ALL$Avg_Lo,
+                                 startDayOfYear = broken.line(seg.ALL.undef.tmin)$fit)
+
+#Slope of second segment (the first plus the change)
+slope(seg.first.one.tmin)$Year[1,1]+slope(seg.first.one.tmin)$Year[2,1]
+
+#Slope of second and third segments
+slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]
+slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]+slope(seg.first.two)$Year[3,1]
+
+
+ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  geom_line(data=dat.first.two.tmin)+
+  theme_bw()
+
+ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  geom_line(data=dat.first.one.tmin)+
+  theme_bw()
+
+
+ggplot(merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear))+
+  geom_point()+
+  geom_line(data=dat.ALL.undef.tmin)+
   theme_bw()
 ```
 
@@ -819,20 +931,22 @@ ggplot(merge.name.accpt.ALL, aes(Year, startDayOfYear))+
   theme_bw()
 ```
 
+#I don't think this works
 What is the break-point for each species for first and mean?    
 c(1950:2011)[31] is 1980, half way, use that as starting points   
 ```{r}
 
-#not right, ID treated like value, not categorical
+#not right, ID treated like value, not categorical, would I add a ~Year+factor(ID) to the segmented? 
 lm.ALL.sp <- lm(startDayOfYear~Year+factor(ID), data=merge.name.accpt.ALL)
-seg.ALL.sp <- segmented(lm.ALL.sp, seg.Z = ~Year,
-                     psi = list(Year=1990))
+seg.ALL.sp <- segmented(lm.ALL.sp, seg.Z = ~Year+ID,
+                     psi = list(Year=1990,ID=1000))
 seg.ALL.plot <- data.frame(ID=merge.name.accpt.ALL$ID, Year=merge.name.accpt.ALL$Year,
                       startDayOfYear=broken.line(seg.ALL.sp)$fit)
 
 summary(seg.ALL.sp)
 #Want to see which species changed signficnatly and which 
-head(seg.ALL.sp)
+slope(seg.ALL.sp)
+seg.ALL.sp[[1]]
 
 ggplot(merge.name.accpt.ALL, aes(Year, startDayOfYear, colour=ID))+
   geom_point()+
@@ -1765,15 +1879,154 @@ write.table(preciplater[!duplicated(preciplater$ID),],
 
 ```
 
-Segmented analyses - go find them
+
+Moran's I - spatial autocorrelation
 ```{r}
+# ecdf = empirical cumulative distribution function
+#library(ape): if you want to look at a result influenced by distance
+
+#https://stats.stackexchange.com/questions/305199/morans-test-using-the-residuals-of-logistic-regression 
+library(maptools) 
+library(spdep) 
+library(raster)
+library(sp)
+library(rgeos)
+
+#Create spatial weights
+data.first <- merge.name.accpt
+# should probably get rid of identical points first
+data.first <- data.first[!duplicated(data.first[,c("Decimal.Latitude","Decimal.Longitude")]),]
+data.first <- data.first[!is.na(data.first$Decimal.Latitude),]
+data.first <- data.first[data.first$Decimal.Latitude>36,]
+
+data.first <- SpatialPointsDataFrame(cbind(data.first$Decimal.Longitude,
+                                     data.first$Decimal.Latitude),
+                                     data=data.first)
+
+
+
+plot(data.first)
+
+# Weights matrix with nearest 10 neighbors, in weights list form
+lstw <- nb2listw(knn2nb(knearneigh(data.first, k=10)))
+
+#Model regression
+model <- lm(startDayOfYear~Year, data=data.first)
+summary(model)
+
+#Moran's test using residuals
+moran.test(residuals.lm(model),lstw)
+
+
+### Calc pairwise distances between points
+d <- gDistance(data.first)
+
+
+# <http://rspatial.org/analysis/rst/3-spauto.html>
 
 
 ```
 
-
-Moran's I - spatial autocorrelation
+<https://stats.idre.ucla.edu/r/faq/how-can-i-calculate-morans-i-in-r/>   
+formula used by Stata
 ```{r}
 
+
+#1 generate distance matrix (far from poles, ok to treat on plane rather than sphere)
+start.dists <- as.matrix(dist(cbind(data.first$Decimal.Longitude,
+                                    data.first$Decimal.Latitude)))
+
+start.dist.inv <- 1/start.dists
+diag(start.dist.inv) <- 0
+start.dist.inv[1:5,1:5] #Inf are same point? right, divide by 0 <- Inf 
+
+Moran.I(data.first$startDayOfYear, start.dist.inv)
+
+# since p.value = 0 ??? we accept the the null hypothesis that there is zero spatial autocorrelation present in the variable startDayOfYear ?? wait, there is or isnt'? 
+
+```
+<https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faq-how-can-i-detectaddress-spatial-autocorrelation-in-my-data/> 
+```{r}
+#Generate a variogram 
+install.packages("geoR")
+library(geoR)
+
+#create vector of endpoints of intervals
+breaks = seq(0, 1.5, l = 11)
+varioin <- data.first[,c("Decimal.Longitude","Decimal.Latitude","startDayOfYear")]
+varioin.geo <- as.geodata(varioin, data.col = 3)
+
+varioout <- variog(varioin.geo)
+
+plot(varioout)
+ # http://www.biostat.umn.edu/~brad/8472/slidegeoR.pdf 
+#Bayesian kriging
+bayes1 <- krige.bayes(varioin.geo)
+
+#posterior quantiles
+out <- bayes1$posterior
+out <- out$sample
+beta.qnt <- quantile(out$beta,c(0.50,0.025,0.975))
+phi.qnt <- quantile(out$phi,c(0.50,0.025,0.975))
+sigmasq.qnt <- quantile(out$sigmasq,c(0.50,0.025,0.975))
+tausq.rel.qnt <-quantile(out$tausq.rel,c(0.50,0.025,0.975)) 
+
+
+```
+
+<https://stats.idre.ucla.edu/r/faq/how-do-i-model-a-spatially-autocorrelated-outcome/>  
+Use the spatial autocorrelation data to fit the regression
+```{r}
+library(nlme)
+
+#1 assuming no autospatial correlation
+dummy <- rep(1, nrow(data.first))
+data.first <- cbind(data.first,dummy)
+
+start.model <- lme(fixed = startDayOfYear~Year, data=data.first, random=~1|dummy,
+                   method="ML")
+summary(start.model)
+
+#2 add spatial correlation structure
+# I have no idea what form - Guassian, linear maybe
+cs1Lin <- corLin(1, form=~Decimal.Longitude+Decimal.Latitude)
+cs1Lin <- Initialize(cs1Lin, data.first) #to privide distance structure with dataset
+corMatrix(cs1Lin)[1:10,1:10]
+
+#use update to use that matrix 
+lin.sp <- update(start.model, 
+                 correlation=corLin(1, form=~Decimal.Longitude+Decimal.Latitude),
+                 method="ML")
+
+```
+
+
+
+```{r}
+
+
+#Should do first two are long/lat and third is value!
+#first convert data frame to SpaticalPoinstDataFrame using sp (that's data.first!)
+proj4string(data.first) <- CRS("+init=epsg:4326")
+data.first <- spTransform(data.first,CRS("+init=epsg:4326"))
+gridded(data.first) <- TRUE
+
+#not regular size, need to transform but that's not working either!!
+data.first.raster.Year <- rasterFromXYZ(data.first[,c("Decimal.Longitude","Decimal.Latitude",
+                                                 "startDayOfYear")])
+Moran(data.first.raster)
+
+
+
+#have to select the distance spatial weight
+#install.packages("RODBC")
+library(RODBC)
+
+inf.dists <- as.matrix(dist(cbind(data.first$Decimal.Longitude,
+                                  data.first$Decimal.Latitude)))
+inf.dists.inv <- 1/inf.dists
+diag(inf.dists.inv) <- 0
+#library(ape)
+Moran.I(data.first$Year, inf.dists.inv)
 
 ```
