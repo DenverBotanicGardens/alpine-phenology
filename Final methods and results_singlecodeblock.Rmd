@@ -369,7 +369,8 @@ ALL.sp.yr <- do.call(rbind,
 
 
 merge.name.accpt.ALL <- merge(ALL.sp.yr, synonyms.plantsyn.accpt, by = "ID")
-merge.name.accpt.ALL <- merge(merge.name.accpt.ALL,unique(bloom[,c(19,20,21,23)]), by="Year")
+merge.name.accpt.ALL <- merge(merge.name.accpt.ALL,unique(bloom[,c(19,20,21,23)]),
+                              by="Year")
 
 #check for any errors in day
 table(merge.name.accpt.ALL$startDayOfYear)
@@ -1026,6 +1027,62 @@ dev.off()
 
 
 ```
+
+#startDayOfYear and Raw
+```{r}
+lm.ALL.Raw_Precip<-lm(startDayOfYear~Raw_Precip, data=merge.name.accpt.ALL)
+lm.first.Raw_Precip <- lm(startDayOfYear~Raw_Precip, data=merge.name.accpt)
+
+min(merge.name.accpt$Raw_Precip) #554.43
+max(merge.name.accpt$Raw_Precip) #1102.3
+
+#seg.ALL.Raw_Precip <- segmented(lm.ALL.Raw_Precip, seg.Z = ~ Raw_Precip,
+#                     psi = list(Raw_Precip=850))
+seg.first.Raw_Precip <- segmented(lm.first.Raw_Precip, seg.Z = ~ Raw_Precip,
+                     psi = list(Raw_Precip=750))
+
+
+#summary(seg.ALL.Raw_Precip)
+#slope(seg.ALL.Raw_Precip)$Raw_Precip[1,1]+slope(seg.ALL.Raw_Precip)$Raw_Precip[2,1]
+
+summary(seg.first.Raw_Precip)
+slope(seg.first.Raw_Precip)$Raw_Precip[1,1]+slope(seg.first.Raw_Precip)$Raw_Precip[2,1]
+
+#dat.ALL.rawprecip <- data.frame(Raw_Precip = merge.name.accpt.ALL$Raw_Precip,
+#                      startDayOfYear  = broken.line(seg.ALL.Raw_Precip)$fit)
+dat.first.rawprecip <- data.frame(Raw_Precip = merge.name.accpt$Raw_Precip,
+                      startDayOfYear  = broken.line(seg.first.Raw_Precip)$fit)
+
+
+```
+
+Figure 5c with segmented
+```{r}
+dpi = 1200
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c segmented.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+
+ggplot() +
+  geom_point(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear), shape=17, 
+             colour="black")+
+  geom_point(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear), shape=20,
+             colour="dark gray")+
+  geom_line(data=dat.first.rawprecip, aes(Raw_Precip, startDayOfYear),
+              size = 0.75, linetype=5,
+              colour="black")+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
+              method="lm", size = 0.75, colour="black")+
+  theme_bw()+
+  xlab("Annual precipitation (mm)")+
+  ylab("Ordinal date")+
+  theme(axis.text=element_text(size=9),
+        axis.title=element_text(size=12)) 
+
+
+dev.off()
+
+
+```
+
 
 
 #I don't think this works
@@ -1988,6 +2045,7 @@ library(spdep)
 library(raster)
 library(sp)
 library(rgeos)
+library(spatstat)
 
 #Create spatial weights
 data.first <- merge.name.accpt
@@ -2023,6 +2081,25 @@ d <- gDistance(data.first)
 
 
 ```
+
+example from <http://rspatial.org/analysis/rst/3-spauto.html>     
+```{r}
+head(data.first)   #all points with no repeats and lat long data
+data.mean <- merge.name.accpt.ALL
+  # should probably get rid of identical points first
+data.mean <- data.mean[!is.na(data.mean$Decimal.Latitude),]
+data.mean <- data.mean[!is.na(data.mean$Decimal.Longitude),]
+data.mean <- data.mean[!duplicated(data.mean[,c("Decimal.Latitude","Decimal.Longitude")]),]
+data.mean <- data.mean[data.mean$Decimal.Latitude>36,]
+
+ #Convert first two columns as lon-lat and third as value   
+dfr <- rasterFromXYZ(data.mean[,c("Decimal.Longitude","Decimal.Latitude","startDayOfYear")])
+
+
+
+
+```
+
 
 <https://stats.idre.ucla.edu/r/faq/how-can-i-calculate-morans-i-in-r/>   
 formula used by Stata
