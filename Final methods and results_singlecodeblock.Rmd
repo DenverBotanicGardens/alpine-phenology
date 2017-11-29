@@ -1129,7 +1129,7 @@ dat.first.rawprecip <- data.frame(Raw_Precip = merge.name.accpt$Raw_Precip,
 Figure 5c with segmented
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c segmented.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c segmented.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot() +
   geom_point(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear), shape=17, 
@@ -1138,30 +1138,30 @@ ggplot() +
              colour="dark gray", size =0.5)+
   
   stat_smooth(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear),
-              method="lm",size = 1.75, linetype=5,
+              method="lm",size = .75, linetype=5,
               colour="gray")+
   stat_smooth(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
-              method="lm", size = 1.75,
+              method="lm", size = .75,
               colour="gray")+
   
   stat_smooth(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear),
-              method="lm",size = 1.25, linetype=5,
+              method="lm",size = .5, linetype=5,
               colour="black")+
   stat_smooth(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
-              method="lm", size = 1.25,
+              method="lm", size = .5,
               colour="black")+
   
   
   geom_line(data=dat.first.rawprecip, aes(Raw_Precip, startDayOfYear),
               size = 0.75, colour="white")+
   geom_line(data=dat.first.rawprecip, aes(Raw_Precip, startDayOfYear),
-              size = 0.5, linetype=5,
+              size = 0.25, linetype=5,
               colour="black")+
   theme_bw()+
   xlab("Annual precipitation (mm)")+
-  ylab("Ordinal date")+
-  theme(axis.text=element_text(size=9),
-        axis.title=element_text(size=12)) 
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=7))
 
 
 dev.off()
@@ -1335,6 +1335,37 @@ summary(lm(startDayOfYear~Raw_Precip, data = merge.name.accpt.ALL))
 Figure 5d
 ```{r}
 tiff("Q:/Research/Projects/alpine-phenology/Fig. 5d.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+
+ggplot()+
+  geom_point(data=min1950GDDmax, aes(MaxGDD, startDayOfYear),
+             shape=17, size=0.5, colour="black")+
+  geom_point(data=min1950GDDmax.ALL, aes(MaxGDD, startDayOfYear),
+             shape=20, size=0.25, colour="dark gray")+
+  geom_smooth(data=min1950GDDmax, aes(MaxGDD, startDayOfYear),
+              method="lm",colour = "black", size = 0.75, linetype=5)+
+  geom_smooth(data=min1950GDDmax.ALL, aes(MaxGDD, startDayOfYear),
+              method="lm",colour = "black", size = 0.75)+  
+  theme_bw()+
+  ylab("Ordinal Date")+
+  xlab("Annual maximum growing degree days")+
+  theme(axis.text=element_text(size=5),
+        axis.title=element_text(size=7))
+
+dev.off()
+
+summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
+
+```
+
+#startDayOfYear by GDD segmented
+```{r}
+lm.gdd.first <- lm(startDayOfYear~M, min1950GDDmax)
+
+```
+
+Figure 5d segmented
+```{r}
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5d segmented.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot()+
   geom_point(data=min1950GDDmax, aes(MaxGDD, startDayOfYear),
