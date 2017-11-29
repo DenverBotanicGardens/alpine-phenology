@@ -805,6 +805,12 @@ ggplot(merge.name.accpt, aes(Year, startDayOfYear))+
   geom_point()+
   geom_line(data=dat.first.undef)+
   theme_bw()
+
+
+#Slope of second and third segments
+slope(seg.first.two)$Year[1,1] # 1950:1995
+slope(seg.first.two)$Year[2,1] # 1995:2003
+slope(seg.first.two)$Year[3,1] # 2003:2011
 ```
 
 
@@ -927,10 +933,6 @@ slope(seg.ALL.undef.tmax)$Year[2,1]
 
 summary(seg.first.two)
 
-#Slope of second and third segments
-slope(seg.first.two)$Year[1,1] # 1950:1995
-slope(seg.first.two)$Year[2,1] # 1995:2003
-slope(seg.first.two)$Year[3,1] # 2003:2011
 
 
 ggplot(merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear))+
@@ -939,27 +941,39 @@ ggplot(merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear))+
   theme_bw()
 ```
 
-Figure 5a with segmented
+Figure 5a with segmented   
+Solid line = first     
+dashed line = all collection
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a segmented.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5a segmented.tiff",  width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot() +
   geom_point(data=merge.name.accpt, aes(Avg_Hi, startDayOfYear), shape=17, 
-             colour="black")+
+             colour="black", size = 0.5)+
   geom_point(data=merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear), shape=20,
-             colour="dark gray")+
+             colour="dark gray", size = 0.25)+
+  
   stat_smooth(data=merge.name.accpt, aes(Avg_Hi, startDayOfYear),
-              method="lm",size = 0.75, linetype=5,
-              colour="black")+
+              method="lm",colour = "gray", size = 1)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear),
+              method="lm",colour = "gray", size = 1)+
+  
+  stat_smooth(data=merge.name.accpt, aes(Avg_Hi, startDayOfYear),
+              method="lm",colour = "black", size = 0.5, linetype=5)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear),
+              method="lm",colour = "black", size = 0.5)+
+  
+
   geom_line(data=dat.ALL.undef.tmax, aes(Avg_Hi, startDayOfYear),
-            size = 0.75, colour="black")+
+            size = 0.75, colour="white")+
+  geom_line(data=dat.ALL.undef.tmax, aes(Avg_Hi, startDayOfYear),
+            size = 0.5, colour="black", linetype=5)+
   theme_bw()+
-  xlab("Year")+
-  ylab("Ordinal date")+
-  scale_x_continuous(breaks = seq(1950,2011,10)) +
-  theme(axis.text=element_text(size=9),
-        axis.title=element_text(size=12)) 
+  xlab(expression("Mean annual maximum temperature"~degree~C))+
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=7))
 
 dev.off()
 
@@ -1045,23 +1059,39 @@ ggplot(merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear))+
 Figure 5b with segmented
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b segmented.tiff", width = 174, height = 150, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 5b segmented.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot() +
   geom_point(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear), shape=17, 
-             colour="black")+
+             colour="black", size = 0.5)+
   geom_point(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear), shape=20,
-             colour="dark gray")+
+             colour="dark gray", size = 0.5)+
+  
+  stat_smooth(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear),
+              method="lm",colour = "gray", size = 0.75)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear),
+              method="lm",colour = "gray", size = 0.75)+
+  
+  stat_smooth(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear),
+              method="lm",colour = "black", size = 0.5, linetype=5)+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear),
+              method="lm",colour = "black", size = 0.5)+
+  
   geom_line(data=dat.first.one.tmin, aes(Avg_Lo, startDayOfYear),
-              size = 0.75, linetype=5,
+              size = 0.75, colour="white")+
+  geom_line(data=dat.ALL.undef.tmin, aes(Avg_Lo, startDayOfYear),
+            size = 0.75, colour="white")+
+  
+  geom_line(data=dat.first.one.tmin, aes(Avg_Lo, startDayOfYear),
+              size = 0.25, linetype=5,
               colour="black")+
   geom_line(data=dat.ALL.undef.tmin, aes(Avg_Lo, startDayOfYear),
-            size = 0.75, colour="black")+
+            size = 0.25, colour="black")+
   theme_bw()+
   xlab(expression("Mean annual minimum temperature"~degree~C))+
-  ylab("Ordinal date")+
-  theme(axis.text=element_text(size=9),
-        axis.title=element_text(size=12)) 
+  ylab("Ordinal Date")+
+  theme(axis.text=element_text(size=6),
+        axis.title=element_text(size=7))
 
 dev.off()
 
