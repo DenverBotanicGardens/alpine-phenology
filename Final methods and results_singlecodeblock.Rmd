@@ -1068,14 +1068,14 @@ ggplot() +
              colour="dark gray", size = 0.5)+
   
   stat_smooth(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear),
-              method="lm",colour = "gray", size = 0.75)+
+              method="lm",colour = "gray", size = .75)+
   stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear),
-              method="lm",colour = "gray", size = 0.75)+
+              method="lm",colour = "gray", size = .75)+
   
   stat_smooth(data=merge.name.accpt, aes(Avg_Lo, startDayOfYear),
-              method="lm",colour = "black", size = 0.5, linetype=5)+
+              method="lm",colour = "black", size = .5, linetype=5)+
   stat_smooth(data=merge.name.accpt.ALL, aes(Avg_Lo, startDayOfYear),
-              method="lm",colour = "black", size = 0.5)+
+              method="lm",colour = "black", size = .5)+
   
   geom_line(data=dat.first.one.tmin, aes(Avg_Lo, startDayOfYear),
               size = 0.75, colour="white")+
@@ -1133,14 +1133,30 @@ tiff("Q:/Research/Projects/alpine-phenology/Fig. 5c segmented.tiff", width = 174
 
 ggplot() +
   geom_point(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear), shape=17, 
-             colour="black")+
+             colour="black", size =0.5)+
   geom_point(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear), shape=20,
-             colour="dark gray")+
-  geom_line(data=dat.first.rawprecip, aes(Raw_Precip, startDayOfYear),
-              size = 0.75, linetype=5,
+             colour="dark gray", size =0.5)+
+  
+  stat_smooth(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear),
+              method="lm",size = 1.75, linetype=5,
+              colour="gray")+
+  stat_smooth(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
+              method="lm", size = 1.75,
+              colour="gray")+
+  
+  stat_smooth(data=merge.name.accpt, aes(Raw_Precip, startDayOfYear),
+              method="lm",size = 1.25, linetype=5,
               colour="black")+
   stat_smooth(data=merge.name.accpt.ALL, aes(Raw_Precip, startDayOfYear),
-              method="lm", size = 0.75, colour="black")+
+              method="lm", size = 1.25,
+              colour="black")+
+  
+  
+  geom_line(data=dat.first.rawprecip, aes(Raw_Precip, startDayOfYear),
+              size = 0.75, colour="white")+
+  geom_line(data=dat.first.rawprecip, aes(Raw_Precip, startDayOfYear),
+              size = 0.5, linetype=5,
+              colour="black")+
   theme_bw()+
   xlab("Annual precipitation (mm)")+
   ylab("Ordinal date")+
