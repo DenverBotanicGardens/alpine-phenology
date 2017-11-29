@@ -2045,6 +2045,7 @@ library(spdep)
 library(raster)
 library(sp)
 library(rgeos)
+library(rgdal)
 library(spatstat)
 
 #Create spatial weights
@@ -2091,12 +2092,115 @@ data.mean <- data.mean[!is.na(data.mean$Decimal.Latitude),]
 data.mean <- data.mean[!is.na(data.mean$Decimal.Longitude),]
 data.mean <- data.mean[!duplicated(data.mean[,c("Decimal.Latitude","Decimal.Longitude")]),]
 data.mean <- data.mean[data.mean$Decimal.Latitude>36,]
+data.mean <- data.mean[data.mean$Decimal.Latitude<41.05,]
+data.mean <- data.mean[data.mean$Decimal.Longitude< -102,]
 
- #Convert first two columns as lon-lat and third as value   
-dfr <- rasterFromXYZ(data.mean[,c("Decimal.Longitude","Decimal.Latitude","startDayOfYear")])
+# create a SpatialPointsDataFrame
+coordinates(data.mean) = ~Decimal.Longitude+Decimal.Latitude 									   
+
+# create an empty raster object to the extent of the points
+rast <- raster(ext=extent(data.mean), resolution=1)
+
+# rasterize your irregular points 
+rasOut<-rasterize(data.mean, rast, data.mean$startDayOfYear, fun = mean) # we use a mean function here to regularly grid the irregular input points
+
+SDrastOut <- rasterize(data.mean, rast, data.mean$startDayOfYear, fun = sd) 
+
+plot(rasOut)
+plot(SDrastOut)
+
+#write it out as a geotiff
+writeRaster(rasOut, "Q:/Research/Projects/alpine-phenology/startDayOfYear_raster.tif",
+            format="GTiff", overwrite=TRUE)
+
+rasOutpoly <- rasterToPolygons(rasOut)
+
+plot(rasOutpoly)
+
+w <- poly2nb(rasOutpoly)
+summary(w)
+
+plot(rasOutpoly, col="gray", border="blue", lwd=2)
+plot(w, coordinates(rasOutpoly), col="red", lwd=2, add=TRUE)
+
+wm <- nb2mat(w, style = "B")
+wm
+
+#numbr of observations
+n <- length(rasOutpoly)
+
+# get y and ybar (mean)
+y <- rasOut@data@values
+ybar <- mean(y)
 
 
+##Stop by hand method, do it with spdep package
+ww <- nb2listw(w, style="B")
+ww
 
+moran(rasOut@data@values, ww, n=length(ww$neighbours),S0=Szero(ww)) #I:  0.1006834
+
+moran.mc(rasOut@data@values, ww, nsim=999)
+
+#make a moran scatter plot
+ms <- cbind(id=rep(1:n, each=n), y=rep(y, each=n), values=as.vector(wm * y))
+ms <- ms[ms[,3] > 0, ]
+ams <- aggregate(ms[,2:3], list(ms[,1]), FUN=mean)
+ams <- ams[,-1]
+colnames(ams) <- c('y', 'spatiallylaggedy')
+head(ams)
+
+ggplot(ams, aes(y, spatiallylaggedy))+
+  stat_smooth(method="lm")+
+  geom_hline(yintercept = mean(ams[,2]))+
+  geom_vline(xintercept = ybar)+
+  theme_bw()
+
+#slope of the regression line is ca. Moran's I
+coefficients(lm(ams[,2]~ams[,1]))[2] #0.1271429 
+
+
+```
+
+
+# Try MANTEL test to detect autospatial correlation    
+<https://stats.idre.ucla.edu/r/faq/how-can-i-perform-a-mantel-test-in-r/>    
+```{r}
+library(ade4)
+
+data.mean2 <- merge.name.accpt.ALL
+  # should probably get rid of identical points first
+data.mean2 <- data.mean2[!is.na(data.mean2$Decimal.Latitude),]
+data.mean2 <- data.mean2[!is.na(data.mean2$Decimal.Longitude),]
+data.mean2 <- data.mean2[!duplicated(data.mean2[,c("Decimal.Latitude",
+                                                   "Decimal.Longitude")]),]
+data.mean2 <- data.mean2[data.mean2$Decimal.Latitude>36,]
+data.mean2 <- data.mean2[data.mean2$Decimal.Latitude<41.05,]
+data.mean2 <- data.mean2[data.mean2$Decimal.Longitude< -102,]
+
+#create distance matrix
+col.dists <- dist(cbind(data.mean2$Decimal.Longitude,
+                        data.mean2$Decimal.Latitude))
+startday.dists <- dist(data.mean2$startDayOfYear)
+
+# Mantel test
+mantel.rtest(col.dists, startday.dists, nrepet = 9999)
+
+```
+
+Based on these results, we can accept the null hypothesis that these two matrices, spatial distance and startDayOfYear distance, are unrelated with alpha = .05. The observed correlation, r = 0.1659, suggests that the matrix entries are positively associated, although not significantly so. 
+
+
+#START HERE to look at the spatial autocorrelation 
+# Create a variogram to visualize spatial autocorrelation    
+<https://stats.idre.ucla.edu/r/faq/how-do-i-generate-a-variogram-for-spatial-data-in-r/>
+```{r}
+library(geoR)
+
+#How many lag intervals of what? 
+breaks <- seq(0,1.5,l=11)
+
+v1 <- variog(coords = )
 
 ```
 
