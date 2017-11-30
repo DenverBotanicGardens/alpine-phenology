@@ -4,6 +4,13 @@ author: "Michelle DePrenger-Levin"
 date: "January 27, 2017"
 output: html_document
 ---
+
+#Fresh start
+```{r, eval=FALSE}
+rm(list=ls())
+```
+
+
 load libraries   
 ```{r}
 library(RCurl)
@@ -21,11 +28,26 @@ library(Taxonstand)
 library(directlabels)
 ```
 
-#Fresh start
-Save the GDD variables - those take hours to calculate/extract
-```{r, eval=FALSE}
-rm(list=ls())
+###############################################
+###############################################
+###############################################
+# Start here after download from github - then skip to Figures and Tables
+```{r}
+merge.name.accpt <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
+
+merge.name.accpt.ALL <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccptALL.csv"))
+
+
+min1950GDDmax <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmax.csv"))
+
+min1950GDDmax.ALL <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmaxALL.csv"))
+
+bloom<-read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/QR_final_R_plant_climate_data_2.csv"))
+unbloom <- unique(bloom[,c(19,20,21,23)])
+
+
 ```
+
 
 Functions
 ```{r}
@@ -430,26 +452,14 @@ write.table(min1950GDDmax.ALL, "P:/hackathon/alpine-phenology/datasets/min1950GD
 ```
 
 
-# Start here after download from github
-```{r}
-merge.name.accpt <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccpt.csv"))
-
-merge.name.accpt.ALL <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/mergenameaccptALL.csv"))
-
-
-min1950GDDmax <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmax.csv"))
-
-min1950GDDmax.ALL <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/min1950GDDmaxALL.csv"))
-
-```
-
-
-
+#########################################################
+#########################################################
+#########################################################
 #Figures and Tables
 Figure 1a-first and mean, same
 ```{r}
 dpi = 1200
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 2a.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(earcol, aes(Year, Collections))+
   geom_bar(stat="identity")+
@@ -466,9 +476,9 @@ dev.off()
 ```
 
 
-Figure 1b
+Figure 2
 ```{r}
-tiff("Q:/Research/Projects/alpine-phenology/Fig. 1b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
+tiff("Q:/Research/Projects/alpine-phenology/Fig. 2b.tiff", width = 84, height = 75, compression="lzw", units = "mm", res=dpi)
 
 ggplot(allcol,  aes(x = Year, y = Collections))+
   geom_bar(stat="identity")+
@@ -600,6 +610,65 @@ unique(merge.name.accpt.ALL$Growth.Habit[merge.name.accpt.ALL$ID %in%
 
 ```
 
+segmented for climate
+```{r}
+#tmax
+lm.tmax.year <- lm(Avg_Hi~Year, unbloom)
+
+seg.tmax.year <- segmented(lm.tmax.year, seg.Z = ~Year,
+                                 psi=list(Year=c(1960)))
+
+summary(seg.tmax.year)
+slope(seg.tmax.year)$Year[1,1]
+slope(seg.tmax.year)$Year[2,1]
+
+dat.tmax.year <- data.frame(Year= unbloom$Year,
+                            Avg_Hi = broken.line(seg.tmax.year)$fit)
+
+#tmin
+lm.tmin.year <- lm(Avg_Lo~Year, unbloom)
+
+seg.tmin.year <- segmented(lm.tmin.year, seg.Z = ~Year,
+                                 psi=list(Year=c(1960)))
+
+summary(seg.tmin.year)
+slope(seg.tmin.year)$Year[1,1]
+slope(seg.tmin.year)$Year[2,1]
+
+dat.tmin.year <- data.frame(Year= unbloom$Year,
+                            Avg_Lo = broken.line(seg.tmin.year)$fit)
+
+#precip
+lm.Raw_Precip.year <- lm(Avg_Hi~Year, unbloom)
+
+seg.Raw_Precip.year <- segmented(lm.Raw_Precip.year, seg.Z = ~Year,
+                                 psi=list(Year=c(1960)))
+
+summary(seg.Raw_Precip.year)
+slope(seg.Raw_Precip.year)$Year[1,1]
+slope(seg.Raw_Precip.year)$Year[2,1]
+
+dat.Raw_Precip.year <- data.frame(Year= unbloom$Year,
+                            Raw_Precip = broken.line(seg.Raw_Precip.year)$fit)
+
+tmps <- read.csv(text = getURL("https://raw.githubusercontent.com/DenverBotanicGardens/alpine-phenology/master/datasets/tmps.csv"))
+
+totalGDD <- lapply(split(tmps, tmps$Year), function(year){
+  max(year$HDD)
+})
+totalGDDyr <- data.frame(Year=1981:2011, MaxGDD = do.call(rbind, totalGDD))
+
+
+#GDD 
+lm.GDD.year <- lm(MaxGDD~Year, totalGDDyr)
+seg.GDD.year <- segmented(lm.GDD.year, seg.Z=~Year,
+                          psi=list(Year=c(2000)))
+
+summary(seg.GDD.year)
+slope(seg.GDD.year)$Year[1,1]
+slope(seg.GDD.year)$Year[2,1]
+
+```
 
 Figure 3a
 ```{r}
@@ -608,6 +677,8 @@ tiff("Q:/Research/Projects/alpine-phenology/Fig. 3a.tiff", width = 84, height = 
 ggplot(unbloom, aes(Year,Avg_Hi))+
   stat_smooth(method="lm",colour = "dark grey", size = 0.5)+
   geom_point(shape=1, size=0.5)+
+  geom_line(data=dat.tmax.year, aes(Year,Avg_Hi),
+            linetype=6)+
 #  stat_smooth(geom = "smooth")+
   theme_bw()+
   xlab("Year")+
@@ -731,13 +802,17 @@ seg.first <- segmented(lm.first, seg.Z = ~ Year,
 seg.first.multiple <- segmented(lm.first, seg.Z = ~Year,
                                 psi=list(Year=c(1970,1990)))
 seg.ALL.multiple <- segmented(lm.ALL, seg.Z = ~Year,
-                                psi=list(Year=c(1968,1999))) #keep changing the dates
+                                psi=list(Year=c(1967,1999))) #keep changing the dates
 
 
 
 summary(seg.ALL)
 slope(seg.ALL)$Year[1,1]
 slope(seg.ALL)$Year[2,1]
+
+summary(seg.first)
+slope(seg.first)$Year[1,1]
+slope(seg.first)$Year[2,1]
 
 summary(seg.first)
 summary(seg.first.multiple)
@@ -924,15 +999,13 @@ seg.ALL.undef.tmax <- segmented(lm.tmax.ALL, seg.Z = ~Avg_Hi,
 
 summary(seg.ALL.undef.tmax)
 
+#Slope of second segment (the first plus the change)
+slope(seg.ALL.undef.tmax)$Avg_Hi[1,1]
+slope(seg.ALL.undef.tmax)$Avg_Hi[2,1]
+
+
 dat.ALL.undef.tmax <- data.frame(Avg_Hi = merge.name.accpt.ALL$Avg_Hi,
                                  startDayOfYear = broken.line(seg.ALL.undef.tmax)$fit)
-
-#Slope of second segment (the first plus the change)
-slope(seg.ALL.undef.tmax)$Year[1,1]
-slope(seg.ALL.undef.tmax)$Year[2,1]
-
-summary(seg.first.two)
-
 
 
 ggplot(merge.name.accpt.ALL, aes(Avg_Hi, startDayOfYear))+
@@ -1015,8 +1088,13 @@ seg.All.one.tmin <- segmented(lm.tmin.ALL, seg.Z = ~Avg_Lo,
                               psi=list(Avg_Lo=c(mean(merge.name.accpt.ALL$Avg_Lo))))
 
 summary(seg.All.one.tmin)
-#summary(seg.two.one.tmin)
+slope(seg.All.one.tmin)$Avg_Lo[1,1]
+slope(seg.All.one.tmin)$Avg_Lo[2,1]
+
+
 summary(seg.first.one.tmin)
+slope(seg.first.one.tmin)$Avg_Lo[1,1]
+slope(seg.first.one.tmin)$Avg_Lo[2,1]
 
 
 #dat.first.two.tmin <- data.frame(Avg_Lo = merge.name.accpt$Avg_Lo,
@@ -1035,8 +1113,9 @@ slope(seg.All.one.tmin)$Avg_Lo[1,1]+slope(seg.All.one.tmin)$Avg_Lo[2,1]
 
 
 #Slope of second and third segments
-slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]
-slope(seg.first.two)$Year[1,1]+slope(seg.first.two)$Year[2,1]+slope(seg.first.two)$Year[3,1]
+slope(seg.first.two)$Avg_Lo[1,1]
+slope(seg.first.two)$Avg_Lo[2,1]
+slope(seg.first.two)$Avg_Lo[3,1]
 
 
 ggplot(merge.name.accpt, aes(Avg_Lo, startDayOfYear))+
@@ -1116,7 +1195,8 @@ seg.first.Raw_Precip <- segmented(lm.first.Raw_Precip, seg.Z = ~ Raw_Precip,
 #slope(seg.ALL.Raw_Precip)$Raw_Precip[1,1]+slope(seg.ALL.Raw_Precip)$Raw_Precip[2,1]
 
 summary(seg.first.Raw_Precip)
-slope(seg.first.Raw_Precip)$Raw_Precip[1,1]+slope(seg.first.Raw_Precip)$Raw_Precip[2,1]
+slope(seg.first.Raw_Precip)$Raw_Precip[1,1]
+slope(seg.first.Raw_Precip)$Raw_Precip[2,1]
 
 #dat.ALL.rawprecip <- data.frame(Raw_Precip = merge.name.accpt.ALL$Raw_Precip,
 #                      startDayOfYear  = broken.line(seg.ALL.Raw_Precip)$fit)
@@ -1359,7 +1439,27 @@ summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
 
 #startDayOfYear by GDD segmented
 ```{r}
-lm.gdd.first <- lm(startDayOfYear~M, min1950GDDmax)
+lm.gdd.first <- lm(startDayOfYear~MaxGDD, min1950GDDmax)
+lm.gdd.All <- lm(startDayOfYear~MaxGDD, min1950GDDmax.ALL)
+
+meangdd <- mean(min1950GDDmax$MaxGDD)
+min(min1950GDDmax$MaxGDD) #1201.102
+max(min1950GDDmax$MaxGDD) #1692.674
+meangddall <- mean(min1950GDDmax.ALL$MaxGDD)
+
+seg.first.gdd <- segmented(lm.gdd.first, seg.Z=~MaxGDD,
+                           psi=list(MaxGDD=c(meangdd)))
+
+seg.All.gdd <- segmented(lm.gdd.All, seg.Z=~MaxGDD,
+                         psi=list(MaxGDD=c(1300)), 
+                             control=seg.control(stop.if.error=FALSE))
+
+dat.first.gdd <- data.frame(MaxGDD = min1950GDDmax$MaxGDD,
+                            startDayOfYear = broken.line(seg.first.gdd)$fit)
+
+summary(seg.first.gdd)
+slope(seg.first.gdd)$MaxGDD[1,1]
+slope(seg.first.gdd)$MaxGDD[2,1]
 
 ```
 
@@ -1372,10 +1472,23 @@ ggplot()+
              shape=17, size=0.5, colour="black")+
   geom_point(data=min1950GDDmax.ALL, aes(MaxGDD, startDayOfYear),
              shape=20, size=0.25, colour="dark gray")+
+  
+  
   geom_smooth(data=min1950GDDmax, aes(MaxGDD, startDayOfYear),
-              method="lm",colour = "black", size = 0.75, linetype=5)+
+              method="lm",colour = "gray", size = 1)+
   geom_smooth(data=min1950GDDmax.ALL, aes(MaxGDD, startDayOfYear),
-              method="lm",colour = "black", size = 0.75)+  
+              method="lm",colour = "gray", size = 1)+  
+  
+  geom_smooth(data=min1950GDDmax, aes(MaxGDD, startDayOfYear),
+              method="lm",colour = "black", size = 0.5, linetype=5)+
+  geom_smooth(data=min1950GDDmax.ALL, aes(MaxGDD, startDayOfYear),
+              method="lm",colour = "black", size = 0.5)+  
+  
+  geom_line(data=dat.first.gdd, aes(MaxGDD, startDayOfYear),
+            size = 0.75, colour="white")+
+  geom_line(data=dat.first.gdd, aes(MaxGDD, startDayOfYear),
+            size = 0.5, colour="black")+
+  
   theme_bw()+
   ylab("Ordinal Date")+
   xlab("Annual maximum growing degree days")+
@@ -1383,8 +1496,6 @@ ggplot()+
         axis.title=element_text(size=7))
 
 dev.off()
-
-summary(lm(startDayOfYear~MaxGDD, data = min1950GDDmax))
 
 ```
 
